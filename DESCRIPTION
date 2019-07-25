@@ -1,0 +1,26 @@
+Package: IFAA
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "First",
+           family = "Last",
+           role = c("aut", "cre"),
+           email = "first.last@example.com",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+License: What license it uses
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
+Depends:
+  glmnet (>= 2.0-16),
+  picasso (>= 1.2.0),
+  expm (>= 0.999-3),
+  foreach (>= 1.4.3),
+  snow (>= 0.4-2),
+  doSNOW (>= 1.0.15),
+  rlecuyer (>= 0.3-3),
+  Matrix (>= 1.2-14),
+  HDCI (>= 1.0-2),
+  doParallel (>= 1.0.11),
+  future (>= 1.12.0)
