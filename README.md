@@ -8,9 +8,11 @@
  data(dataC)
  
  results=IFAA(Microbdata=dataM,CovData=dataC,linkIDname="id",
- 
-  testCov=c("v1","v2"),ctrlCov=c("v3"),nRef=2,
+      testCov=c("v1","v2"),ctrlCov=c("v3"),nRef=40,
+      nPermu=50,paraJobs=NULL,
+      reguMethod="mcp",fwerRate=0.2,bootB=500)
       
-  refTaxa=c("rawCount1"),nPermu=2,paraJobs=NULL,
-      
-  reguMethod="mcp",fwerRate=0.3,bootB=3)
+  It takes about 21 minutes to finish the example analysis on a 8-core machine.
+  Once the analysis is done, you extract the regression coefficients along with 95% confidence intervals using this command:
+  results$analysisResults$estByCovList
+  
