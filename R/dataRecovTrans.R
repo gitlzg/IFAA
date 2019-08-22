@@ -72,7 +72,7 @@ dataRecovTrans=function(
     xInRegres=list()
     for (j in 1:lengthTwoList){
       i=twoList[j]
-      xInRegres[[i]]=t(kronecker(Diagonal(nNorm),xDataWithInter[i,]))
+      xInRegres[[i]]=as(t(as.matrix(kronecker(Diagonal(nNorm),xDataWithInter[i,]))),"sparseMatrix")
     }
     rm(xDataWithInter)
 
@@ -128,7 +128,7 @@ dataRecovTrans=function(
   xInRegres=list()
   for (j in 1:lengthTwoList){
     i=twoList[j]
-    xInRegres[[i]]=t(kronecker(Diagonal(nNorm),xDataWithInter[i,]))
+    xInRegres[[i]]=as(t(as.matrix(kronecker(Diagonal(nNorm),xDataWithInter[i,]))),"sparseMatrix")
   }
 
   rm(xDataWithInter)
