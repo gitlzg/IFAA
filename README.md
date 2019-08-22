@@ -30,6 +30,6 @@ bootB=500)
       
 # It takes about 21 minutes to finish the example analysis on a 8-core machine.
   
-#  Once the analysis is done, you extract the regression coefficients along with 95% confidence intervals using this command:
+# Once the analysis is done, you can extract the regression coefficients along with 95% confidence intervals using this command:
 results$analysisResults$estByCovList
   
