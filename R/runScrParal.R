@@ -2,18 +2,19 @@
 ##' @export
 
 
+
 runScrParal=function(
   method=c("mcp"),
   data,
   testCovInd,
+  testCovInOrder,
+  testCovInNewNam,
   nRef,
   paraJobs,
   doPermut,
   permutY=F,
   nPermu,
   refTaxa=NULL,
-  independence,
-  identity,
   allFunc=allFunc,
   refReadsThresh,
   SDThresh,
@@ -26,11 +27,13 @@ runScrParal=function(
   results=list()
 
   # load data info
-  basicInfo=dataInfo(data=data,refReadsThresh=refReadsThresh,
+  basicInfo=dataInfo(data=data,qualifyRefTax=T,
+                     refReadsThresh=refReadsThresh,
                      SDThresh=SDThresh,SDquantilThresh=SDquantilThresh,
                      balanceCut=balanceCut,Mprefix=Mprefix,
                      covsPrefix=covsPrefix,
                      binPredInd=binPredInd)
+
   taxaNames=basicInfo$taxaNames
   nTaxa=basicInfo$nTaxa
   nPredics=basicInfo$nPredics
@@ -40,9 +43,6 @@ runScrParal=function(
   nSub=basicInfo$nSub
   nSubNoReads=basicInfo$nSubNoReads
   maxTaxaNameNum=basicInfo$maxTaxaNameNum
-  EName=paste0(covsPrefix,1)
-  EVar=data[,EName]
-  EVarPermut=sample(EVar)
   rm(basicInfo)
   gc()
 
@@ -58,7 +58,7 @@ runScrParal=function(
     }
     set.seed(3)
     refTaxa=sample(taxaNames,nRef)
-    }
+  }
 
   # overwrite nRef if the reference taxon is specified
   nRef=length(refTaxa)
@@ -67,134 +67,118 @@ runScrParal=function(
   #
   screen1=originDataScreen(data=data,testCovInd=testCovInd,
                            nRef=nRef,refTaxa=refTaxa,paraJobs=paraJobs,
-                           independence=independence,identity=identity,
                            method=method,allFunc=allFunc,Mprefix=Mprefix,
                            covsPrefix=covsPrefix,
                            binPredInd=binPredInd)
 
   results$countOfSelecForAPred=screen1$countOfSelecForAPred
+  yTildLongList=screen1$yTildLongList
   results$testCovCountMat=screen1$testCovCountMat
-  results$MCPoriginSuccCV=screen1$MCPoriginSuccCV
-  results$nCV=screen1$nCV
   rm(screen1)
-
   gc()
 
   #
   ## start to run permutation screen
   #
   if(doPermut){
+    startT=proc.time()[3]
     cat("start to run permutation","\n")
     # permut the exposure variable
-    set.seed(4)
+    set.seed(40)
     permutOrder=lapply(rep(nSub,nPermu),sample)
-
-    totNumOfLoops=nPermu*nRef
     screenStartTime = proc.time()[3]
+    refResu0=as(matrix(0,nrow=nPredics*nTaxa,ncol=1),"sparseMatrix")
+
+    EName=testCovInNewNam
+    EVar=data[,EName,drop=F]
+
+    totNumOfLoops=nRef*nPermu
+
     if(length(paraJobs)==0){
       availCores=availableCores()
-      if(is.numeric(availCores))paraJobs=max(1,availableCores()-1)
+      if(is.numeric(availCores))paraJobs=max(1,availableCores()-2)
       if(!is.numeric(availCores))paraJobs=1
     }
-
     c2 <- makeCluster(paraJobs)
 
     clusterExport(c2, varlist=allFunc)
-
     clusterSetupRNGstream(cl=c2,seed=2)
 
     registerDoSNOW(c2)
-
     refResu=foreach (i=1:totNumOfLoops,.multicombine=T,
                      .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
                      .errorhandling="pass") %dopar% {
-                       permut.i=1+i%%nPermu
-                       permutX1=EVar[permutOrder[[permut.i]]]
+                       #for(j in 1:nRef){
+                       permut.i=1+(i-1)%%nPermu
+                       permutX1=EVar[permutOrder[[permut.i]],,drop=F]
                        newData=cbind(data[,!(colnames(data)%in%EName)],permutX1)
                        rm(permutX1)
-                       colnames(newData)[ncol(newData)]=EName
+                       colnames(newData)[(ncol(newData)-length(EName)+1):ncol(newData)]=EName
+
                        ref.i=1+floor((i-1)/nPermu)
                        ii=which(taxaNames==refTaxa[ref.i])
-                       if(permutY){
-                         dataForEst=dataRecovTrans(data=data,independence=independence,
-                                                   identity=identity,ref=refTaxa[ref.i],
-                                                   Mprefix=Mprefix,covsPrefix=covsPrefix,
-                                                   binPredInd=binPredInd)
-                       }
-                       else {
-                         dataForEst=dataRecovTrans(data=newData,independence=independence,
-                                                   identity=identity,ref=refTaxa[ref.i],
-                                                   Mprefix=Mprefix,covsPrefix=covsPrefix,
-                                                   binPredInd=binPredInd)
-                       }
-                       x=as(dataForEst$xTildalong,"sparseMatrix")
-                       y=as(dataForEst$UtildaLong,"sparseVector")
-                       rm(dataForEst)
+
+                       xLong.i=dataRecovTrans(data=newData,ref=refTaxa[ref.i],
+                                              Mprefix=Mprefix,covsPrefix=covsPrefix,xOnly=T)
+                       xLongTild.i=xLong.i$xTildalong
+                       rm(newData,xLong.i)
                        gc()
                        if(method=="lasso") {
-                         Penal.i=runGlmnet(x=x,y=y,nPredics=nPredics)
-                         MCPpermuSuccCV=0
+                         Penal.i=runGlmnet(x=xLongTild.i,y=yTildLongList[[ref.i]],nPredics=nPredics)
                        }
-
                        if(method=="mcp") {
-                         Penal.i=runPicasso(x=x,y=y,nPredics=nPredics,method="mcp",
-                                            permutY=permutY,allFunc=allFunc)
-                         MCPpermuSuccCV=Penal.i$successCV
+                         Penal.i=runPicasso(x=xLongTild.i,y=yTildLongList[[ref.i]],nPredics=nPredics,
+                                            method="mcp",permutY=permutY)
                        }
-                       rm(x,y)
-                       gc()
-
-                       if(is.null(Penal.i)) {
-                         Penal.i$betaNoInt=as(rep(0,nNorm),"sparseVector")
-                       }
+                       rm(xLongTild.i)
                        BetaNoInt.i=as(Penal.i$betaNoInt,"sparseVector")
                        rm(Penal.i)
                        gc()
-
                        selection.i=as(rep(0,nAlphaSelec),"sparseVector")
-
                        if (ii==1){
                          selection.i[-seq(1,nPredics)]=as(BetaNoInt.i!=0,"sparseVector")
                        }
                        if (ii==nTaxa) {
-                         selection.i[-seq((nAlphaSelec-nPredics-1),nAlphaSelec)]=as(BetaNoInt.i!=0,"sparseVector")
+                         selection.i[-seq((nAlphaSelec-nPredics+1),nAlphaSelec)]=as(BetaNoInt.i!=0,"sparseVector")
                        }
                        if ((ii>1) & (ii<nTaxa)) {
                          selection.i[1:(nPredics*(ii-1))]=as(BetaNoInt.i[1:(nPredics*(ii-1))]!=0,"sparseVector")
                          selection.i[(nPredics*ii+1):nAlphaSelec]=as(BetaNoInt.i[(nPredics*(ii-1)+1):nAlphaNoInt]!=0,"sparseVector")
                        }
                        rm(BetaNoInt.i)
-                       gc()
-
                        # create return vector
-                       recturnVec=as(rep(0,(nAlphaSelec+1)),"sparseVector")
-                       recturnVec[1]=MCPpermuSuccCV
-                       recturnVec[-1]=selection.i
+                       recturnVec=as(rep(0,nAlphaSelec),"sparseVector")
+                       recturnVec=selection.i
                        rm(selection.i)
                        return(recturnVec)
                      }
+    rm(yTildLongList)
     registerDoSEQ()
     stopCluster(c2)
-    rm(data,permutOrder,EVar)
     gc()
 
     refResu<- lapply(refResu, as, "sparseMatrix")
     refResu=do.call(cbind, refResu)
 
-    MCPpermuSuccCV=t(matrix(refResu[1,],nrow=nPermu,ncol=nRef))
+    rm(data,permutOrder,EVar)
+
+    endT=proc.time()[3]
+
+    cat("Permutation done and took", (endT-startT)/60,"minutes","\n")
 
     # obtain the maximum vector
-    permuColInd=1+seq(totNumOfLoops)%%nPermu
+    permuColInd=1+seq(totNumOfLoops-1)%%nPermu
     permutResuMat=matrix(NA,nrow=nTaxa,ncol=nPermu)
     permutTestCovList=list()
     nTestCov=length(testCovInd)
+
     for(i in 1:nPermu){
-      allCovCountMat=as(matrix(Matrix::rowSums(refResu[-1,(permuColInd==i),drop=F]),nrow=nPredics),"sparseMatrix")
-      testCovCountMat=allCovCountMat[testCovInd,,drop=F]
-      permutResuMat[,i]=Matrix::colSums(testCovCountMat)
-      if(nTestCov>1)permutTestCovList[[i]]=testCovCountMat
+      allCovCountMat.i=as(matrix(Matrix::rowSums(refResu[,(permuColInd==i),drop=F]),nrow=nPredics),"sparseMatrix")
+      testCovCountMat.i=allCovCountMat.i[testCovInd,,drop=F]
+      permutResuMat[,i]=Matrix::colSums(testCovCountMat.i)
+      if(nTestCov>1)permutTestCovList[[i]]=testCovCountMat.i
     }
-    rm(allCovCountMat,testCovCountMat)
+    rm(allCovCountMat.i,testCovCountMat.i)
 
     nTestCov=length(testCovInd)
 
@@ -206,22 +190,20 @@ runScrParal=function(
     results$nTestCov=nTestCov
 
     if(nTestCov>1){
-      MatTestCovByTaxa=matrix(NA,nrow=nTestCov,ncol=nPermu)
-      permutTestCovByTaxa=list()
-      for(k in 1:nTaxa){
+      MaxMatTestCovByPermu=matrix(NA,nrow=nTestCov,ncol=nPermu)
+      for(k in 1:nTestCov){
         for(i in 1:nPermu){
-          MatTestCovByTaxa[,i]=permutTestCovList[[i]][,k]
+          MaxMatTestCovByPermu[k,i]=max(permutTestCovList[[i]][k,])
         }
-        permutTestCovByTaxa[[k]]=MatTestCovByTaxa
       }
-      rm(MatTestCovByTaxa)
+      rm(permutTestCovList)
 
-      results$permutTestCovByTaxa=permutTestCovByTaxa
-      rm(permutTestCovByTaxa)
+      results$MaxMatTestCovByPermu=MaxMatTestCovByPermu
+      rm(MaxMatTestCovByPermu)
     }
 
     # obtain the null binomial distribution for each taxa
-    totSeleCount=Matrix::rowSums(refResu[-1,,drop=F])
+    totSeleCount=Matrix::rowSums(refResu)
     rm(refResu)
     binomPar=totSeleCount/totNumOfLoops
     rm(totSeleCount,totNumOfLoops)
@@ -229,15 +211,13 @@ runScrParal=function(
     results$maxVec=maxVec
     rm(maxVec)
 
-    results$MCPpermuSuccCV=MCPpermuSuccCV
-    rm(MCPpermuSuccCV)
     results$binomPar=binomPar
     rm(binomPar)
     results$nTaxa=nTaxa
     results$nPredics=nPredics
   }
+
   results$taxaNames=taxaNames
   rm(taxaNames)
-
   return(results)
 }

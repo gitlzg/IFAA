@@ -9,7 +9,7 @@ groupBetaToFullBeta=function(
 ){
 
   results=list()
-
+  unSelectList=unique(sort(unSelectList))
   nUnSelec=length(unSelectList)
   nAlphaSelec=nTaxa*nPredics
   nNewBetaNoInt=length(newBetaNoInt)
@@ -71,4 +71,3 @@ groupBetaToFullBeta=function(
   results$finalBeta=finalBeta
   return(results)
 }
-

@@ -9,8 +9,6 @@ originDataScreen=function(
   paraJobs,
   lambda=NULL,
   refTaxa,
-  independence=T,
-  identity=T,
   allFunc,
   Mprefix,
   covsPrefix,
@@ -22,6 +20,7 @@ originDataScreen=function(
   basicInfo=dataInfo(data=data,Mprefix=Mprefix,
                      covsPrefix=covsPrefix,
                      binPredInd=binPredInd)
+
   taxaNames=basicInfo$taxaNames
   nTaxa=basicInfo$nTaxa
   nPredics=basicInfo$nPredics
@@ -41,10 +40,12 @@ originDataScreen=function(
 
   # overwrite nRef if the reference taxon is specified
   nRef=length(refTaxa)
+
+  startT=proc.time()[3]
   cat("start Original screen","\n")
   if(length(paraJobs)==0){
     availCores=availableCores()
-    if(is.numeric(availCores))paraJobs=max(1,availableCores()-1)
+    if(is.numeric(availCores))paraJobs=max(1,availableCores()-2)
     if(!is.numeric(availCores))paraJobs=1
   }
 
@@ -60,94 +61,74 @@ originDataScreen=function(
   scr1Resu=foreach(i=1:nRef,.multicombine=T,
                    .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
                    .errorhandling="pass") %dopar% {
-                      ii=which(taxaNames==refTaxa[i])
-
-                     dataForEst=dataRecovTrans(data=data,independence=independence,
-                                               identity=identity,ref=refTaxa[i],
-                                               Mprefix=Mprefix,covsPrefix=covsPrefix,
-                                               binPredInd=binPredInd)
-
-                     x=as(dataForEst$xTildalong,"sparseMatrix")
-                     y=as(dataForEst$UtildaLong,"sparseVector")
+                     #for(i in 1:nRef) {
+                     ii=which(taxaNames==refTaxa[i])
+                     dataForEst=dataRecovTrans(data=data,ref=refTaxa[i],Mprefix=Mprefix,
+                                               covsPrefix=covsPrefix)
+                     xTildLongTild.i=dataForEst$xTildalong
+                     yTildLongTild.i=dataForEst$UtildaLong
                      rm(dataForEst)
-                     if(method=="lasso") {
-                       Penal.i=runGlmnet(x=x,y=y,nPredics=nPredics)
-                       MCPoriginSuccCV=0
-                       nCV=0
-                     }
-
-                     if(method=="mcp") {
-                       Penal.i=runPicasso(x=x,y=y,lambda=lambda,nPredics=nPredics,method="mcp",
-                                          permutY=F,allFunc=allFunc)
-                       MCPoriginSuccCV=Penal.i$successCV
-                       nCV=Penal.i$nCV
-                     }
-
-                     rm(x,y)
                      gc()
-
-                     if(is.null(Penal.i)) {
-                       Penal.i$betaNoInt=as(rep(0,nNorm),"sparseVector")
+                     if(method=="lasso") {
+                       Penal.i=runGlmnet(x=xTildLongTild.ig,y=yTildLongTild.i,nPredics=nPredics)
                      }
+                     if(method=="mcp") {
+                       Penal.i=runPicasso(x=xTildLongTild.i,y=yTildLongTild.i,
+                                          lambda=lambda,nPredics=nPredics,
+                                          method="mcp",permutY=F)
+                     }
+                     rm(xTildLongTild.i)
                      BetaNoInt.i=as(Penal.i$betaNoInt,"sparseVector")
-                     lambda=Penal.i$lambda
                      rm(Penal.i)
                      gc()
-
                      selection.i=as(rep(0,nAlphaSelec),"sparseVector")
-                     BetaNoIntWithRef.i=as(rep(0,nAlphaSelec),"sparseVector")
-
                      if (ii==1){
                        selection.i[-seq(1,nPredics)]=as(BetaNoInt.i!=0,"sparseVector")
-                       BetaNoIntWithRef.i[-seq(1,nPredics)]=BetaNoInt.i
                      }
                      if (ii==nTaxa) {
-                       selection.i[-seq((nAlphaSelec-nPredics-1),nAlphaSelec)]=as(BetaNoInt.i!=0,"sparseVector")
-                       BetaNoIntWithRef.i[-seq((nAlphaSelec-nPredics-1),nAlphaSelec)]=BetaNoInt.i
+                       selection.i[-seq((nAlphaSelec-nPredics+1),nAlphaSelec)]=as(BetaNoInt.i!=0,"sparseVector")
                      }
                      if ((ii>1) & (ii<nTaxa)) {
                        selection.i[1:(nPredics*(ii-1))]=as(BetaNoInt.i[1:(nPredics*(ii-1))]!=0,"sparseVector")
                        selection.i[(nPredics*ii+1):nAlphaSelec]=as(BetaNoInt.i[(nPredics*(ii-1)+1):nAlphaNoInt]!=0,"sparseVector")
-                       BetaNoIntWithRef.i[1:(nPredics*(ii-1))]=BetaNoInt.i[1:(nPredics*(ii-1))]
-                       BetaNoIntWithRef.i[(nPredics*ii+1):nAlphaSelec]=BetaNoInt.i[(nPredics*(ii-1)+1):nAlphaNoInt]
                      }
                      rm(BetaNoInt.i)
-                     gc()
-
                      # create return vector
-                     recturnVec=as(rep(0,(2*nAlphaSelec+3)),"sparseVector")
-                     recturnVec[1]=nCV
-                     recturnVec[2]=MCPoriginSuccCV
-                     recturnVec[3]=lambda
-                     recturnVec[4:(nAlphaSelec+3)]=selection.i
-                     recturnVec[(nAlphaSelec+4):(2*nAlphaSelec+3)]=BetaNoIntWithRef.i
-                     rm(selection.i,BetaNoIntWithRef.i)
-                      return((recturnVec))
+                     recturnlist=list()
+                     recturnlist[[1]]=selection.i
+                     recturnlist[[2]]=yTildLongTild.i
+                     rm(selection.i,yTildLongTild.i)
+                     return(recturnlist)
                    }
   registerDoSEQ()
   stopCluster(c1)
   gc()
 
-  cat("Original parallel screen done","\n")
+  endT=proc.time()[3]
 
-  scr1Resu<- lapply(scr1Resu, as, "sparseMatrix")
-  scr1Resu=do.call(cbind, scr1Resu)
+  cat("Original screen done and took",(endT-startT)/60,"minutes","\n")
+
+  selecList=list()
+  for(i in 1:nRef){
+    selecList[[i]]=scr1Resu[[i]][[1]]
+  }
+
+  results$yTildLongList=list()
+  for(i in 1:nRef){
+    results$yTildLongList[[i]]=scr1Resu[[i]][[2]]
+  }
+
+  selecList<- lapply(selecList, as, "sparseMatrix")
+  scr1Resu=do.call(cbind, selecList)
+  rm(selecList)
 
   # create count of for each predictor,each row is the count
   # of selection for a predictor
 
-  countOfSelecForAPred=matrix(Matrix::rowSums(scr1Resu[4:(nAlphaSelec+3),,drop=F]),nrow=nPredics)
+  countOfSelecForAPred=matrix(Matrix::rowSums(scr1Resu[1:nAlphaSelec,,drop=F]),nrow=nPredics)
   testCovCountMat=countOfSelecForAPred[testCovInd,,drop=F]
   countOfSelecForAPred=as(matrix(Matrix::colSums(testCovCountMat),nrow=1),"sparseMatrix")
-  betaAveOverRef=matrix(Matrix::rowSums(scr1Resu[(nAlphaSelec+4):(2*nAlphaSelec+3),,drop=F]),nrow=nPredics)
-
-  rm(testCovInd)
-
-  results$MCPoriginSuccCV=scr1Resu[2,]
-  results$nCV=scr1Resu[1,1]
-  results$lambda=scr1Resu[3,]
-
-  rm(scr1Resu)
+  rm(scr1Resu,testCovInd)
   gc()
 
   colnames(countOfSelecForAPred)=taxaNames
@@ -158,8 +139,5 @@ originDataScreen=function(
   rm(testCovCountMat)
   results$countOfSelecForAPred=countOfSelecForAPred
   rm(countOfSelecForAPred)
-  results$betaAveOverRef=betaAveOverRef
-  rm(betaAveOverRef)
   return(results)
 }
-

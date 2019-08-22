@@ -5,14 +5,14 @@ getScrResu=function(
   method,
   data,
   testCovInd,
+  testCovInOrder,
+  testCovInNewNam,
   nPermu,
   doPermut=T,
   nRef,
   paraJobs,
   refTaxa=NULL,
   fwerRate,
-  independence,
-  identity,
   goodIndeCutPerc=0.33,
   allFunc=allFunc,
   refReadsThresh,
@@ -26,90 +26,130 @@ getScrResu=function(
   results=list()
 
   # run permutation
-  scrParal=runScrParal(data=data,testCovInd=testCovInd,nRef=nRef,
+  scrParal=runScrParal(data=data,testCovInd=testCovInd,
+                       testCovInOrder=testCovInOrder,
+                       testCovInNewNam=testCovInNewNam,nRef=nRef,
                        nPermu=nPermu,doPermut=doPermut,paraJobs=paraJobs,
-                       refTaxa=refTaxa,independence=independence,identity=identity,
-                       method=method,allFunc=allFunc,
+                       refTaxa=refTaxa,method=method,allFunc=allFunc,
                        refReadsThresh=refReadsThresh,SDThresh=SDThresh,
                        SDquantilThresh=SDquantilThresh,balanceCut=balanceCut,
                        Mprefix=Mprefix,covsPrefix=covsPrefix,binPredInd=binPredInd)
 
-  selecMat=scrParal$countOfSelecForAPred
-  testCovCountMat=scrParal$testCovCountMat
+  selecCountOverall=scrParal$countOfSelecForAPred
+  selecCountMatIndv=scrParal$testCovCountMat
   taxaNames=scrParal$taxaNames
   goodRefTaxaCandi=scrParal$goodRefTaxaCandi
+
   nTaxa=scrParal$nTaxa
   nPredics=scrParal$nPredics
   nTestCov=scrParal$nTestCov
-  results$selecMat=selecMat
   binomPar=scrParal$binomPar
   maxVec=scrParal$maxVec
   results$maxVec=maxVec
-  permutTestCovByTaxa=scrParal$permutTestCovByTaxa
+  MaxMatTestCovByPermu=scrParal$MaxMatTestCovByPermu
   rm(scrParal)
   gc()
 
-  #print("maxVec:")
-  #print(maxVec)
-
-  results$taxaVecLeastCount=(selecMat[1,]==min(selecMat[1,]))+0
-  results$taxaWithLeastCount=selecMat[,(selecMat[1,]==min(selecMat[1,]))]
-
-  taxaLeastCountQualified=results$taxaWithLeastCount[names(results$taxaWithLeastCount)%in%goodRefTaxaCandi]
-
-  if(length(taxaLeastCountQualified)>0){
-    nObsNonZero=apply(data[,names(taxaLeastCountQualified),drop=F]>0,2,sum)
-    results$taxaWithLeastCountMostNon0=taxaLeastCountQualified[tail(which(nObsNonZero==max(nObsNonZero)),n=1)]
-  }
-  if(length(taxaLeastCountQualified)==0){
-    nObsNonZero=apply(data[,names(results$taxaWithLeastCount),drop=F]>0,2,sum)
-    results$taxaWithLeastCountMostNon0=results$taxaWithLeastCount[tail(which(nObsNonZero==max(nObsNonZero)),n=1)]
-    cat("Final reference taxon was not qualified, taxon with least selection times was used","\n")
-  }
-  rm(data)
-
-  results$refTaxonQualified=length(taxaLeastCountQualified)>0
-
-  goodRefWithCount=selecMat[,(colnames(selecMat)%in%goodRefTaxaCandi)]
-  results$goodRefLeastCount=names(goodRefWithCount)[tail(which(goodRefWithCount==min(goodRefWithCount)),n=1)]
-
   if(length(refTaxa)>0){nRef=length(refTaxa)}
-
   if(doPermut){
     # control family wise error rate
-    fwerCut=quantile(maxVec,probs=(1-fwerRate))
-    results$selecTaxaFWER=(selecMat[1,]>=fwerCut)+0
+    originFwerCut=quantile(maxVec,probs=(1-fwerRate))
+    fwerCut=originFwerCut
+
+    results$twoMeanUsed=0
+
+    if(fwerCut<=min(selecCountOverall)){
+      # use two mean clustering
+      twoMeanClusResu=twoMeanClus(matrix=selecCountOverall,nRef=nRef)
+      fwerCut=twoMeanClusResu$twoMeanCut
+      rm(twoMeanClusResu)
+      if(fwerCut==0)fwerCut=0.1
+      results$twoMeanUsed=1
+    }
+    results$fwerCut=fwerCut
+
+    results$selecTaxaFWER=as((selecCountOverall>=fwerCut)+0,"sparseVector")
     rm(maxVec)
 
-    if(nTestCov==1)results$selecMatAll=matrix(results$selecTaxaFWER,nrow=1)
-
-    if(nTestCov>1){
-      fwerCutForAll=matrix(NA,nrow=nTestCov,ncol=nTaxa)
-      for(i in 1:nTestCov){
-        for(j in 1:nTaxa){
-          fwerCutForAll[i,j]=quantile(permutTestCovByTaxa[[j]][i,],probs=(1-fwerRate))
-        }
-      }
-
-      results$selecMatAll=(testCovCountMat>=fwerCutForAll)+0
-      results$testCovCountMat=testCovCountMat
-      results$fwerCutForAll=fwerCutForAll
-      rm(permutTestCovByTaxa,testCovCountMat,fwerCutForAll)
+    if(nTestCov==1){
+      results$selecMatIndv=matrix(results$selecTaxaFWER,nrow=1)
+      results$fwerCutIndv=fwerCut
     }
 
-    goodIndpCut=quantile(selecMat[1,(selecMat[1,]<=fwerCut)],prob=goodIndeCutPerc)
-    taxaLessGoodCut=selecMat[1,(selecMat[1,]<=goodIndpCut)]
-    results$taxaNames=taxaNames
+    if(nTestCov>1){
+      fwerCutIndv=vector()
+      for(i in 1:nTestCov){
+        originFwerCut.i=quantile(MaxMatTestCovByPermu[i,],probs=(1-fwerRate))
+        fwerCutIndv[i]=originFwerCut.i
+        if(originFwerCut.i<=min(selecCountMatIndv[i,])){
+          # use two mean clustering
+          twoMean=twoMeanClus(matrix=selecCountMatIndv[i,,drop=F],nRef=nRef)
+          fwerCutIndv[i]=twoMean$twoMeanCut
+          if(twoMean$twoMeanCut==0)fwerCutIndv[i]=0.1
+          rm(twoMean,originFwerCut.i)
+        }
+      }
+      results$selecMatIndv=as((selecCountMatIndv>=fwerCutIndv)+0,"sparseMatrix")
+      results$selecCountMatIndv=as(selecCountMatIndv,"sparseMatrix")
+      results$fwerCutIndv=as(fwerCutIndv,"sparseVector")
+      results$MaxMatTestCovByPermu=as(MaxMatTestCovByPermu,"sparseMatrix")
+      rm(selecCountMatIndv,fwerCutIndv,MaxMatTestCovByPermu)
+    }
 
-    rm(taxaNames)
+    goodIndpCut=quantile(selecCountOverall[1,(selecCountOverall[1,]<=fwerCut)],prob=goodIndeCutPerc)
+    taxaLessGoodCut=selecCountOverall[1,(selecCountOverall[1,]<=goodIndpCut)]
+    taxaLessFWERCut=selecCountOverall[1,(selecCountOverall[1,]<fwerCut)]
+    results$taxaNames=taxaNames
+    results$selecCountOverall=selecCountOverall
+    rm(taxaNames,selecCountOverall)
 
     goodIndpRefTaxWithCount=taxaLessGoodCut[(names(taxaLessGoodCut)%in%goodRefTaxaCandi)]
-    results$goodIndpRefTaxLeastCount=names(tail(goodIndpRefTaxWithCount[goodIndpRefTaxWithCount==min(goodIndpRefTaxWithCount)],n=1))
+    if(length(goodIndpRefTaxWithCount)==0){
+      results$goodIndpRefTaxLeastCount=NULL
+    } else {
+      results$goodIndpRefTaxLeastCount=names(tail(goodIndpRefTaxWithCount[goodIndpRefTaxWithCount==min(goodIndpRefTaxWithCount)],n=1))
+    }
 
-    rm(goodRefTaxaCandi,taxaLessGoodCut)
-    results$fwerCut=fwerCut
+    goodIndpRefTaxFWERcut=taxaLessFWERCut[(names(taxaLessFWERCut)%in%goodRefTaxaCandi)]
+    results$goodIndpRefTaxFWERcut=goodIndpRefTaxFWERcut
+    if(length(goodIndpRefTaxFWERcut)==0){
+      results$goodIndpRefTaxFWERcutLeastCount=NULL
+    } else {
+      results$goodIndpRefTaxFWERcutLeastCount=names(tail(goodIndpRefTaxFWERcut[goodIndpRefTaxFWERcut==min(goodIndpRefTaxFWERcut)],n=1))
+    }
+
+    rm(goodRefTaxaCandi)
+
+    minPosGoodCut=NULL
+    if(sum(taxaLessGoodCut>0)>0){
+      minPosGoodCut=min(taxaLessGoodCut[taxaLessGoodCut>0])
+    }
+
+    minPosFWERCut=NULL
+    if(sum(taxaLessFWERCut>0)>0){
+      minPosFWERCut=min(taxaLessFWERCut[taxaLessFWERCut>0])
+    }
+
+    results$refTaxonQualified=1
+    if(length(results$goodIndpRefTaxLeastCount)==1){
+      results$finalIndpRefTax=results$goodIndpRefTaxLeastCount
+    } else if (length(results$goodIndpRefTaxFWERcutLeastCount)==1){
+      results$goodIndpRefTaxWithCount=results$goodIndpRefTaxFWERcut
+      results$finalIndpRefTax=results$goodIndpRefTaxFWERcutLeastCount
+    } else if(length(minPosGoodCut)>0){
+      results$finalIndpRefTax=names(tail(taxaLessGoodCut[taxaLessGoodCut==minPosGoodCut],n=1))
+      results$refTaxonQualified=0
+    } else if(length(minPosFWERCut)>0){
+      results$finalIndpRefTax=names(tail(taxaLessFWERCut[taxaLessFWERCut==minPosFWERCut],n=1))
+      results$refTaxonQualified=0
+    }else{
+      taxaLessGoodCutLeastCount=taxaLessGoodCut[taxaLessGoodCut==min(taxaLessGoodCut)]
+      results$finalIndpRefTax=names(taxaLessGoodCutLeastCount)[1]
+      results$refTaxonQualified=0
+    }
+    rm(taxaLessGoodCut,taxaLessFWERCut)
   }
 
-  if(!doPermut){results$goodIndpRefTaxLeastCount=refTaxa}
+  if(!doPermut){results$finalIndpRefTax=refTaxa}
   return(results)
 }

@@ -13,8 +13,6 @@ IFAA=function(
   nRef,
   nPermu,
   refTaxa=NULL,
-  independence=T,
-  identity=T,
   reguMethod=c("mcp"), ## "lasso" or "mcp"
   fwerRate=0.30, #0.30
   boot=T,
@@ -22,10 +20,10 @@ IFAA=function(
   bootB=5,
   bootLassoAlpha=0.05,
   allFunc=allUserFunc(),
-  refReadsThresh=0.1,
-  SDThresh=0.1,
-  SDquantilThresh=0.1,
-  balanceCut=0.1
+  refReadsThresh=0.0001,
+  SDThresh=0.0001,
+  SDquantilThresh=0.0001,
+  balanceCut=0.0001
 ){
   results=list()
   start.time = proc.time()[3]
@@ -33,13 +31,16 @@ IFAA=function(
                    linkIDname=linkIDname,testCov=testCov,
                    ctrlCov=ctrlCov,testMany=testMany,ctrlMany=ctrlMany)
   data=runMeta$data
+  results$covariatesData=runMeta$covariatesData
   binaryInd=runMeta$binaryInd
   covsPrefix=runMeta$covsPrefix
   Mprefix=runMeta$Mprefix
   testCovInd=runMeta$testCovInd
   testCovInOrder=runMeta$testCovInOrder
+  testCovInNewNam=runMeta$testCovInNewNam
   ctrlCov=runMeta$ctrlCov
   microbName=runMeta$microbName
+  results$covriateNames=runMeta$xNames
   rm(runMeta)
 
   if(length(refTaxa)>1){
@@ -47,22 +48,22 @@ IFAA=function(
   }
   if(length(refTaxa)==1 ){
     if(!refTaxa%in%microbName)
-      stop("Cannot find the reference taxon,
-           double check the name of the reference taxon.")
+      stop("The specified reference taxon is not in the data set,
+         double check the name of the reference taxon.")
   }
-  results$regu=Regulariz(data=data,testCovInd=testCovInd,
-                         testCovInOrder=testCovInOrder,
-                         microbName=microbName,nRef=nRef,
-                         nPermu=nPermu,binaryInd=binaryInd,
-                         covsPrefix=covsPrefix,Mprefix=Mprefix,
-                         refTaxa=refTaxa,independence=independence,
-                         identity=identity,paraJobs=paraJobs,
-                         reguMethod=reguMethod,fwerRate=fwerRate,
-                         boot=boot,bootB=bootB,bootLassoAlpha=bootLassoAlpha,
-                         allFunc=allFunc,refReadsThresh=refReadsThresh,
-                         SDThresh=SDThresh,
-                         SDquantilThresh=SDquantilThresh,
-                         balanceCut=balanceCut
+  results$analysisResults=Regulariz(data=data,testCovInd=testCovInd,
+                                    testCovInOrder=testCovInOrder,
+                                    testCovInNewNam=testCovInNewNam,
+                                    microbName=microbName,nRef=nRef,
+                                    nPermu=nPermu,binaryInd=binaryInd,
+                                    covsPrefix=covsPrefix,Mprefix=Mprefix,
+                                    refTaxa=refTaxa,paraJobs=paraJobs,
+                                    reguMethod=reguMethod,fwerRate=fwerRate,
+                                    boot=boot,bootB=bootB,bootLassoAlpha=bootLassoAlpha,
+                                    allFunc=allFunc,refReadsThresh=refReadsThresh,
+                                    SDThresh=SDThresh,
+                                    SDquantilThresh=SDquantilThresh,
+                                    balanceCut=balanceCut
   )
   rm(data)
 
@@ -75,6 +76,4 @@ IFAA=function(
   cat("The entire analysis took",totalTimeMins, "minutes","\n")
 
   return(results)
-  }
-
-
+}

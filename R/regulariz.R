@@ -1,12 +1,11 @@
 
 ##' @export
 
-
-
 Regulariz=function(
   data,
   testCovInd,
   testCovInOrder,
+  testCovInNewNam,
   microbName,
   nRef,
   nPermu,
@@ -15,8 +14,6 @@ Regulariz=function(
   binaryInd,
   covsPrefix,
   Mprefix,
-  independence,
-  identity,
   reguMethod,
   fwerRate,
   boot,
@@ -41,101 +38,70 @@ Regulariz=function(
                       binPredInd=binaryInd)
   nSub=dataForEst$nSub
   taxaNames=dataForEst$taxaNames
-  EName=dataForEst$EName
   nPredics=dataForEst$nPredics
   nTaxa=dataForEst$nTaxa
   rm(dataForEst)
 
-  # run MCP penalization
-  regul.start.time = proc.time()[3]
-  cat("Start association identification","\n")
-  #if(length(refTaxa)==0){
-  selectRegroup=getScrResu(data=data,testCovInd=testCovInd,nRef=nRef,
-                           nPermu=nPermu,paraJobs=paraJobs,
-                           refTaxa=NULL,fwerRate=fwerRate,
-                           independence=independence,identity=identity,
-                           method=reguMethod,allFunc=allFunc,
-                           refReadsThresh=refReadsThresh,
-                           SDThresh=SDThresh,
-                           SDquantilThresh=SDquantilThresh,
-                           balanceCut=balanceCut,
-                           Mprefix=Mprefix,
-                           covsPrefix=covsPrefix,
-                           binPredInd=binaryInd)
+  if(length(refTaxa)==0 & length(reguMethod)==1){
+    # run MCP penalization
 
-  results$selecTaxaFWER=selectRegroup$selecTaxaFWER
-  results$countMat=selectRegroup$selecMat
-  results$selecMatAll=selectRegroup$selecMatAll
-  results$testCovCountMat=selectRegroup$testCovCountMat
-  if(nTestCov==1)results$testCovCountMat=results$countMat
-  results$maxVec=selectRegroup$maxVec
-  results$goodIndpRefTaxLeastCount=selectRegroup$goodIndpRefTaxLeastCount
-  results$goodRefLeastCount=selectRegroup$goodRefLeastCount
+    regul.start.time = proc.time()[3]
+    cat("Start Phase 1 association identification","\n")
+    selectRegroup=getScrResu(data=data,testCovInd=testCovInd,
+                             testCovInOrder=testCovInOrder,
+                             testCovInNewNam=testCovInNewNam,nRef=nRef,
+                             nPermu=nPermu,paraJobs=paraJobs,
+                             refTaxa=NULL,fwerRate=fwerRate,
+                             method=reguMethod,allFunc=allFunc,
+                             refReadsThresh=refReadsThresh,
+                             SDThresh=SDThresh,
+                             SDquantilThresh=SDquantilThresh,
+                             balanceCut=balanceCut,
+                             Mprefix=Mprefix,
+                             covsPrefix=covsPrefix,
+                             binPredInd=binaryInd)
 
-  results$taxaVecLeastCount=selectRegroup$taxaVecLeastCount
-  results$taxaWithLeastCount=selectRegroup$taxaWithLeastCount
-  results$taxaWithLeastCountMostNon0=selectRegroup$taxaWithLeastCountMostNon0
-  results$finalRefTaxonQualified=selectRegroup$refTaxonQualified
+    results$selecTaxaFWER=selectRegroup$selecTaxaFWER
+    results$selecCountOverall=selectRegroup$selecCountOverall
+    results$selecMatIndv=selectRegroup$selecMatIndv
+    results$selecCountMatIndv=selectRegroup$selecCountMatIndv
+    results$maxVec=selectRegroup$maxVec
+    results$MaxMatTestCovByPermu=selectRegroup$MaxMatTestCovByPermu
 
-  results$fwerCut=selectRegroup$fwerCut
-  results$fwerCutForAll=selectRegroup$fwerCutForAll
-  results$taxaNames=selectRegroup$taxaNames
-  rm(selectRegroup)
+    finalIndpRefTax=selectRegroup$finalIndpRefTax
+    results$finalRefTaxonQualified=selectRegroup$refTaxonQualified
 
-  MCPExecuTime = (proc.time()[3] - regul.start.time)/60
-  results$MCPExecuTime=MCPExecuTime
-  cat("Associaiton identification is done and used", MCPExecuTime,"minutes","\n")
+    results$fwerCut=selectRegroup$fwerCut
+    results$fwerCutIndv=selectRegroup$fwerCutIndv
+    results$taxaNames=selectRegroup$taxaNames
+    rm(selectRegroup)
 
-  cat("Deciding the final reference taxon","\n")
+    MCPExecuTime = (proc.time()[3] - regul.start.time)/60
+    results$MCPExecuTime=MCPExecuTime
+    cat("Phase 1 Associaiton identification is done and used", MCPExecuTime,"minutes","\n")
 
-  if(length(refTaxa)==0){
-    results$truGoodIndpRefTax=(length(results$goodIndpRefTaxLeastCount)>0)+0
+    results$finalizedBootRefTaxon=finalIndpRefTax
+    cat("Final Reference Taxon is",results$finalizedBootRefTaxon,"\n")
 
-    results$goodIndpRefTaxLeastCount=names(results$taxaWithLeastCountMostNon0)
+    startT=proc.time()[3]
+    cat("Start Phase 2 parameter estimation","\n")
 
-    if(length(results$goodIndpRefTaxLeastCount)==0){
-      if(length(results$goodRefLeastCount)>0){
-        warning("An independent reference taxon was not found. The good ref taxon with least count of association is used instead.")
-        results$goodIndpRefTaxLeastCount=results$goodRefLeastCount
-      }
-      if(length(results$goodRefLeastCount)==0){
-        warning("An independent reference or good reference taxon was not found. The taxon with least positive count of association is used instead.")
-        minPosCount=min(results$selecMat[results$selecMat>0])
-        results$goodIndpRefTaxLeastCount=results$taxaNames[tail(which(results$selecMat==minPosCount),n=1)]
-      }
-    }
-
-    results$finalizedBootRefTaxon=results$goodIndpRefTaxLeastCount
-
-    results$finalRefTaxon=microbName[results$taxaNames==results$finalizedBootRefTaxon]
-
-    cat("Final Reference Taxon is",results$finalRefTaxon,"\n")
-
-    if(results$finalRefTaxonQualified==0){
-      cat("Reference taxon was not qualified, taxon with least selection times was used","\n")
-    }
-
-    cat("Start association estimation","\n")
-
-    estiResults=bootResuHDCI(data=data,refTaxa=results$goodIndpRefTaxLeastCount,independence=independence,
-                             identity=identity,
+    estiResults=bootResuHDCI(data=data,refTaxa=results$finalizedBootRefTaxon,
                              bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                              binPredInd=binaryInd,
                              covsPrefix=covsPrefix,Mprefix=Mprefix)
-    cat("Association estimation done","\n")
+    endT=proc.time()[3]
+    cat("Phase 2 parameter estimation done and took",(endT-startT)/60,"minutes.","\n")
   }
-  if(length(refTaxa)>0){
+  if(length(refTaxa)==1){
     CItime1 = proc.time()[3]
     refTaxaWithNewNam=paste0(Mprefix,which(microbName==refTaxa))
-    results$finalRefTaxon=refTaxaWithNewNam
+    results$finalizedBootRefTaxon=refTaxaWithNewNam
 
     cat("Final Reference Taxon is",results$finalRefTaxon,"\n")
 
-    estiResults=list()
     cat("Start association estimation","\n")
     estiResults=bootResuHDCI(data=data,refTaxa=refTaxaWithNewNam,
-                             independence=independence,
-                             identity=identity,
                              bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                              binPredInd=binaryInd,
                              covsPrefix=covsPrefix,Mprefix=Mprefix)
@@ -143,10 +109,15 @@ Regulariz=function(
     cat("Association estimation done","\n")
     CItime2 = proc.time()[3]
     CIduration=(CItime2-CItime1)/60
-    print(paste("Calculation of CI took", CIduration,"minutes"))
+    cat("Calculation of CI took", CIduration,"minutes","\n")
+
+    results$betaMat=as(matrix(estiResults$finalBetaEst,nrow=nPredics),"sparseMatrix")
+    results$CILowMat=as(matrix(estiResults$CIvecLow,nrow=nPredics),"sparseMatrix")
+    results$CIUpMat=as(matrix(estiResults$CIvecUp,nrow=nPredics),"sparseMatrix")
+    rm(estiResults)
+    return(results)
   }
 
-  results$estiResults=estiResults
   results$betaMat=as(matrix(estiResults$finalBetaEst,nrow=nPredics),"sparseMatrix")
   results$CILowMat=as(matrix(estiResults$CIvecLow,nrow=nPredics),"sparseMatrix")
   results$CIUpMat=as(matrix(estiResults$CIvecUp,nrow=nPredics),"sparseMatrix")
@@ -154,10 +125,12 @@ Regulariz=function(
 
   estByCovList=list()
   count=0
+
   for(i in 1:nTestCov){
-    sigTaxaPosition=which(results$selecMatAll[i,]!=0)
+    sigTaxaPosition=which(results$selecMatIndv[i,]!=0)
     nrow=length(sigTaxaPosition)
     if(nrow==0)next
+
     count=count+1
     ncol=3
     estByCovMat=matrix(NA,nrow=nrow,ncol=ncol)
@@ -170,30 +143,38 @@ Regulariz=function(
       }
     }
 
-    rownames(estByCovMat)=microbName[results$selecMatAll[i,]!=0]
+    rownames(estByCovMat)=microbName[results$selecMatIndv[i,]!=0]
     colnames(estByCovMat)=c("Beta","LowBound95%CI","UpBound95%CI")
+
     estByCovList[[count]]=estByCovMat
-    names(estByCovList)[i]=testCovInOrder[i]
+    names(estByCovList)[count]=testCovInOrder[i]
     rm(estByCovMat)
   }
 
-  results$estByCovList=estByCovList
+  if(length(estByCovList)==0){
+    results$estByCovList="No significant assoication is identified. You may consider a higher FDR level."
+  }else{
+    results$estByCovList=estByCovList
+  }
   rm(estByCovList)
 
   SigCovByTaxaList=list()
   count=0
   for(i in 1:nTaxa){
-    sigCov=which(results$selecMatAll[,i]!=0)
+    sigCov=which(results$selecMatIndv[,i]!=0)
     if(length(sigCov)==0)next
     count=count+1
     SigCovByTaxaList[[count]]=testCovInOrder[sigCov]
     names(SigCovByTaxaList)[[count]]=microbName[i]
   }
-  results$SigCovByTaxaList=SigCovByTaxaList
+  if(length(SigCovByTaxaList)==0){
+    results$SigCovByTaxaList="No significant assoication is identified. You may consider a higher FDR level."
+  }else{
+    results$SigCovByTaxaList=SigCovByTaxaList
+  }
   rm(SigCovByTaxaList,microbName)
 
   results$reguMethod=reguMethod
-  results$independence=independence
   results$nSub=nSub
   results$nTaxa=nTaxa
   results$nPredics=nPredics
@@ -202,37 +183,8 @@ Regulariz=function(
   rm(data)
 
   # return results
-  results$posFoldRange=posFoldRange
-  results$negFoldRange=negFoldRange
-  results$taxaCor=taxaCor
-  results$truSNR=truSNR
-  results$predCor=predCor
-  results$ConsBaseYesNo=ConsBaseYesNo
-  results$scenario=scenario
-  results$logNormMean=logNormMean
-  results$logNormSD=logNormSD
-  results$coefSparsity=coefSparsity
-  results$baseDataSparsity=baseDataSparsity
-  results$reguMethod=reguMethod
-  results$nSub=nSub
-  results$nTaxaTru=nTaxaTru
-  results$nTaxa=nTaxa
-  results$nPredics=nPredics
-  results$nPredicsWithInt=nPredicsWithInt
-  results$nPredTru=nPredTru
-  results$nAssociations=nAssociations
-  results$independence=independence
-  results$identity=identity
-  results$echoPropDiff=echoPropDiff
-  results$seqDepthType=seqDepthType
-  results$seqDepthDeno=seqDepthDeno
-  results$echoAbundanDist=echoAbundanDist
-  results$echoGammaPar=echoGammaPar
-  results$echoEffectsDist=echoEffectsDist
-  results$echoEffects=echoEffects
   results$fwerRate=fwerRate
-  results$doPermut=doPermut
   results$nPermu=nPermu
+  results$nRef=nRef
   return(results)
 }
-

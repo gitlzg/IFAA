@@ -1,6 +1,7 @@
 ##' @export
 
 
+
 runGlmnet=function(
   x=x,
   y=y,
@@ -14,7 +15,7 @@ runGlmnet=function(
   standardize=F,
   intercept=T,
   zeroSDCut=0
- ){
+){
 
   results=list()
 
@@ -29,7 +30,7 @@ runGlmnet=function(
 
   # remove near constant x columns
   sdX=apply(x,2,sd)
-  xWithNearZeroSd=which(sdX<zeroSDCut)
+  xWithNearZeroSd=which(sdX<=zeroSDCut)
   if(length(xWithNearZeroSd)>0){
     x=x[,-xWithNearZeroSd]
   }
@@ -77,6 +78,7 @@ runGlmnet=function(
     lamMax=lamVec[cvRestartLamMax]
     rm(cvRestartLamMax)
 
+    #lamVec=seq(lamMax,(lamMax*lambda.min.ratio),length=nLam)
     lamVec=seq(lamMax,0,length=(nLam+1))[1:nLam]
   }
 
@@ -120,4 +122,3 @@ runGlmnet=function(
   rm(i)
   return(results)
 }
-

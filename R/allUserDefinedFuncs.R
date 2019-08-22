@@ -2,7 +2,7 @@
 
 
 allUserFunc=function(){
-  return(c("dataRecovTrans", "dataAndInit","metaData",
+  return(c("dataRecovTrans", "AIcalcu","metaData",
            "dataSparsCheck","dataInfo","runGlmnet",
            "cvPicasso","runPicasso","groupBetaToFullBeta"))
 }

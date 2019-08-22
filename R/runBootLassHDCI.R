@@ -1,6 +1,7 @@
 ##' @export
 
 
+
 runBootLassoHDCI=function(
   x=x,
   y=y,
@@ -22,7 +23,7 @@ runBootLassoHDCI=function(
   nBeta=ncol(x)
 
   sdX=apply(x,2,sd)
-  xWithNearZeroSd=which(sdX<zeroSDCut)
+  xWithNearZeroSd=which(sdX<=zeroSDCut)
 
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
@@ -31,11 +32,17 @@ runBootLassoHDCI=function(
   rm(sdX)
   nearZeroSd=length(xWithNearZeroSd)
 
+  # print(paste("Number of x with near-zero sd: ", nearZeroSd))
+
   cvStartTime= proc.time()[3]
+
+  availCores=availableCores()
+  if(is.numeric(availCores))ncores.boot=max(1,availableCores()-2)
+  if(!is.numeric(availCores))ncores.boot=1
 
   bootResu=bootLOPR(x=x,y=as.vector(y),B=bootB,nfolds=nfolds,
                     standardize=standardize,parallel.boot=T,
-                    alpha=bootLassoAlpha)
+                    ncores.boot=ncores.boot,alpha=bootLassoAlpha)
 
   # convert to a sparse vector format from sparse matrix format
   beta=as(bootResu$Beta.LPR,"sparseVector")
@@ -109,4 +116,3 @@ runBootLassoHDCI=function(
 
   return(results)
 }
-

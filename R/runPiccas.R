@@ -31,7 +31,7 @@ runPicasso=function(
     y=sample(y,size=nObsAll)
   }
   sdX=apply(x,2,sd)
-  xWithNearZeroSd=which(sdX<zeroSDCut)
+  xWithNearZeroSd=which(sdX<=zeroSDCut)
 
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
@@ -41,7 +41,7 @@ runPicasso=function(
   nearZeroSd=length(xWithNearZeroSd)
 
   # calculate lambda max
-  lamMax=max(abs(Matrix::colSums(x*y)))/nObsAll
+  lamMax=max(abs(Matrix::colSums(as.matrix(x)*as.vector(y))))/nObsAll
   print("Start cross validatoin with picasso")
   cvStartTime= proc.time()[3]
 
@@ -104,6 +104,5 @@ runPicasso=function(
   results$successCV=1
   results$nCV=nCV
   rm(nCV)
-
   return(results)
 }

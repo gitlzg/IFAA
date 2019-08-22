@@ -54,7 +54,7 @@ cvPicasso=function(
     xi=x[-sampleInd[[i]],]
     nObs.i=nrow(xi)
     sdX.i=apply(xi,2,sd)
-    xWithNearZeroSd.i=which(sdX.i<zeroSDCut)
+    xWithNearZeroSd.i=which(sdX.i<=zeroSDCut)
     rm(sdX.i)
 
     # remove near constant columns in x
@@ -128,7 +128,5 @@ cvPicasso=function(
 
   results$nLam=nLam
   rm(nLam)
-
   return(results)
 }
-

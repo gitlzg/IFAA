@@ -4,8 +4,6 @@
 bootResuHDCI=function(
   data,
   refTaxa,
-  independence=T,
-  identity=T,
   bootB,
   bootLassoAlpha,
   binPredInd,
@@ -33,10 +31,9 @@ bootResuHDCI=function(
   resultsByRefTaxon=list()
 
   # inital Lasso OLS estimate
-  dataForEst=dataRecovTrans(data=data,independence=independence,
-                            identity=identity,ref=refTaxa,
-                            Mprefix=Mprefix,covsPrefix=covsPrefix,
-                            binPredInd=binPredInd)
+  dataForEst=dataRecovTrans(data=data,ref=refTaxa,
+                            Mprefix=Mprefix,covsPrefix=covsPrefix)
+
   x=as(dataForEst$xTildalong,"sparseMatrix")
   y=as(dataForEst$UtildaLong,"sparseVector")
   rm(dataForEst)
@@ -51,5 +48,3 @@ bootResuHDCI=function(
   rm(penal)
   return(results)
 }
-
-
