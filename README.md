@@ -5,7 +5,7 @@
  data(dataM)
  data(dataC)
  results=IFAA(Microbdata=dataM,
-        CovData=dataC,
+ CovData=dataC,
         linkIDname="id",
         testCov=c("v1","v2"),
         ctrlCov=c("v3"),
