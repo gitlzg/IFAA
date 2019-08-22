@@ -38,5 +38,5 @@ M="pathToTheCsvFile/microbiomeData.csv" or M="pathToTheTsvFile/microbiomeData.ts
 
 C="pathToTheCsvFile/covariatesData.csv" or C="pathToTheTsvFile/covariatesData.tsv"
 
-results=IFAA(Microbdata=M,CovData=C)
+results=IFAA(Microbdata=M,CovData=C,...)
       
