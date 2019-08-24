@@ -60,8 +60,6 @@ runScrParal=function(
       set.seed(as.numeric(seed))
     }
     refTaxa=sample(taxaNames,nRef)
-    print("refTaxa:")
-    print(refTaxa)
     }
 
   # overwrite nRef if the reference taxon is specified
@@ -89,8 +87,6 @@ runScrParal=function(
     cat("start to run permutation","\n")
     # permut the exposure variable
     permutOrder=lapply(rep(nSub,nPermu),sample)
-    print("permutOrder:")
-    print(permutOrder)
 
     screenStartTime = proc.time()[3]
     refResu0=as(matrix(0,nrow=nPredics*nTaxa,ncol=1),"sparseMatrix")
