@@ -1,6 +1,7 @@
 ##' @export
 
 
+
 bootResuHDCI=function(
   data,
   refTaxa,
@@ -39,7 +40,8 @@ bootResuHDCI=function(
   rm(dataForEst)
 
   penal=runBootLassoHDCI(x=x,y=y,nPredics=nPredics,nTaxa=nTaxa,
-                         refTaxaPosition=ii,bootLassoAlpha=bootLassoAlpha,bootB=bootB)
+                         refTaxaPosition=ii,bootLassoAlpha=bootLassoAlpha,
+                         bootB=bootB)
   rm(x,y)
 
   results$finalBetaEst=penal$beta

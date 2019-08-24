@@ -20,10 +20,11 @@ IFAA=function(
   bootB=5,
   bootLassoAlpha=0.05,
   allFunc=allUserFunc(),
-  refReadsThresh=0.0001,
+  refReadsThresh=0.3,
   SDThresh=0.0001,
   SDquantilThresh=0.0001,
-  balanceCut=0.0001
+  balanceCut=0.3,
+  seed=1
 ){
   results=list()
   start.time = proc.time()[3]
@@ -49,7 +50,7 @@ IFAA=function(
   if(length(refTaxa)==1 ){
     if(!refTaxa%in%microbName)
       stop("The specified reference taxon is not in the data set,
-         double check the name of the reference taxon.")
+           double check the name of the reference taxon.")
   }
   results$analysisResults=Regulariz(data=data,testCovInd=testCovInd,
                                     testCovInOrder=testCovInOrder,
@@ -63,7 +64,7 @@ IFAA=function(
                                     allFunc=allFunc,refReadsThresh=refReadsThresh,
                                     SDThresh=SDThresh,
                                     SDquantilThresh=SDquantilThresh,
-                                    balanceCut=balanceCut
+                                    balanceCut=balanceCut,seed=seed
   )
   rm(data)
 
@@ -76,4 +77,4 @@ IFAA=function(
   cat("The entire analysis took",totalTimeMins, "minutes","\n")
 
   return(results)
-}
+  }

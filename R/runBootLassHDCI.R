@@ -1,7 +1,6 @@
 ##' @export
 
 
-
 runBootLassoHDCI=function(
   x=x,
   y=y,
@@ -39,6 +38,8 @@ runBootLassoHDCI=function(
   availCores=availableCores()
   if(is.numeric(availCores))ncores.boot=max(1,availableCores()-2)
   if(!is.numeric(availCores))ncores.boot=1
+
+  registerDoParallel(ncores.boot)
 
   bootResu=bootLOPR(x=x,y=as.vector(y),B=bootB,nfolds=nfolds,
                     standardize=standardize,parallel.boot=T,

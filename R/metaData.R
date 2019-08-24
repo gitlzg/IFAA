@@ -1,6 +1,5 @@
 ##' @export
 
-
 metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMany=F,ctrlMany=F){
   results=list()
 
@@ -28,7 +27,7 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   missPropMData=sum(is.na(MdataWithId[,linkIDname]))/nrow(MdataWithId)
   if(missPropMData>0.8){
     cat("Warning: There are over 80% missing values for the linkId variable in the Microbiome data file.
-             Double check the data format.","\n")
+        Double check the data format.","\n")
   }
   Mdata=MdataWithId[,!colnames(MdataWithId)%in%linkIDname,drop=F]
   microbName=colnames(Mdata)
@@ -55,7 +54,7 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   missPropCovData=sum(is.na(CovarWithId[,linkIDname]))/nrow(CovarWithId)
   if(missPropCovData>0.8){
     cat("Warning: There are over 80% missing values for the linkId variable in the covariates data file.
-             Double check the data format.","\n")
+        Double check the data format.","\n")
   }
 
   Covariates=CovarWithId[,!colnames(CovarWithId)%in%linkIDname,drop=F]
@@ -79,7 +78,7 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   xNames=colnames(Covariates)
   if(length(ctrlCov)==0 & ctrlMany){
     cat("No control covariates are specified,
-          all variables except testCov are considered as control covariates.","\n")
+        all variables except testCov are considered as control covariates.","\n")
     ctrlCov=xNames[!xNames%in%testCov]
   }
   results$ctrlCov=ctrlCov[!ctrlCov%in%testCov]
@@ -115,7 +114,7 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
       if(!(mini==0 & maxi==1)){
         Covariates[Covariates[,i]==mini,i]=0
         Covariates[Covariates[,i]==maxi,i]=1
-        cat("Binary covariate",i,"is not coded as 0/1 which may generate analysis bias. It has been changed to 0/1. The changed covariates data can be extracted in the output of the result.","\n")
+        cat("Binary covariate",i,"is not coded as 0/1 which may generate analysis bias. It has been changed to 0/1. The changed covariates data can be extracted from the result file.","\n")
       }
     }
     #cat(length(which(binCheck==2)),"binary covariates are detected.","\n")
@@ -150,19 +149,24 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   cat(dim(results$data)[1],"samples","\n")
   cat(ncol(Mdata),"OTU's or microbial taxa","\n")
   cat(length(results$testCovInOrder),"testCov variables in the analysis","\n")
-  print("These are the testCov variables:")
-  print(testCov)
+  if(length(results$testCovInOrder)>0){
+    print("These are the testCov variables:")
+    print(testCov)
+  }
   rm(testCov)
 
   cat(length(results$ctrlCov),"ctrlCov variables in the analysis ","\n")
-  print("These are the ctrlCov variables:")
-  print(ctrlCov)
+  if(length(results$ctrlCov)>0){
+    print("These are the ctrlCov variables:")
+    print(ctrlCov)
+  }
   rm(ctrlCov)
 
   cat(results$BinVars,"binary covariates in the analysis","\n")
-  print("These are the binary variables:")
-  print(results$varNamForBin)
-
+  if(results$BinVars>0){
+    print("These are the binary covariates:")
+    print(results$varNamForBin)
+  }
   rm(Mdata,Covariates,binCheck)
   return(results)
-}
+  }

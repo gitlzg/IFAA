@@ -13,8 +13,8 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 Depends:
-  glmnet (>= 2.0-16),
   picasso (>= 1.2.0),
+  glmnet (>= 2.0-16),
   expm (>= 0.999-3),
   foreach (>= 1.4.3),
   snow (>= 0.4-2),

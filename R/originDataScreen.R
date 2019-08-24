@@ -12,7 +12,8 @@ originDataScreen=function(
   allFunc,
   Mprefix,
   covsPrefix,
-  binPredInd){
+  binPredInd,
+  seed){
 
   results=list()
 
@@ -51,10 +52,11 @@ originDataScreen=function(
 
   c1<-makeCluster(paraJobs)
 
-  clusterExport(c1, varlist=allFunc)
+  clusterExport(cl=c1, varlist=allFunc)
 
-  clusterSetupRNGstream(cl=c1,seed=1)
-
+  if(length(seed)>0){
+    clusterSetupRNGstream(cl=c1,seed=as.numeric(seed)+10^3)
+  }
   registerDoSNOW(c1)
 
   # start parallel computing

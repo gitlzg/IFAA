@@ -22,7 +22,6 @@ cvPicasso=function(
 
   # obtain lambda range
   if(length(lambda)==0){
-    #lamMin=lambda.min.ratio*lamMax
     lamMin=0
     lamList=seq(lamMax,lamMin,length=(nLam+1))[1:nLam]
   }

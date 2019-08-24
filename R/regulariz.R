@@ -1,6 +1,7 @@
 
 ##' @export
 
+
 Regulariz=function(
   data,
   testCovInd,
@@ -23,7 +24,8 @@ Regulariz=function(
   refReadsThresh,
   SDThresh,
   SDquantilThresh,
-  balanceCut
+  balanceCut,
+  seed
 ){
   results=list()
   regul.start.time = proc.time()[3]
@@ -59,7 +61,7 @@ Regulariz=function(
                              balanceCut=balanceCut,
                              Mprefix=Mprefix,
                              covsPrefix=covsPrefix,
-                             binPredInd=binaryInd)
+                             binPredInd=binaryInd,seed=seed)
 
     results$selecTaxaFWER=selectRegroup$selecTaxaFWER
     results$selecCountOverall=selectRegroup$selecCountOverall
@@ -89,7 +91,8 @@ Regulariz=function(
     estiResults=bootResuHDCI(data=data,refTaxa=results$finalizedBootRefTaxon,
                              bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                              binPredInd=binaryInd,
-                             covsPrefix=covsPrefix,Mprefix=Mprefix)
+                             covsPrefix=covsPrefix,Mprefix=Mprefix
+    )
     endT=proc.time()[3]
     cat("Phase 2 parameter estimation done and took",(endT-startT)/60,"minutes.","\n")
   }
@@ -104,7 +107,8 @@ Regulariz=function(
     estiResults=bootResuHDCI(data=data,refTaxa=refTaxaWithNewNam,
                              bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                              binPredInd=binaryInd,
-                             covsPrefix=covsPrefix,Mprefix=Mprefix)
+                             covsPrefix=covsPrefix,Mprefix=Mprefix
+    )
 
     cat("Association estimation done","\n")
     CItime2 = proc.time()[3]

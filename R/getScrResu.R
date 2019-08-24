@@ -21,7 +21,8 @@ getScrResu=function(
   balanceCut,
   Mprefix,
   covsPrefix,
-  binPredInd
+  binPredInd,
+  seed
 ){
   results=list()
 
@@ -33,7 +34,8 @@ getScrResu=function(
                        refTaxa=refTaxa,method=method,allFunc=allFunc,
                        refReadsThresh=refReadsThresh,SDThresh=SDThresh,
                        SDquantilThresh=SDquantilThresh,balanceCut=balanceCut,
-                       Mprefix=Mprefix,covsPrefix=covsPrefix,binPredInd=binPredInd)
+                       Mprefix=Mprefix,covsPrefix=covsPrefix,
+                       binPredInd=binPredInd,seed=seed)
 
   selecCountOverall=scrParal$countOfSelecForAPred
   selecCountMatIndv=scrParal$testCovCountMat

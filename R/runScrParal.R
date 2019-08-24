@@ -2,7 +2,6 @@
 ##' @export
 
 
-
 runScrParal=function(
   method=c("mcp"),
   data,
@@ -22,7 +21,8 @@ runScrParal=function(
   balanceCut,
   Mprefix,
   covsPrefix,
-  binPredInd){
+  binPredInd,
+  seed){
 
   results=list()
 
@@ -56,9 +56,13 @@ runScrParal=function(
       stop("Error: number of random reference taxa can not be larger than the number
            of candidate reference taxa. Try lower nRef")
     }
-    set.seed(3)
+    if(length(seed)>0){
+      set.seed(as.numeric(seed))
+    }
     refTaxa=sample(taxaNames,nRef)
-  }
+    print("refTaxa:")
+    print(refTaxa)
+    }
 
   # overwrite nRef if the reference taxon is specified
   nRef=length(refTaxa)
@@ -69,7 +73,7 @@ runScrParal=function(
                            nRef=nRef,refTaxa=refTaxa,paraJobs=paraJobs,
                            method=method,allFunc=allFunc,Mprefix=Mprefix,
                            covsPrefix=covsPrefix,
-                           binPredInd=binPredInd)
+                           binPredInd=binPredInd,seed=seed)
 
   results$countOfSelecForAPred=screen1$countOfSelecForAPred
   yTildLongList=screen1$yTildLongList
@@ -84,8 +88,10 @@ runScrParal=function(
     startT=proc.time()[3]
     cat("start to run permutation","\n")
     # permut the exposure variable
-    set.seed(40)
     permutOrder=lapply(rep(nSub,nPermu),sample)
+    print("permutOrder:")
+    print(permutOrder)
+
     screenStartTime = proc.time()[3]
     refResu0=as(matrix(0,nrow=nPredics*nTaxa,ncol=1),"sparseMatrix")
 
@@ -101,9 +107,10 @@ runScrParal=function(
     }
     c2 <- makeCluster(paraJobs)
 
-    clusterExport(c2, varlist=allFunc)
-    clusterSetupRNGstream(cl=c2,seed=2)
-
+    clusterExport(cl=c2, varlist=allFunc)
+    if(length(seed)>0){
+      clusterSetupRNGstream(cl=c2,seed=as.numeric(seed)+10^2)
+    }
     registerDoSNOW(c2)
     refResu=foreach (i=1:totNumOfLoops,.multicombine=T,
                      .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
@@ -220,4 +227,4 @@ runScrParal=function(
   results$taxaNames=taxaNames
   rm(taxaNames)
   return(results)
-}
+  }
