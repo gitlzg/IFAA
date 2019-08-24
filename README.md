@@ -33,7 +33,7 @@ bootB=500)
 # Once the analysis is done, you can extract the regression coefficients along with 95% confidence intervals using this command:
 results$analysisResults$estByCovList
   
-# The function can also directly read csv or tsv data files by feeding the file directory paths to the first two arugments of the IFAA function:
+# The function can also take csv or tsv data files directly by reading the file directory paths using the first two arugments of the IFAA function:
 M="pathToTheCsvFile/microbiomeData.csv" or M="pathToTheTsvFile/microbiomeData.tsv"
 
 C="pathToTheCsvFile/covariatesData.csv" or C="pathToTheTsvFile/covariatesData.tsv"
