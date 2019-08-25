@@ -39,11 +39,13 @@ runBootLassoHDCI=function(
   if(is.numeric(availCores))ncores.boot=max(1,availableCores()-2)
   if(!is.numeric(availCores))ncores.boot=1
 
-  registerDoParallel(ncores.boot)
+  c3 <- parallel::makeCluster(ncores.boot)
+  doParallel::registerDoParallel(c3)
 
   bootResu=bootLOPR(x=x,y=as.vector(y),B=bootB,nfolds=nfolds,
                     standardize=standardize,parallel.boot=T,
                     ncores.boot=ncores.boot,alpha=bootLassoAlpha)
+  parallel::stopCluster(c3)
 
   # convert to a sparse vector format from sparse matrix format
   beta=as(bootResu$Beta.LPR,"sparseVector")

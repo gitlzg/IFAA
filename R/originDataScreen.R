@@ -50,14 +50,14 @@ originDataScreen=function(
     if(!is.numeric(availCores))paraJobs=1
   }
 
-  c1<-makeCluster(paraJobs)
+  c1<-snow::makeCluster(paraJobs)
 
-  clusterExport(cl=c1, varlist=allFunc)
+  snow::clusterExport(c1, allFunc)
 
   if(length(seed)>0){
-    clusterSetupRNGstream(cl=c1,seed=as.numeric(seed)+10^3)
+    snow::clusterSetupRNGstream(cl=c1,seed=as.numeric(seed)+10^3)
   }
-  registerDoSNOW(c1)
+  doSNOW::registerDoSNOW(c1)
 
   # start parallel computing
   scr1Resu=foreach(i=1:nRef,.multicombine=T,
@@ -102,8 +102,7 @@ originDataScreen=function(
                      rm(selection.i,yTildLongTild.i)
                      return(recturnlist)
                    }
-  registerDoSEQ()
-  stopCluster(c1)
+  snow::stopCluster(c1)
   gc()
 
   endT=proc.time()[3]

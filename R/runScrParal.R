@@ -101,13 +101,15 @@ runScrParal=function(
       if(is.numeric(availCores))paraJobs=max(1,availableCores()-2)
       if(!is.numeric(availCores))paraJobs=1
     }
-    c2 <- makeCluster(paraJobs)
+    c2 <- snow::makeCluster(paraJobs)
 
-    clusterExport(cl=c2, varlist=allFunc)
+    snow::clusterExport(c2, allFunc)
+
     if(length(seed)>0){
-      clusterSetupRNGstream(cl=c2,seed=as.numeric(seed)+10^2)
+      snow::clusterSetupRNGstream(cl=c2,seed=as.numeric(seed)+10^2)
     }
-    registerDoSNOW(c2)
+    doSNOW::registerDoSNOW(c2)
+
     refResu=foreach (i=1:totNumOfLoops,.multicombine=T,
                      .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
                      .errorhandling="pass") %dopar% {
@@ -156,8 +158,7 @@ runScrParal=function(
                        return(recturnVec)
                      }
     rm(yTildLongList)
-    registerDoSEQ()
-    stopCluster(c2)
+    snow::stopCluster(c2)
     gc()
 
     refResu<- lapply(refResu, as, "sparseMatrix")
