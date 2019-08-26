@@ -13,6 +13,7 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
     cat("Warnings: Variables appeared in both testCov list and ctrlCov list will be treated as testCov.","\n")
   }
 
+  if(is.matrix(Microbdata))MdataWithId=data.matrix(Microbdata)
   if(is.data.frame(Microbdata))MdataWithId=data.matrix(Microbdata)
   if(is.character(Microbdata)){
     nCharac=nchar(Microbdata)
@@ -23,7 +24,9 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
       MdataWithId=data.matrix(read.table(file=Microbdata, sep='\t',header=T,na.strings=c("","NA")))
     }
   }
-
+  if(length(colnames(MdataWithId))!=ncol(MdataWithId))
+    stop("Microbiome data lack variable names.")
+    
   missPropMData=sum(is.na(MdataWithId[,linkIDname]))/nrow(MdataWithId)
   if(missPropMData>0.8){
     cat("Warning: There are over 80% missing values for the linkId variable in the Microbiome data file.
@@ -40,6 +43,7 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   results$newMicrobNames=newMicrobNames
   rm(microbName,newMicrobNames)
 
+  if(is.matrix(CovData))CovarWithId=data.matrix(CovData)
   if(is.data.frame(CovData))CovarWithId=data.matrix(CovData)
   if(is.character(CovData)){
     nCharac=nchar(CovData)
@@ -50,7 +54,10 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
       CovarWithId=data.matrix(read.table(file=CovData, sep='\t',header=T,na.strings=c("","NA")))
     }
   }
-
+  
+  if(length(colnames(CovarWithId))!=ncol(CovarWithId))
+    stop("Covariate data lack variable names.")
+  
   missPropCovData=sum(is.na(CovarWithId[,linkIDname]))/nrow(CovarWithId)
   if(missPropCovData>0.8){
     cat("Warning: There are over 80% missing values for the linkId variable in the covariates data file.
