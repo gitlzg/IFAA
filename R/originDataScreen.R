@@ -14,34 +14,30 @@ originDataScreen=function(
   covsPrefix,
   binPredInd,
   seed){
-
+  
   results=list()
-
+  
   # load data info
   basicInfo=dataInfo(data=data,Mprefix=Mprefix,
                      covsPrefix=covsPrefix,
                      binPredInd=binPredInd)
-
+  
   taxaNames=basicInfo$taxaNames
   nTaxa=basicInfo$nTaxa
   nPredics=basicInfo$nPredics
-
-  nSub=basicInfo$nSub
-  nSubNoReads=basicInfo$nSubNoReads
-  maxTaxaNameNum=basicInfo$maxTaxaNameNum
   rm(basicInfo)
   gc()
-
+  
   nNorm=nTaxa-1
   nAlphaNoInt=nPredics*nNorm
   nAlphaSelec=nPredics*nTaxa
-
+  
   countOfSelec=rep(0,nAlphaSelec)
   resultsByRefTaxon=list()
-
+  
   # overwrite nRef if the reference taxon is specified
   nRef=length(refTaxa)
-
+  
   startT=proc.time()[3]
   cat("start Original screen","\n")
   if(length(paraJobs)==0){
@@ -49,16 +45,16 @@ originDataScreen=function(
     if(is.numeric(availCores))paraJobs=max(1,availableCores()-2)
     if(!is.numeric(availCores))paraJobs=1
   }
-
+  
   c1<-snow::makeCluster(paraJobs)
-
+  
   snow::clusterExport(c1, allFunc)
-
+  
   if(length(seed)>0){
     snow::clusterSetupRNGstream(cl=c1,seed=as.numeric(seed)+10^3)
   }
   doSNOW::registerDoSNOW(c1)
-
+  
   # start parallel computing
   scr1Resu=foreach(i=1:nRef,.multicombine=T,
                    .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
@@ -104,37 +100,37 @@ originDataScreen=function(
                    }
   snow::stopCluster(c1)
   gc()
-
+  
   endT=proc.time()[3]
-
+  
   cat("Original screen done and took",(endT-startT)/60,"minutes","\n")
-
+  
   selecList=list()
   for(i in 1:nRef){
     selecList[[i]]=scr1Resu[[i]][[1]]
   }
-
+  
   results$yTildLongList=list()
   for(i in 1:nRef){
     results$yTildLongList[[i]]=scr1Resu[[i]][[2]]
   }
-
+  
   selecList<- lapply(selecList, as, "sparseMatrix")
   scr1Resu=do.call(cbind, selecList)
   rm(selecList)
-
+  
   # create count of for each predictor,each row is the count
   # of selection for a predictor
-
+  
   countOfSelecForAPred=matrix(Matrix::rowSums(scr1Resu[1:nAlphaSelec,,drop=F]),nrow=nPredics)
   testCovCountMat=countOfSelecForAPred[testCovInd,,drop=F]
   countOfSelecForAPred=as(matrix(Matrix::colSums(testCovCountMat),nrow=1),"sparseMatrix")
   rm(scr1Resu,testCovInd)
   gc()
-
+  
   colnames(countOfSelecForAPred)=taxaNames
   rm(taxaNames)
-
+  
   # return results
   results$testCovCountMat=testCovCountMat
   rm(testCovCountMat)

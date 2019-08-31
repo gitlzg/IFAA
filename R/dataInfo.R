@@ -1,7 +1,6 @@
 
 ##' @export
 
-
 dataInfo=function(
   data,
   Mprefix,
@@ -14,7 +13,7 @@ dataInfo=function(
   balanceCut=0.0001
 ){
   results=list()
-
+  
   # get the original sample size
   nSub=nrow(data)
   MVarNamLength=nchar(Mprefix)
@@ -22,32 +21,21 @@ dataInfo=function(
   micros = sapply(substr(colnames(data),1,MVarNamLength), function(x) {grep(Mprefix, x)})
   microPositions=which(micros == 1)
   rm(micros)
-
+  
   nTaxa = length(microPositions)
   taxaNames=colnames(data)[microPositions]
   rm(microPositions)
-
-  # get the biggest index number of the taxa name
-  taxaNameNum=rep(NA,nTaxa)
-
-  for (i in 1:nTaxa){
-    taxa.i.NamLength=nchar(taxaNames[i])
-    taxaNameNum[i]=as.numeric(substr(taxaNames[i],(MVarNamLength+1),taxa.i.NamLength))
-  }
-  maxTaxaNameNum=max(taxaNameNum)
-  rm(taxaNameNum)
-
-  w=data[,taxaNames]
-  nSubNoReads=length(which(Matrix::rowSums(w>0)==0))
-
-
+  
   if(qualifyRefTax){
-    taxaOverThresh=taxaNames[(Matrix::colSums(w>0)>=nSub*refReadsThresh)]
+    qualifyData=data[rowSums(data[,taxaNames]>0)>=2,,drop=F]
+    w=qualifyData[,taxaNames]
+    nSubQualif=nrow(qualifyData)
+    taxaOverThresh=taxaNames[(Matrix::colSums(w>0)>=nSubQualif*refReadsThresh)]
     if(length(taxaOverThresh)==0){
       cat("There are no taxa with presence over the threshold:",refReadsThresh,
           ". Try lower the reference taxa reads threshold.","\n")
     }
-
+    
     # check the sd threshold
     sdTaxaOverThresh=rep(0,length(taxaOverThresh))
     for (i in 1:length(taxaOverThresh)){
@@ -56,16 +44,16 @@ dataInfo=function(
         sdTaxaOverThresh[i]=sd(taxa.i[(taxa.i>0)])
       }
     }
-
+    
     results$sdTaxa=sdTaxaOverThresh
-
+    
     TaxaOverSdThresh=taxaOverThresh[(sdTaxaOverThresh>=SDThresh)]
     if(length(TaxaOverSdThresh)==0){
       cat("There are no taxa with SD over the SD threshold:",SDThresh,
           ". Try lower the SD threshold","\n")
     }
     rm(taxa.i,taxaOverThresh)
-
+    
     # check the sd quantile threshold
     sdAllTaxa=rep(0,nTaxa)
     for (i in 1:nTaxa){
@@ -75,40 +63,37 @@ dataInfo=function(
     }
     goodRefTaxaCandi=TaxaOverSdThresh[(TaxaOverSdThresh>=quantile(sdAllTaxa,probs=SDquantilThresh))]
     rm(sdAllTaxa,posTaxaAll.i,TaxaOverSdThresh)
-
+    
     if(length(goodRefTaxaCandi)==0){
       cat("There are no taxa with SD over the SD quantile threshold:",SDquantilThresh,
           ". Try lower the SD quantile threshold","\n")
     }
+    rm(w)
   }
-  rm(w)
-
+  
   # get predictor data
   xVarNamLength=nchar(covsPrefix)
-
+  
   predics = sapply(substr(colnames(data),1,xVarNamLength), function(x) {grep(covsPrefix, x)})
   predPositions=which(predics == 1)
   predNames=colnames(data)[predPositions]
   nPredics=length(predNames)
-  rm(predics,predPositions)
-
+  rm(predics,predPositions,data)
+  
   if(qualifyRefTax){
     # find the pairs of binary preds and taxa for which the assocaiton is not identifiable
     if(length(binPredInd)>0){
-      firstBinPredNam=paste0(covsPrefix,binPredInd)
-      binPredStart=which(predNames%in%firstBinPredNam)
-      binPredStop=length(predNames)
-      allBinPred=predNames[binPredStart:binPredStop]
+      allBinPred=predNames[binPredInd:nPredics]
       nBinPred=length(allBinPred)
       rm(predNames)
-
+      
       taxaAndBinIndexNoInt=vector()
       taxaNoBin=c()
       taxaBalanceBin=c()
-
+      
       for(i in 1:nTaxa){
         for(j in 1:nBinPred){
-          twoColumns.ij=data[,c(taxaNames[i],allBinPred[j])]
+          twoColumns.ij=qualifyData[,c(taxaNames[i],allBinPred[j])]
           nNonZero=length(which(twoColumns.ij[,1]>0))
           sumOfBin=sum(twoColumns.ij[(twoColumns.ij[,1]>0),2])
           rm(twoColumns.ij)
@@ -123,27 +108,25 @@ dataInfo=function(
         }
       }
       results$taxaAndBinIndexNoInt=taxaAndBinIndexNoInt
-      rm(taxaAndBinIndexNoInt,allBinPred,data)
-
-
+      rm(taxaAndBinIndexNoInt,allBinPred,qualifyData)
+      
+      
       # remove unbalanced taxa across binary variables
       goodRefTaxaCandi=goodRefTaxaCandi[!(goodRefTaxaCandi%in%taxaNoBin)]
-
+      
       # keep balanced taxa
       goodRefTaxaCandi=goodRefTaxaCandi[(goodRefTaxaCandi%in%taxaBalanceBin)]
-
+      
       rm(taxaNoBin)
     }
     results$goodRefTaxaCandi=goodRefTaxaCandi
     rm(goodRefTaxaCandi)
   }
-  # return
+  # return 
   results$taxaNames=taxaNames
   rm(taxaNames)
   results$nTaxa=nTaxa
   results$nSub=nSub
-  results$nSubNoReads=nSubNoReads
   results$nPredics=nPredics
-  results$maxTaxaNameNum=maxTaxaNameNum
   return(results)
 }
