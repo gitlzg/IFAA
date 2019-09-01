@@ -2,6 +2,7 @@
 ##' @export
 
 
+
 Regulariz=function(
   data,
   testCovInd,
@@ -90,7 +91,7 @@ Regulariz=function(
     cat("Start Phase 2 parameter estimation","\n")
     
     unestimableTaxa=c()
-    
+    qualifyData=data
     if(length(binaryInd)>0){
       qualifyData=data[rowSums(data[,results$taxaNames]>0)>=2,,drop=F]
       firstBinPredNam=paste0(covsPrefix,binaryInd)
@@ -111,11 +112,12 @@ Regulariz=function(
         }
       }
       unestimableTaxa=unique(unbalanceTaxa)
-      rm(allBinPred,unbalanceTaxa,qualifyData)
+      rm(allBinPred,unbalanceTaxa)
     }
     
     # check zero taxa and subjects with zero taxa reads
-    TaxaNoReads=which(Matrix::colSums(data[,results$taxaNames])==0)
+    TaxaNoReads=which(Matrix::colSums(qualifyData[,results$taxaNames])==0)
+    rm(qualifyData)
     unestimableTaxa=unique(c(unestimableTaxa,results$taxaNames[TaxaNoReads]))
     results$unEstTaxaPos=which(results$taxaNames%in%unestimableTaxa)
     rm(TaxaNoReads,unestimableTaxa)
