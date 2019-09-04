@@ -2,7 +2,6 @@
 ##' @export
 
 
-
 Regulariz=function(
   data,
   testCovInd,
@@ -36,14 +35,14 @@ Regulariz=function(
   dataSparsCheck(data=data,Mprefix=Mprefix)
   
   # load abundance data info
-  dataForEst=dataInfo(data=data,Mprefix=Mprefix,
-                      covsPrefix=covsPrefix,
-                      binPredInd=binaryInd)
-  nSub=dataForEst$nSub
-  taxaNames=dataForEst$taxaNames
-  nPredics=dataForEst$nPredics
-  nTaxa=dataForEst$nTaxa
-  rm(dataForEst)
+  data.info=dataInfo(data=data,Mprefix=Mprefix,
+                     covsPrefix=covsPrefix,
+                     binPredInd=binaryInd)
+  nSub=data.info$nSub
+  taxaNames=data.info$taxaNames
+  nPredics=data.info$nPredics
+  nTaxa=data.info$nTaxa
+  rm(data.info)
   
   if(length(refTaxa)==0 & length(reguMethod)==1){
     # run MCP penalization
