@@ -20,14 +20,14 @@ IFAA=function(
   bootB=5,
   bootLassoAlpha=0.05,
   allFunc=allUserFunc(),
-  refReadsThresh=0.3,
+  refReadsThresh=0,
   SDThresh=0.0001,
-  SDquantilThresh=0.0001,
-  balanceCut=0.3,
+  SDquantilThresh=0,
+  balanceCut=0,
   seed=1
 ){
   results=list()
-  start.time = proc.time()[3]
+  start.time = proc.time()[3] 
   runMeta=metaData(Microbdata=Microbdata,CovData=CovData,
                    linkIDname=linkIDname,testCov=testCov,
                    ctrlCov=ctrlCov,testMany=testMany,ctrlMany=ctrlMany)
@@ -43,14 +43,14 @@ IFAA=function(
   microbName=runMeta$microbName
   results$covriateNames=runMeta$xNames
   rm(runMeta)
-
+  
   if(length(refTaxa)>1){
     stop("Too many reference taxa specified. Only one at a time is allowed.")
   }
   if(length(refTaxa)==1 ){
     if(!refTaxa%in%microbName)
-      stop("The specified reference taxon is not in the data set,
-           double check the name of the reference taxon.")
+      stop("The specified reference taxon is not in the data set, 
+         double check the name of the reference taxon.")
   }
   results$analysisResults=Regulariz(data=data,testCovInd=testCovInd,
                                     testCovInOrder=testCovInOrder,
@@ -67,14 +67,28 @@ IFAA=function(
                                     balanceCut=balanceCut,seed=seed
   )
   rm(data)
-
-  results$testCovInOrder=testCovInOrder
+  
+  results$testCov=testCovInOrder
   results$ctrlCov=ctrlCov
   results$microbName=microbName
+  results$bootB=bootB
+  results$bootLassoAlpha=bootLassoAlpha
+  results$refReadsThresh=refReadsThresh
+  results$balanceCut=balanceCut
+  results$SDThresh=SDThresh
+  results$boot=boot
+  results$paraJobs=paraJobs
+  results$SDquantilThresh=SDquantilThresh
+  if(length(seed)==1){
+    results$seed=seed
+  }else{
+    results$seed="No seed used."
+  }
+  
   rm(testCovInOrder,ctrlCov,microbName)
-
+  
   totalTimeMins = (proc.time()[3] - start.time)/60
   cat("The entire analysis took",totalTimeMins, "minutes","\n")
-
+  
   return(results)
-  }
+}

@@ -1,16 +1,17 @@
 
 ##' @export
 
+
 dataInfo=function(
   data,
   Mprefix,
   covsPrefix,
   qualifyRefTax=F,
   binPredInd,
-  refReadsThresh=0.0001,
-  SDThresh=0.0001,
-  SDquantilThresh=0.0001,
-  balanceCut=0.0001
+  refReadsThresh,
+  SDThresh,
+  SDquantilThresh,
+  balanceCut
 ){
   results=list()
   
@@ -87,8 +88,6 @@ dataInfo=function(
       nBinPred=length(allBinPred)
       rm(predNames)
       
-      taxaAndBinIndexNoInt=vector()
-      taxaNoBin=c()
       taxaBalanceBin=c()
       
       for(i in 1:nTaxa){
@@ -97,27 +96,16 @@ dataInfo=function(
           nNonZero=length(which(twoColumns.ij[,1]>0))
           sumOfBin=sum(twoColumns.ij[(twoColumns.ij[,1]>0),2])
           rm(twoColumns.ij)
-          if(sumOfBin%in%c(0,nNonZero)){
-            taxaNoBin=c(taxaNoBin,taxaNames[i])
-            index.ij=(i-1)*nPredics+binPredInd+j-1
-            taxaAndBinIndexNoInt=c(taxaAndBinIndexNoInt,index.ij)
-          }
-          if(min(sumOfBin,(nNonZero-sumOfBin))>=balanceCut*nNonZero){
+          if(min(sumOfBin,(nNonZero-sumOfBin))>=floor(balanceCut*nSubQualif)){
             taxaBalanceBin=c(taxaBalanceBin,taxaNames[i])
           }
         }
       }
-      results$taxaAndBinIndexNoInt=taxaAndBinIndexNoInt
-      rm(taxaAndBinIndexNoInt,allBinPred,qualifyData)
       
-      
-      # remove unbalanced taxa across binary variables
-      goodRefTaxaCandi=goodRefTaxaCandi[!(goodRefTaxaCandi%in%taxaNoBin)]
+      rm(allBinPred,qualifyData)
       
       # keep balanced taxa
       goodRefTaxaCandi=goodRefTaxaCandi[(goodRefTaxaCandi%in%taxaBalanceBin)]
-      
-      rm(taxaNoBin)
     }
     results$goodRefTaxaCandi=goodRefTaxaCandi
     rm(goodRefTaxaCandi)
