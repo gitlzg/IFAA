@@ -2,6 +2,7 @@
 ##' @export
 
 
+
 Regulariz=function(
   data,
   testCovInd,
@@ -72,6 +73,17 @@ Regulariz=function(
     
     finalIndpRefTax=selectRegroup$finalIndpRefTax
     results$finalRefTaxonQualified=selectRegroup$refTaxonQualified
+    
+    results$goodIndpRefTaxLeastCount=selectRegroup$goodIndpRefTaxLeastCount
+    results$goodIndpRefTaxWithCount=selectRegroup$goodIndpRefTaxWithCount
+    results$goodIndpRefTaxFWERcut=selectRegroup$goodIndpRefTaxFWERcut
+    
+    results$goodIndpRefTaxFWERcutLeastCount=selectRegroup$goodIndpRefTaxFWERcutLeastCount
+    results$goodIndpRefTaxFWERcut=selectRegroup$goodIndpRefTaxFWERcut
+    results$goodRefTaxaCandi=selectRegroup$goodRefTaxaCandi
+    
+    results$taxaLessGoodCut=selectRegroup$taxaLessGoodCut
+    results$taxaLessFWERCut=selectRegroup$taxaLessFWERCut
     
     results$fwerCut=selectRegroup$fwerCut
     results$twoMeanUsed=selectRegroup$twoMeanUsed

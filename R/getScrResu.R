@@ -1,6 +1,7 @@
 ##' @export
 
 
+
 getScrResu=function(
   method,
   data,
@@ -25,8 +26,8 @@ getScrResu=function(
   seed
 ){
   results=list()
-
-  # run permutation
+  
+  # run permutation 
   scrParal=runScrParal(data=data,testCovInd=testCovInd,
                        testCovInOrder=testCovInOrder,
                        testCovInNewNam=testCovInNewNam,nRef=nRef,
@@ -36,12 +37,12 @@ getScrResu=function(
                        SDquantilThresh=SDquantilThresh,balanceCut=balanceCut,
                        Mprefix=Mprefix,covsPrefix=covsPrefix,
                        binPredInd=binPredInd,seed=seed)
-
+  
   selecCountOverall=scrParal$countOfSelecForAPred
   selecCountMatIndv=scrParal$testCovCountMat
   taxaNames=scrParal$taxaNames
   goodRefTaxaCandi=scrParal$goodRefTaxaCandi
-
+  
   nTaxa=scrParal$nTaxa
   nPredics=scrParal$nPredics
   nTestCov=scrParal$nTestCov
@@ -51,15 +52,15 @@ getScrResu=function(
   MaxMatTestCovByPermu=scrParal$MaxMatTestCovByPermu
   rm(scrParal)
   gc()
-
+  
   if(length(refTaxa)>0){nRef=length(refTaxa)}
   if(doPermut){
     # control family wise error rate
     originFwerCut=quantile(maxVec,probs=(1-fwerRate))
     fwerCut=originFwerCut
-
+    
     results$twoMeanUsed=0
-
+    
     if(fwerCut<=min(selecCountOverall)){
       # use two mean clustering
       twoMeanClusResu=twoMeanClus(matrix=selecCountOverall,nRef=nRef)
@@ -69,15 +70,15 @@ getScrResu=function(
       results$twoMeanUsed=1
     }
     results$fwerCut=fwerCut
-
+    
     results$selecTaxaFWER=as((selecCountOverall>=fwerCut)+0,"sparseVector")
     rm(maxVec)
-
+    
     if(nTestCov==1){
       results$selecMatIndv=matrix(results$selecTaxaFWER,nrow=1)
       results$fwerCutIndv=fwerCut
     }
-
+    
     if(nTestCov>1){
       fwerCutIndv=vector()
       for(i in 1:nTestCov){
@@ -97,21 +98,22 @@ getScrResu=function(
       results$MaxMatTestCovByPermu=as(MaxMatTestCovByPermu,"sparseMatrix")
       rm(selecCountMatIndv,fwerCutIndv,MaxMatTestCovByPermu)
     }
-
+    
     goodIndpCut=quantile(selecCountOverall[1,(selecCountOverall[1,]<=fwerCut)],prob=goodIndeCutPerc)
     taxaLessGoodCut=selecCountOverall[1,(selecCountOverall[1,]<=goodIndpCut)]
     taxaLessFWERCut=selecCountOverall[1,(selecCountOverall[1,]<fwerCut)]
     results$taxaNames=taxaNames
     results$selecCountOverall=selecCountOverall
     rm(taxaNames,selecCountOverall)
-
+    
     goodIndpRefTaxWithCount=taxaLessGoodCut[(names(taxaLessGoodCut)%in%goodRefTaxaCandi)]
     if(length(goodIndpRefTaxWithCount)==0){
       results$goodIndpRefTaxLeastCount=NULL
     } else {
       results$goodIndpRefTaxLeastCount=names(tail(goodIndpRefTaxWithCount[goodIndpRefTaxWithCount==min(goodIndpRefTaxWithCount)],n=1))
     }
-
+    
+    results$goodIndpRefTaxWithCount=goodIndpRefTaxWithCount
     goodIndpRefTaxFWERcut=taxaLessFWERCut[(names(taxaLessFWERCut)%in%goodRefTaxaCandi)]
     results$goodIndpRefTaxFWERcut=goodIndpRefTaxFWERcut
     if(length(goodIndpRefTaxFWERcut)==0){
@@ -119,24 +121,29 @@ getScrResu=function(
     } else {
       results$goodIndpRefTaxFWERcutLeastCount=names(tail(goodIndpRefTaxFWERcut[goodIndpRefTaxFWERcut==min(goodIndpRefTaxFWERcut)],n=1))
     }
-
+    results$goodIndpRefTaxFWERcut=goodIndpRefTaxFWERcut
+    results$goodRefTaxaCandi=goodRefTaxaCandi
     rm(goodRefTaxaCandi)
-
+    
     minPosGoodCut=NULL
     if(sum(taxaLessGoodCut>0)>0){
       minPosGoodCut=min(taxaLessGoodCut[taxaLessGoodCut>0])
     }
-
+    
     minPosFWERCut=NULL
     if(sum(taxaLessFWERCut>0)>0){
       minPosFWERCut=min(taxaLessFWERCut[taxaLessFWERCut>0])
     }
-
+    results$taxaLessGoodCut=taxaLessGoodCut
+    results$taxaLessFWERCut=taxaLessFWERCut
+    
+    results$minPosGoodCut=minPosGoodCut
+    results$minPosFWERCut=minPosFWERCut
+    
     results$refTaxonQualified=1
     if(length(results$goodIndpRefTaxLeastCount)==1){
       results$finalIndpRefTax=results$goodIndpRefTaxLeastCount
     } else if (length(results$goodIndpRefTaxFWERcutLeastCount)==1){
-      results$goodIndpRefTaxWithCount=results$goodIndpRefTaxFWERcut
       results$finalIndpRefTax=results$goodIndpRefTaxFWERcutLeastCount
     } else if(length(minPosGoodCut)>0){
       results$finalIndpRefTax=names(tail(taxaLessGoodCut[taxaLessGoodCut==minPosGoodCut],n=1))
@@ -151,7 +158,7 @@ getScrResu=function(
     }
     rm(taxaLessGoodCut,taxaLessFWERCut)
   }
-
+  
   if(!doPermut){results$finalIndpRefTax=refTaxa}
   return(results)
 }
