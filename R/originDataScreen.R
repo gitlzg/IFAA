@@ -51,7 +51,7 @@ originDataScreen=function(
   snow::clusterExport(c1, allFunc)
   
   if(length(seed)>0){
-    snow::clusterSetupRNGstream(cl=c1,seed=as.numeric(seed)+10^3)
+    snow::clusterSetupRNGstream(cl=c1,seed=as.numeric(seed)+10^5)
   }
   doSNOW::registerDoSNOW(c1)
   

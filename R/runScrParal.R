@@ -39,7 +39,6 @@ runScrParal=function(
   nPredics=basicInfo$nPredics
   
   results$goodRefTaxaCandi=basicInfo$goodRefTaxaCandi
-  
   nSub=basicInfo$nSub
   rm(basicInfo)
   gc()
@@ -58,7 +57,7 @@ runScrParal=function(
       set.seed(as.numeric(seed))
     }
     refTaxa=sample(taxaNames,nRef)
-    }
+  }
   
   # overwrite nRef if the reference taxon is specified
   nRef=length(refTaxa)
@@ -104,7 +103,7 @@ runScrParal=function(
     snow::clusterExport(c2, allFunc)
     
     if(length(seed)>0){
-      snow::clusterSetupRNGstream(cl=c2,seed=as.numeric(seed)+10^2)
+      snow::clusterSetupRNGstream(cl=c2,seed=as.numeric(seed)+10^4)
     }
     doSNOW::registerDoSNOW(c2)
     
@@ -222,4 +221,4 @@ runScrParal=function(
   results$taxaNames=taxaNames
   rm(taxaNames)
   return(results)
-  }
+}
