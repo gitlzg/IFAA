@@ -136,8 +136,8 @@ Regulariz=function(
     estiResults=bootResuHDCI(data=data,refTaxa=results$finalizedBootRefTaxon,
                              bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                              binPredInd=binaryInd,
-                             covsPrefix=covsPrefix,Mprefix=Mprefix
-    )
+                             covsPrefix=covsPrefix,Mprefix=Mprefix,
+                             seed=seed)
     endT=proc.time()[3]
     cat("Phase 2 parameter estimation done and took",(endT-startT)/60,"minutes.","\n")
   }
@@ -152,8 +152,8 @@ Regulariz=function(
     estiResults=bootResuHDCI(data=data,refTaxa=refTaxaWithNewNam,
                              bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                              binPredInd=binaryInd,
-                             covsPrefix=covsPrefix,Mprefix=Mprefix
-    )
+                             covsPrefix=covsPrefix,Mprefix=Mprefix,
+                             seed=seed)
     
     cat("Association estimation done","\n")
     CItime2 = proc.time()[3]
