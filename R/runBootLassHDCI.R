@@ -1,6 +1,7 @@
 ##' @export
 
 
+
 runBootLassoHDCI=function(
   x=x,
   y=y,
@@ -44,6 +45,7 @@ runBootLassoHDCI=function(
   doParallel::registerDoParallel(c3)
   
   if(length(seed)>0){
+    set.seed(as.numeric(seed)+10^2)
     parallel::clusterSetRNGStream(cl=c3,(as.numeric(seed)+10^3))
   }
   
