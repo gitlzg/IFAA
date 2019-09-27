@@ -3,7 +3,7 @@
 
 
 IFAA=function(
-  Microbdata,
+  MicrobData,
   CovData,
   linkIDname,
   testCov=NULL,
@@ -28,7 +28,7 @@ IFAA=function(
 ){
   results=list()
   start.time = proc.time()[3] 
-  runMeta=metaData(Microbdata=Microbdata,CovData=CovData,
+  runMeta=metaData(MicrobData=MicrobData,CovData=CovData,
                    linkIDname=linkIDname,testCov=testCov,
                    ctrlCov=ctrlCov,testMany=testMany,ctrlMany=ctrlMany)
   data=runMeta$data

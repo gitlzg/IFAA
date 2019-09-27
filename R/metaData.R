@@ -1,8 +1,8 @@
 ##' @export
 
-metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMany=F,ctrlMany=F){
+metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMany=F,ctrlMany=F){
   results=list()
-
+  
   if(length(linkIDname)==0){
     stop("linkIDname is missing.")
   }
@@ -12,37 +12,38 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   if(sum(testCov%in%ctrlCov)>0){
     cat("Warnings: Variables appeared in both testCov list and ctrlCov list will be treated as testCov.","\n")
   }
-
-  if(is.matrix(Microbdata))MdataWithId=data.matrix(Microbdata)
-  if(is.data.frame(Microbdata))MdataWithId=data.matrix(Microbdata)
-  if(is.character(Microbdata)){
-    nCharac=nchar(Microbdata)
-    if(substr(Microbdata,(nCharac-2),nCharac)=="csv"){
-      MdataWithId=data.matrix(read.csv(file=Microbdata,header=T,na.strings=c("","NA")))
+  
+  if(is.matrix(MicrobData))MdataWithId=data.matrix(MicrobData)
+  if(is.data.frame(MicrobData))MdataWithId=data.matrix(MicrobData)
+  if(is.character(MicrobData)){
+    nCharac=nchar(MicrobData)
+    if(substr(MicrobData,(nCharac-2),nCharac)=="csv"){
+      MdataWithId=data.matrix(read.csv(file=MicrobData,header=T,na.strings=c("","NA")))
     }
-    if(substr(Microbdata,(nCharac-2),nCharac)=="tsv"){
-      MdataWithId=data.matrix(read.table(file=Microbdata, sep='\t',header=T,na.strings=c("","NA")))
+    if(substr(MicrobData,(nCharac-2),nCharac)=="tsv"){
+      MdataWithId=data.matrix(read.table(file=MicrobData, sep='\t',header=T,na.strings=c("","NA")))
     }
   }
+  
   if(length(colnames(MdataWithId))!=ncol(MdataWithId))
     stop("Microbiome data lack variable names.")
-    
+  
   missPropMData=sum(is.na(MdataWithId[,linkIDname]))/nrow(MdataWithId)
   if(missPropMData>0.8){
-    cat("Warning: There are over 80% missing values for the linkId variable in the Microbiome data file.
-        Double check the data format.","\n")
+    cat("Warning: There are over 80% missing values for the linkId variable in the Microbiome data file. 
+             Double check the data format.","\n")
   }
   Mdata=MdataWithId[,!colnames(MdataWithId)%in%linkIDname,drop=F]
   microbName=colnames(Mdata)
   newMicrobNames=paste0("microb",seq(length(microbName)))
   results$Mprefix="microb"
-
+  
   colnames(Mdata)=newMicrobNames
   MdataWithId_new=cbind(MdataWithId[,linkIDname,drop=F],Mdata)
   results$microbName=microbName
   results$newMicrobNames=newMicrobNames
   rm(microbName,newMicrobNames)
-
+  
   if(is.matrix(CovData))CovarWithId=data.matrix(CovData)
   if(is.data.frame(CovData))CovarWithId=data.matrix(CovData)
   if(is.character(CovData)){
@@ -60,12 +61,12 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   
   missPropCovData=sum(is.na(CovarWithId[,linkIDname]))/nrow(CovarWithId)
   if(missPropCovData>0.8){
-    cat("Warning: There are over 80% missing values for the linkId variable in the covariates data file.
-        Double check the data format.","\n")
+    cat("Warning: There are over 80% missing values for the linkId variable in the covariates data file. 
+             Double check the data format.","\n")
   }
-
+  
   Covariates=CovarWithId[,!colnames(CovarWithId)%in%linkIDname,drop=F]
-
+  
   if(length(testCov)==0){
     if(!testMany){
       stop("No covariates are specified for estimating associations of interest.")
@@ -75,30 +76,30 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
     }
   }
   results$testCov=testCov
-
+  
   if(!is.numeric(Covariates[,testCov,drop=F])){
     stop("There are non-numeric variables in the covariates for association test.")
   }
-
+  
   ctrlCov=ctrlCov[!ctrlCov%in%testCov]
-
+  
   xNames=colnames(Covariates)
   if(length(ctrlCov)==0 & ctrlMany){
-    cat("No control covariates are specified,
-        all variables except testCov are considered as control covariates.","\n")
+    cat("No control covariates are specified, 
+          all variables except testCov are considered as control covariates.","\n")
     ctrlCov=xNames[!xNames%in%testCov]
   }
   results$ctrlCov=ctrlCov[!ctrlCov%in%testCov]
-
+  
   Covariates=data.matrix(Covariates[,c(testCov,ctrlCov),drop=F])
-
+  
   xNames=colnames(Covariates)
   nCov=length(xNames)
-
+  
   if(sum(is.na(Covariates))>0){
     cat("Samples with missing covariate values are removed from the analysis.","\n")
   }
-
+  
   if(!is.numeric(Covariates[,ctrlCov,drop=F])){
     cat("Warnings: there are non-numeric variables in the control covariates","\n")
     nCtrlCov=length(ctrlCov)
@@ -109,7 +110,7 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   }
   colnames(Covariates)=xNames
   binCheck=unlist(lapply(seq(nCov),function(i)dim(table(Covariates[,xNames[i]]))))
-
+  
   if(length(which(binCheck==2))>0){
     Covariates=Covariates[,c(xNames[binCheck!=2],xNames[binCheck==2]),drop=F]
     binaryInd=length(which(binCheck!=2))+1
@@ -130,11 +131,11 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
     binaryInd=NULL
     results$varNamForBin=NULL
   }
-
+  
   # find the position of the first binary predictor and the rest are all binary
   results$binaryInd=binaryInd
-
-  results$xNames=colnames(Covariates)
+  
+  results$xNames=colnames(Covariates)  
   xNewNames=paste0("x",seq(length(xNames)))
   colnames(Covariates)=xNewNames
   results$covsPrefix="x"
@@ -143,9 +144,9 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   results$testCovInOrder=results$xNames[results$testCovInd]
   results$testCovInNewNam=results$xNewNames[results$testCovInd]
   rm(xNames,xNewNames)
-
+  
   CovarWithId_new=cbind(CovarWithId[,linkIDname,drop=F],Covariates)
-
+  
   data=merge(MdataWithId_new, CovarWithId_new,by=linkIDname,all.x=T)
   results$covariatesData=CovarWithId_new
   colnames(results$covariatesData)=c(linkIDname,results$xNames)
@@ -161,14 +162,14 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
     print(testCov)
   }
   rm(testCov)
-
+  
   cat(length(results$ctrlCov),"ctrlCov variables in the analysis ","\n")
   if(length(results$ctrlCov)>0){
     print("These are the ctrlCov variables:")
     print(ctrlCov)
   }
   rm(ctrlCov)
-
+  
   cat(results$BinVars,"binary covariates in the analysis","\n")
   if(results$BinVars>0){
     print("These are the binary covariates:")
@@ -176,4 +177,4 @@ metaData=function(Microbdata,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMa
   }
   rm(Mdata,Covariates,binCheck)
   return(results)
-  }
+}
