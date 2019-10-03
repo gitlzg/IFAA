@@ -20,7 +20,7 @@ ctrlCov=c("v3"),
 
 nRef=40,
 
-nPermu=50,
+nPermu=40,
 
 reguMethod="mcp",
 
