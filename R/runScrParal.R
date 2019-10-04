@@ -57,7 +57,8 @@ runScrParal=function(
       set.seed(as.numeric(seed))
     }
     refTaxa=sample(taxaNames,nRef)
-  }
+    results$refTaxa=refTaxa
+    }
   
   # overwrite nRef if the reference taxon is specified
   nRef=length(refTaxa)
@@ -221,4 +222,4 @@ runScrParal=function(
   results$taxaNames=taxaNames
   rm(taxaNames)
   return(results)
-}
+  }

@@ -50,6 +50,7 @@ getScrResu=function(
   maxVec=scrParal$maxVec
   results$maxVec=maxVec
   MaxMatTestCovByPermu=scrParal$MaxMatTestCovByPermu
+  results$refTaxa=scrParal$refTaxa
   rm(scrParal)
   gc()
   

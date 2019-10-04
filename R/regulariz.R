@@ -84,6 +84,7 @@ Regulariz=function(
     
     results$taxaLessGoodCut=selectRegroup$taxaLessGoodCut
     results$taxaLessFWERCut=selectRegroup$taxaLessFWERCut
+    results$refTaxa=selectRegroup$scrParal
     
     results$fwerCut=selectRegroup$fwerCut
     results$twoMeanUsed=selectRegroup$twoMeanUsed
