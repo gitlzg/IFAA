@@ -104,7 +104,8 @@ runScrParal=function(
     snow::clusterExport(c2, allFunc)
     
     if(length(seed)>0){
-      snow::clusterSetupRNGstream(cl=c2,seed=as.numeric(seed)+10^4)
+      snow::clusterSetupRNG (cl=c2, type = "RNGstream")
+      snow::clusterSetupRNGstream(cl=c2,seed=rep((as.numeric(seed)+10^4),6))
     }
     doSNOW::registerDoSNOW(c2)
     

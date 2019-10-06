@@ -1,6 +1,5 @@
 ##' @export
 
-
 originDataScreen=function(
   method,
   data,
@@ -51,15 +50,18 @@ originDataScreen=function(
   snow::clusterExport(c1, allFunc)
   
   if(length(seed)>0){
-    snow::clusterSetupRNGstream(cl=c1,seed=as.numeric(seed)+10^5)
+    snow::clusterSetupRNG (cl=c1, type = "RNGstream")
+    snow::clusterSetupRNGstream(cl=c1,seed=rep((as.numeric(seed)+10^5),6))
   }
   doSNOW::registerDoSNOW(c1)
-  
+  startT1=proc.time()[3]
+  cat("OriginDataScreen parallel setup took",startT1-startT,"seconds","\n")
   # start parallel computing
   scr1Resu=foreach(i=1:nRef,.multicombine=T,
                    .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
                    .errorhandling="pass") %dopar% {
                      #for(i in 1:nRef) {
+                     time1=proc.time()[3]
                      ii=which(taxaNames==refTaxa[i])
                      dataForEst=dataRecovTrans(data=data,ref=refTaxa[i],Mprefix=Mprefix,
                                                covsPrefix=covsPrefix)
@@ -67,6 +69,10 @@ originDataScreen=function(
                      yTildLongTild.i=dataForEst$UtildaLong
                      rm(dataForEst)
                      gc()
+                     time2=proc.time()[3]
+                     
+                     preprosT=time2-time1
+                     
                      if(method=="lasso") {
                        Penal.i=runGlmnet(x=xTildLongTild.ig,y=yTildLongTild.i,nPredics=nPredics)
                      }
@@ -76,6 +82,10 @@ originDataScreen=function(
                                           method="mcp",permutY=F)
                      }
                      rm(xTildLongTild.i)
+                     
+                     time3=proc.time()[3]
+                     runpicasT=time3-time2
+                     
                      BetaNoInt.i=as(Penal.i$betaNoInt,"sparseVector")
                      rm(Penal.i)
                      gc()
@@ -91,10 +101,15 @@ originDataScreen=function(
                        selection.i[(nPredics*ii+1):nAlphaSelec]=as(BetaNoInt.i[(nPredics*(ii-1)+1):nAlphaNoInt]!=0,"sparseVector")
                      }
                      rm(BetaNoInt.i)
+                     time4=proc.time()[3]
+                     postProsT=time4-time3
                      # create return vector
                      recturnlist=list()
                      recturnlist[[1]]=selection.i
                      recturnlist[[2]]=yTildLongTild.i
+                     recturnlist[[3]]=preprosT
+                     recturnlist[[4]]=postProsT
+                     recturnlist[[5]]=runpicasT
                      rm(selection.i,yTildLongTild.i)
                      return(recturnlist)
                    }
@@ -103,7 +118,22 @@ originDataScreen=function(
   
   endT=proc.time()[3]
   
-  cat("Original screen done and took",(endT-startT)/60,"minutes","\n")
+  cat("Original screen done and took",(endT-startT1)/60,"minutes","\n")
+  
+  results$preprosT=vector()
+  for(i in 1:nRef){
+    results$preprosT[i]=scr1Resu[[i]][[3]]
+  }
+  
+  results$postProsT=vector()
+  for(i in 1:nRef){
+    results$postProsT[i]=scr1Resu[[i]][[4]]
+  }
+  
+  results$runpicasT=vector()
+  for(i in 1:nRef){
+    results$runpicasT[i]=scr1Resu[[i]][[5]]
+  }
   
   selecList=list()
   for(i in 1:nRef){
