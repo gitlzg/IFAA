@@ -23,4 +23,5 @@ Depends:
   Matrix (>= 1.2-14),
   HDCI (>= 1.0-2),
   doParallel (>= 1.0.11),
-  future (>= 1.12.0)
+  future (>= 1.12.0),
+  doRNG (>= 1.6.6)
