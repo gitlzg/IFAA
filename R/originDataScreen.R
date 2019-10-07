@@ -1,5 +1,6 @@
 ##' @export
 
+
 originDataScreen=function(
   method,
   data,
@@ -82,7 +83,7 @@ originDataScreen=function(
                      if(method=="mcp") {
                        Penal.i=runPicasso(x=xTildLongTild.i,y=yTildLongTild.i,
                                           lambda=lambda,nPredics=nPredics,
-                                          method="mcp",permutY=F,seed=seed)
+                                          method="mcp",permutY=F,seed=seed,i=i)
                      }
                      rm(xTildLongTild.i)
                      

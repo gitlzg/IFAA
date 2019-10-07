@@ -138,7 +138,7 @@ runScrParal=function(
                        }
                        if(method=="mcp") {
                          Penal.i=runPicasso(x=xLongTild.i,y=yTildLongList[[ref.i]],nPredics=nPredics,
-                                            method="mcp",permutY=permutY,seed=seed)
+                                            method="mcp",permutY=permutY,seed=seed,i=i)
                        }
                        rm(xLongTild.i)
                        BetaNoInt.i=as(Penal.i$betaNoInt,"sparseVector")
