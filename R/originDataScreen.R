@@ -1,6 +1,5 @@
 ##' @export
 
-
 originDataScreen=function(
   method,
   data,
@@ -49,14 +48,8 @@ originDataScreen=function(
   c1<-snow::makeCluster(paraJobs)
   
   snow::clusterExport(c1, allFunc)
-  #cat("seed:",seed,"\n")
-  
-  #if(length(seed)>0){
-  #snow::clusterSetupRNG (cl=c1, type = "RNGstream")
-  #snow::clusterSetupRNGstream(cl=c1,seed=rep((as.numeric(seed)+10^5),6))
-  #registerDoRNG((as.numeric(seed)+10^5))
-  # }
   doSNOW::registerDoSNOW(c1)
+  
   startT1=proc.time()[3]
   cat("OriginDataScreen parallel setup took",startT1-startT,"seconds","\n")
   # start parallel computing
@@ -162,10 +155,17 @@ originDataScreen=function(
   # create count of for each predictor,each row is the count
   # of selection for a predictor
   
-  countOfSelecForAPred=matrix(Matrix::rowSums(scr1Resu[1:nAlphaSelec,,drop=F]),nrow=nPredics)
-  testCovCountMat=countOfSelecForAPred[testCovInd,,drop=F]
-  countOfSelecForAPred=as(matrix(Matrix::colSums(testCovCountMat),nrow=1),"sparseMatrix")
-  rm(scr1Resu,testCovInd)
+  countOfSelecForAPred=as(matrix(rep(0,nTaxa),nrow=1),"sparseMatrix")
+  for(i in 1:nRef){
+    vec.i.ref=scr1Resu[,i]
+    matrix.i.ref=as(matrix(vec.i.ref,nrow=nPredics),"sparseMatrix")
+    testCovVec.i.ref=as(matrix((Matrix::colSums(matrix.i.ref[testCovInd,,drop=F])>0)+0,nrow=1),"sparseMatrix")
+    countOfSelecForAPred=countOfSelecForAPred+testCovVec.i.ref
+  }
+  
+  countOfSelecForAllPred=as(matrix(Matrix::rowSums(scr1Resu),nrow=nPredics),"sparseMatrix")
+  testCovCountMat=countOfSelecForAllPred[testCovInd,,drop=F]
+  rm(scr1Resu,testCovInd,countOfSelecForAllPred)
   gc()
   
   colnames(countOfSelecForAPred)=taxaNames

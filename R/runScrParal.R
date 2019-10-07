@@ -63,6 +63,7 @@ runScrParal=function(
   
   # overwrite nRef if the reference taxon is specified
   nRef=length(refTaxa)
+  
   #
   ## run original data screen
   #
@@ -91,7 +92,6 @@ runScrParal=function(
     permutOrder=lapply(rep(nSub,nPermu),sample)
     
     screenStartTime = proc.time()[3]
-    refResu0=as(matrix(0,nrow=nPredics*nTaxa,ncol=1),"sparseMatrix")
     
     EName=testCovInNewNam
     EVar=data[,EName,drop=F]
@@ -106,12 +106,6 @@ runScrParal=function(
     c2 <- snow::makeCluster(paraJobs)
     
     snow::clusterExport(c2, allFunc)
-    
-    #if(length(seed)>0){
-    #snow::clusterSetupRNG (cl=c2, type = "RNGstream")
-    #snow::clusterSetupRNGstream(cl=c2,seed=rep((as.numeric(seed)+10^4),6))
-    #registerDoRNG((as.numeric(seed)+10^4))
-    #}
     doSNOW::registerDoSNOW(c2)
     
     refResu=foreach (i=1:totNumOfLoops,.multicombine=T,
@@ -176,25 +170,40 @@ runScrParal=function(
     cat("Permutation done and took", (endT-startT)/60,"minutes","\n")
     
     # obtain the maximum vector
-    permuColInd=1+seq(totNumOfLoops-1)%%nPermu
+    permuColInd=1+seq(0,totNumOfLoops-1)%%nPermu
     permutResuMat=matrix(NA,nrow=nTaxa,ncol=nPermu)
     permutTestCovList=list()
     nTestCov=length(testCovInd)
     
     for(i in 1:nPermu){
-      allCovCountMat.i=as(matrix(Matrix::rowSums(refResu[,(permuColInd==i),drop=F]),nrow=nPredics),"sparseMatrix")
-      testCovCountMat.i=allCovCountMat.i[testCovInd,,drop=F]
-      permutResuMat[,i]=Matrix::colSums(testCovCountMat.i)
-      if(nTestCov>1)permutTestCovList[[i]]=testCovCountMat.i
+      matrix.i.permu=refResu[,(permuColInd==i),drop=F]
+      vec.i=as(rep(0,nTaxa),"sparseVector")
+      
+      for(j in 1:nRef){
+        vector.j.ref=matrix.i.permu[,j]
+        matrix.i.j=as(matrix(vector.j.ref,nrow=nPredics),"sparseMatrix")
+        testCovVec.j.ref=as((Matrix::colSums(matrix.i.j[testCovInd,,drop=F])>0)+0,"sparseVector")
+        vec.i=vec.i+testCovVec.j.ref
+      }
+      
+      permutResuMat[,i]=as.vector(vec.i)
     }
-    rm(allCovCountMat.i,testCovCountMat.i)
+    rm(vec.i,matrix.i.permu,vector.j.ref,matrix.i.j,testCovVec.j.ref)
     
-    nTestCov=length(testCovInd)
+    if(nTestCov>1){
+      for(i in 1:nPermu){
+        matrix.i.permu=refResu[,(permuColInd==i),drop=F]
+        allCovCountMat.i=as(matrix(Matrix::rowSums(matrix.i.permu),nrow=nPredics),"sparseMatrix")
+        permutTestCovList[[i]]=allCovCountMat.i[testCovInd,,drop=F]
+      }
+      rm(matrix.i.permu,allCovCountMat.i)
+    }
     
     maxVec=rep(NA,nPermu)
     for(i in 1:nPermu){
       maxVec[i]=max(permutResuMat[,i])
     }
+    rm(permutResuMat)
     
     results$nTestCov=nTestCov
     
