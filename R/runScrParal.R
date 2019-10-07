@@ -2,6 +2,7 @@
 ##' @export
 
 
+
 runScrParal=function(
   method=c("mcp"),
   data,
@@ -58,7 +59,7 @@ runScrParal=function(
     }
     refTaxa=sample(taxaNames,nRef)
     results$refTaxa=refTaxa
-    }
+  }
   
   # overwrite nRef if the reference taxon is specified
   nRef=length(refTaxa)
@@ -83,7 +84,10 @@ runScrParal=function(
   if(doPermut){
     startT=proc.time()[3]
     cat("start to run permutation","\n")
+    
     # permut the exposure variable
+    if(length(seed)>0)set.seed(as.numeric(seed)+10^6)
+    
     permutOrder=lapply(rep(nSub,nPermu),sample)
     
     screenStartTime = proc.time()[3]
@@ -103,16 +107,18 @@ runScrParal=function(
     
     snow::clusterExport(c2, allFunc)
     
-    if(length(seed)>0){
-      snow::clusterSetupRNG (cl=c2, type = "RNGstream")
-      snow::clusterSetupRNGstream(cl=c2,seed=rep((as.numeric(seed)+10^4),6))
-    }
+    #if(length(seed)>0){
+    #snow::clusterSetupRNG (cl=c2, type = "RNGstream")
+    #snow::clusterSetupRNGstream(cl=c2,seed=rep((as.numeric(seed)+10^4),6))
+    #registerDoRNG((as.numeric(seed)+10^4))
+    #}
     doSNOW::registerDoSNOW(c2)
     
     refResu=foreach (i=1:totNumOfLoops,.multicombine=T,
                      .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
                      .errorhandling="pass") %dopar% {
                        #for(j in 1:nRef){
+                       
                        permut.i=1+(i-1)%%nPermu
                        permutX1=EVar[permutOrder[[permut.i]],,drop=F]
                        newData=cbind(data[,!(colnames(data)%in%EName)],permutX1)
@@ -132,7 +138,7 @@ runScrParal=function(
                        }
                        if(method=="mcp") {
                          Penal.i=runPicasso(x=xLongTild.i,y=yTildLongList[[ref.i]],nPredics=nPredics,
-                                            method="mcp",permutY=permutY)
+                                            method="mcp",permutY=permutY,seed=seed)
                        }
                        rm(xLongTild.i)
                        BetaNoInt.i=as(Penal.i$betaNoInt,"sparseVector")
@@ -223,4 +229,4 @@ runScrParal=function(
   results$taxaNames=taxaNames
   rm(taxaNames)
   return(results)
-  }
+}

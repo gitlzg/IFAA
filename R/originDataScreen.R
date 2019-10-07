@@ -48,11 +48,13 @@ originDataScreen=function(
   c1<-snow::makeCluster(paraJobs)
   
   snow::clusterExport(c1, allFunc)
+  #cat("seed:",seed,"\n")
   
-  if(length(seed)>0){
-    snow::clusterSetupRNG (cl=c1, type = "RNGstream")
-    snow::clusterSetupRNGstream(cl=c1,seed=rep((as.numeric(seed)+10^5),6))
-  }
+  #if(length(seed)>0){
+  #snow::clusterSetupRNG (cl=c1, type = "RNGstream")
+  #snow::clusterSetupRNGstream(cl=c1,seed=rep((as.numeric(seed)+10^5),6))
+  #registerDoRNG((as.numeric(seed)+10^5))
+  # }
   doSNOW::registerDoSNOW(c1)
   startT1=proc.time()[3]
   cat("OriginDataScreen parallel setup took",startT1-startT,"seconds","\n")
@@ -61,6 +63,7 @@ originDataScreen=function(
                    .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
                    .errorhandling="pass") %dopar% {
                      #for(i in 1:nRef) {
+                     
                      time1=proc.time()[3]
                      ii=which(taxaNames==refTaxa[i])
                      dataForEst=dataRecovTrans(data=data,ref=refTaxa[i],Mprefix=Mprefix,
@@ -79,7 +82,7 @@ originDataScreen=function(
                      if(method=="mcp") {
                        Penal.i=runPicasso(x=xTildLongTild.i,y=yTildLongTild.i,
                                           lambda=lambda,nPredics=nPredics,
-                                          method="mcp",permutY=F)
+                                          method="mcp",permutY=F,seed=seed)
                      }
                      rm(xTildLongTild.i)
                      
@@ -100,7 +103,7 @@ originDataScreen=function(
                        selection.i[1:(nPredics*(ii-1))]=as(BetaNoInt.i[1:(nPredics*(ii-1))]!=0,"sparseVector")
                        selection.i[(nPredics*ii+1):nAlphaSelec]=as(BetaNoInt.i[(nPredics*(ii-1)+1):nAlphaNoInt]!=0,"sparseVector")
                      }
-                     rm(BetaNoInt.i)
+                     #rm(BetaNoInt.i)
                      time4=proc.time()[3]
                      postProsT=time4-time3
                      # create return vector
@@ -110,6 +113,7 @@ originDataScreen=function(
                      recturnlist[[3]]=preprosT
                      recturnlist[[4]]=postProsT
                      recturnlist[[5]]=runpicasT
+                     recturnlist[[6]]=BetaNoInt.i
                      rm(selection.i,yTildLongTild.i)
                      return(recturnlist)
                    }
@@ -133,6 +137,11 @@ originDataScreen=function(
   results$runpicasT=vector()
   for(i in 1:nRef){
     results$runpicasT[i]=scr1Resu[[i]][[5]]
+  }
+  
+  results$betaEst=list()
+  for(i in 1:nRef){
+    results$betaEst[[i]]=scr1Resu[[i]][[6]]
   }
   
   selecList=list()
