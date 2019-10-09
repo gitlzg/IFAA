@@ -1,5 +1,6 @@
 ##' @export
 
+
 originDataScreen=function(
   method,
   data,
@@ -45,6 +46,8 @@ originDataScreen=function(
     if(!is.numeric(availCores))paraJobs=1
   }
   
+  cat(paraJobs, "parallel jobs are registered for running the analysis.","\n")
+  
   c1<-snow::makeCluster(paraJobs)
   
   snow::clusterExport(c1, allFunc)
@@ -76,7 +79,7 @@ originDataScreen=function(
                      if(method=="mcp") {
                        Penal.i=runPicasso(x=xTildLongTild.i,y=yTildLongTild.i,
                                           lambda=lambda,nPredics=nPredics,
-                                          method="mcp",permutY=F,seed=seed,i=i)
+                                          method="mcp",permutY=F,seed=seed,seedi=i)
                      }
                      rm(xTildLongTild.i)
                      

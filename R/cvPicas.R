@@ -14,7 +14,7 @@ cvPicasso=function(
   method,
   standardize,
   seed,
-  i
+  seedi
 ){
   
   results=list()
@@ -35,7 +35,7 @@ cvPicasso=function(
   # partition the data randomly into nfolds partitions
   parSize=floor(nObsAll/nfolds)
   
-  if(length(seed)>0)set.seed(as.numeric(seed)+10^7+i)
+  if(length(seed)>0)set.seed(as.numeric(seed)+10^7+seedi)
   
   randomShuf=sample(nObsAll, nObsAll)
   sampleInd=list()

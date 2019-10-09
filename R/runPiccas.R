@@ -20,7 +20,7 @@ runPicasso=function(
   permutY,
   allFunc=allFunc,
   seed,
-  i
+  seedi
 ){
   
   results=list()
@@ -55,7 +55,7 @@ runPicasso=function(
       
       cvResul=cvPicasso(x=x,y=y,lamMax=lamMax,lambda=lambda,nfolds=nfolds,zeroSDCut=zeroSDCut,
                         lambda.min.ratio=lambda.min.ratio,nLam=nLam,
-                        method=method,family=family,standardize=standardize,seed=seed,i=i)
+                        method=method,family=family,standardize=standardize,seed=seed,seedi=seedi)
       cvExeTimei= (proc.time()[3] - cvStartTimei)/60
       print(paste("The",i,"th set of cross validation with picasso is done and took",cvExeTimei,"minutes"))
     }
