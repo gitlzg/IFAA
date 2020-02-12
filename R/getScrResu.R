@@ -94,7 +94,7 @@ getScrResu=function(
         }
       }
       results$selecMatIndv=as((selecCountMatIndv>=fwerCutIndv)+0,"sparseMatrix")
-      results$selecIndvInOverall=t(t(as.matrix(results$selecMatIndv))*(results$selecTaxaFWER))
+      results$selecIndvInOverall=as(t(t(as.matrix(results$selecMatIndv))*as.vector(results$selecTaxaFWER)),"sparseMatrix")
       results$selecCountMatIndv=as(selecCountMatIndv,"sparseMatrix")
       results$fwerCutIndv=as(fwerCutIndv,"sparseVector")
       results$MaxMatTestCovByPermu=as(MaxMatTestCovByPermu,"sparseMatrix")
