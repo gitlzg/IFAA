@@ -3,13 +3,14 @@
 
 
 runBootLassoHDCI=function(
-  x=x,
-  y=y,
+  x,
+  y,
   nPredics,
   nTaxa,
   nfolds=10,
   lambdaOPT=NULL,
   refTaxaPosition,
+  #zeroSDCut=10^(-20),
   zeroSDCut=0,
   standardize=F,
   bootB,
@@ -31,6 +32,9 @@ runBootLassoHDCI=function(
     x=x[,-xWithNearZeroSd]
   }
   rm(sdX)
+  
+  write.csv(cbind(as.matrix(x),as.vector(y)),file="xy.csv",row.names = F)
+  
   nearZeroSd=length(xWithNearZeroSd)
   
   # print(paste("Number of x with near-zero sd: ", nearZeroSd))
@@ -56,10 +60,11 @@ runBootLassoHDCI=function(
   
   # convert to a sparse vector format from sparse matrix format
   beta=as(bootResu$Beta.LPR,"sparseVector")
-  betaCI=as(bootResu$interval.LOPR,"sparseMatrix")
+  betaCI=as(bootResu$interval.LPR,"sparseMatrix")
+  
   rm(bootResu)
   
-  # filling zeros
+  # transform vector back
   if(length(xWithNearZeroSd)>0){
     betaTransLasso=groupBetaToFullBeta(nTaxa=nBeta,nPredics=1,
                                        unSelectList=sort(xWithNearZeroSd),newBetaNoInt=beta)

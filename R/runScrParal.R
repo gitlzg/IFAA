@@ -115,9 +115,9 @@ runScrParal=function(
                        
                        permut.i=1+(i-1)%%nPermu
                        permutX1=EVar[permutOrder[[permut.i]],,drop=F]
-                       newData=cbind(data[,!(colnames(data)%in%EName)],permutX1)
+                       newData=data
+                       newData[,EName]=permutX1
                        rm(permutX1)
-                       colnames(newData)[(ncol(newData)-length(EName)+1):ncol(newData)]=EName
                        
                        ref.i=1+floor((i-1)/nPermu)
                        ii=which(taxaNames==refTaxa[ref.i])
@@ -239,3 +239,4 @@ runScrParal=function(
   rm(taxaNames)
   return(results)
 }
+

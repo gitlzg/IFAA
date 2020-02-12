@@ -3,8 +3,8 @@
 
 
 runGlmnet=function(
-  x=x,
-  y=y,
+  x,
+  y,
   nPredics,
   family="gaussian",
   nfolds=10,

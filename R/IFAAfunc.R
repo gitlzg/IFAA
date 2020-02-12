@@ -14,10 +14,10 @@ IFAA=function(
   nPermu,
   refTaxa=NULL,
   reguMethod=c("mcp"), ## "lasso" or "mcp"
-  fwerRate=0.30, #0.30
+  fwerRate,
   boot=T,
   paraJobs=NULL,
-  bootB=5,
+  bootB,
   bootLassoAlpha=0.05,
   allFunc=allUserFunc(),
   refReadsThresh=0,

@@ -1,6 +1,5 @@
 ##' @export
 
-
 originDataScreen=function(
   method,
   data,
@@ -60,8 +59,6 @@ originDataScreen=function(
                    .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
                    .errorhandling="pass") %dopar% {
                      #for(i in 1:nRef) {
-                     
-                     time1=proc.time()[3]
                      ii=which(taxaNames==refTaxa[i])
                      dataForEst=dataRecovTrans(data=data,ref=refTaxa[i],Mprefix=Mprefix,
                                                covsPrefix=covsPrefix)
@@ -69,9 +66,6 @@ originDataScreen=function(
                      yTildLongTild.i=dataForEst$UtildaLong
                      rm(dataForEst)
                      gc()
-                     time2=proc.time()[3]
-                     
-                     preprosT=time2-time1
                      
                      if(method=="lasso") {
                        Penal.i=runGlmnet(x=xTildLongTild.ig,y=yTildLongTild.i,nPredics=nPredics)
@@ -82,9 +76,6 @@ originDataScreen=function(
                                           method="mcp",permutY=F,seed=seed,seedi=i)
                      }
                      rm(xTildLongTild.i)
-                     
-                     time3=proc.time()[3]
-                     runpicasT=time3-time2
                      
                      BetaNoInt.i=as(Penal.i$betaNoInt,"sparseVector")
                      rm(Penal.i)
@@ -100,46 +91,22 @@ originDataScreen=function(
                        selection.i[1:(nPredics*(ii-1))]=as(BetaNoInt.i[1:(nPredics*(ii-1))]!=0,"sparseVector")
                        selection.i[(nPredics*ii+1):nAlphaSelec]=as(BetaNoInt.i[(nPredics*(ii-1)+1):nAlphaNoInt]!=0,"sparseVector")
                      }
-                     #rm(BetaNoInt.i)
+                     rm(BetaNoInt.i)
                      time4=proc.time()[3]
-                     postProsT=time4-time3
                      # create return vector
                      recturnlist=list()
                      recturnlist[[1]]=selection.i
                      recturnlist[[2]]=yTildLongTild.i
-                     recturnlist[[3]]=preprosT
-                     recturnlist[[4]]=postProsT
-                     recturnlist[[5]]=runpicasT
-                     recturnlist[[6]]=BetaNoInt.i
                      rm(selection.i,yTildLongTild.i)
                      return(recturnlist)
                    }
   snow::stopCluster(c1)
+  rm(data)
   gc()
   
   endT=proc.time()[3]
   
   cat("Original screen done and took",(endT-startT1)/60,"minutes","\n")
-  
-  results$preprosT=vector()
-  for(i in 1:nRef){
-    results$preprosT[i]=scr1Resu[[i]][[3]]
-  }
-  
-  results$postProsT=vector()
-  for(i in 1:nRef){
-    results$postProsT[i]=scr1Resu[[i]][[4]]
-  }
-  
-  results$runpicasT=vector()
-  for(i in 1:nRef){
-    results$runpicasT[i]=scr1Resu[[i]][[5]]
-  }
-  
-  results$betaEst=list()
-  for(i in 1:nRef){
-    results$betaEst[[i]]=scr1Resu[[i]][[6]]
-  }
   
   selecList=list()
   for(i in 1:nRef){
@@ -150,25 +117,25 @@ originDataScreen=function(
   for(i in 1:nRef){
     results$yTildLongList[[i]]=scr1Resu[[i]][[2]]
   }
+  rm(scr1Resu)
   
   selecList<- lapply(selecList, as, "sparseMatrix")
-  scr1Resu=do.call(cbind, selecList)
+  scr1ResuSelec=do.call(cbind, selecList)
   rm(selecList)
   
-  # create count of for each predictor,each row is the count
-  # of selection for a predictor
-  
-  countOfSelecForAPred=as(matrix(rep(0,nTaxa),nrow=1),"sparseMatrix")
-  for(i in 1:nRef){
-    vec.i.ref=scr1Resu[,i]
-    matrix.i.ref=as(matrix(vec.i.ref,nrow=nPredics),"sparseMatrix")
-    testCovVec.i.ref=as(matrix((Matrix::colSums(matrix.i.ref[testCovInd,,drop=F])>0)+0,nrow=1),"sparseMatrix")
-    countOfSelecForAPred=countOfSelecForAPred+testCovVec.i.ref
-  }
-  
-  countOfSelecForAllPred=as(matrix(Matrix::rowSums(scr1Resu),nrow=nPredics),"sparseMatrix")
+  # create count of selection for individual testCov
+  countOfSelecForAllPred=as(matrix(Matrix::rowSums(scr1ResuSelec),nrow=nPredics),"sparseMatrix")
   testCovCountMat=countOfSelecForAllPred[testCovInd,,drop=F]
-  rm(scr1Resu,testCovInd,countOfSelecForAllPred)
+  rm(testCovInd,countOfSelecForAllPred)
+  
+  # create overall count of selection for all testCov as a whole
+  countOfSelecForAPred=as(matrix(rep(0,nTaxa),nrow=1),"sparseMatrix")
+  for (tax in 1:nTaxa){
+    countMatForTaxni=scr1ResuSelec[(1+(tax-1)*nPredics):(tax*nPredics),]
+    totCountVecForTaxoni=Matrix::colSums(countMatForTaxni)
+    countOfSelecForAPred[1,tax]=sum(totCountVecForTaxoni>0)
+  }
+  rm(tax,scr1ResuSelec,countMatForTaxni,totCountVecForTaxoni)
   gc()
   
   colnames(countOfSelecForAPred)=taxaNames

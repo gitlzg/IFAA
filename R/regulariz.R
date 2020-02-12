@@ -67,6 +67,7 @@ Regulariz=function(
     results$selecTaxaFWER=selectRegroup$selecTaxaFWER
     results$selecCountOverall=selectRegroup$selecCountOverall
     results$selecMatIndv=selectRegroup$selecMatIndv
+    results$selecIndvInOverall=selectRegroup$selecIndvInOverall
     results$selecCountMatIndv=selectRegroup$selecCountMatIndv
     results$maxVec=selectRegroup$maxVec
     results$MaxMatTestCovByPermu=selectRegroup$MaxMatTestCovByPermu
@@ -177,7 +178,7 @@ Regulariz=function(
   count=0
   
   for(i in 1:nTestCov){
-    sigTaxaPosition=which(results$selecMatIndv[i,]!=0)
+    sigTaxaPosition=which(results$selecIndvInOverall[i,]!=0)
     nrow=length(sigTaxaPosition)
     if(nrow==0)next
     
@@ -193,7 +194,7 @@ Regulariz=function(
       }
     }
     
-    rownames(estByCovMat)=microbName[results$selecMatIndv[i,]!=0]
+    rownames(estByCovMat)=microbName[results$selecIndvInOverall[i,]!=0]
     colnames(estByCovMat)=c("Beta","LowBound95%CI","UpBound95%CI")  
     
     estByCovList[[count]]=estByCovMat
@@ -211,7 +212,7 @@ Regulariz=function(
   SigCovByTaxaList=list()
   count=0
   for(i in 1:nTaxa){
-    sigCov=which(results$selecMatIndv[,i]!=0)
+    sigCov=which(results$selecIndvInOverall[,i]!=0)
     if(length(sigCov)==0)next
     count=count+1
     SigCovByTaxaList[[count]]=testCovInOrder[sigCov]
@@ -238,3 +239,4 @@ Regulariz=function(
   results$nRef=nRef
   return(results)
 }
+

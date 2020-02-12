@@ -2,8 +2,8 @@
 ##' @export
 
 cvPicasso=function(
-  x=x,
-  y=y,
+  x,
+  y,
   family,
   lamMax,
   lambda,

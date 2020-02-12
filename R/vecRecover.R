@@ -2,10 +2,10 @@
 
 
 groupBetaToFullBeta=function(
-  nTaxa=10,
-  nPredics=3,
-  unSelectList=c(2,3),
-  newBetaNoInt=seq(1,24)
+  nTaxa,
+  nPredics,
+  unSelectList,
+  newBetaNoInt
 ){
 
   results=list()
