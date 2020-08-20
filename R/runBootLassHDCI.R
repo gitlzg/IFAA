@@ -11,7 +11,8 @@ runBootLassoHDCI=function(
   lambdaOPT=NULL,
   refTaxaPosition,
   #zeroSDCut=10^(-20),
-  zeroSDCut=0,
+  zeroSDCut=10^(-5),
+  #zeroSDCut=0,
   standardize=F,
   bootB,
   bootLassoAlpha,
@@ -33,7 +34,7 @@ runBootLassoHDCI=function(
   }
   rm(sdX)
   
-  write.csv(cbind(as.matrix(x),as.vector(y)),file="xy.csv",row.names = F)
+  #write.csv(cbind(as.matrix(x),as.vector(y)),file="xy.csv",row.names = F)
   
   nearZeroSd=length(xWithNearZeroSd)
   
