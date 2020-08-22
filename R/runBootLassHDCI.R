@@ -34,7 +34,7 @@ runBootLassoHDCI=function(
   }
   rm(sdX)
   
-  #write.csv(cbind(as.matrix(x),as.vector(y)),file="xy.csv",row.names = F)
+  write.csv(cbind(as.matrix(x),as.vector(y)),file="xy.csv",row.names = F)
   
   nearZeroSd=length(xWithNearZeroSd)
   
