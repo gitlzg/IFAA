@@ -27,6 +27,7 @@ runBootLassoHDCI=function(
   
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
+  cat("xWithNearZeroSd 1:",xWithNearZeroSd,"\n")
   
   df.cor=suppressWarnings(cor(as.matrix(x)))
   df.cor[is.na(df.cor)]=0
@@ -35,6 +36,7 @@ runBootLassoHDCI=function(
   
   xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
   rm(excluCorColumns)
+  cat("xWithNearZeroSd 2:",xWithNearZeroSd,"\n")
   
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
