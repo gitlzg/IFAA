@@ -28,8 +28,9 @@ runBootLassoHDCI=function(
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
   
-  df.cor <- cor(as.matrix(x))
-  df.cor[!lower.tri(df.cor)] <- 0
+  df.cor=suppressWarnings(cor(as.matrix(x)))
+  df.cor[is.na(df.cor)]=0
+  df.cor[!lower.tri(df.cor)]=0
   excluCorColumns=which(apply(df.cor, 2, function(x) any(abs(x) > correCut)))
   
   xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
