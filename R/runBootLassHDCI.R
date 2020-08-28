@@ -79,7 +79,7 @@ runBootLassoHDCI=function(
   beta=as(bootResu$Beta,"sparseVector")
   betaCI=as(bootResu$interval,"sparseMatrix")
   print("beta and CI:")
-  print(rbind(beta[1:100],betaCI[,1:100]))
+  print(rbind(as.vector(beta[1:100]),as.matrix(betaCI[,1:100])))
   
   beta.LPR=as(bootResu$Beta.LPR,"sparseVector")
   betaCI.LPR=as(bootResu$interval.LPR,"sparseMatrix")
@@ -125,7 +125,7 @@ runBootLassoHDCI=function(
   betaCIlow.i=as(betaCIlow[-seq(1,length(betaCIlow),by=(nPredics+1))],"sparseVector")
   betaCIhi.i=as(betaCIhi[-seq(1,length(betaCIhi),by=(nPredics+1))],"sparseVector")
   print("beta and CI after insert:")
-  print(rbind(BetaNoInt.i[1:100],betaCIlow.i[1:100],betaCIhi.i[1:100]))
+  print(rbind(as.vector(BetaNoInt.i[1:100]),as.vector(betaCIlow.i[1:100]),as.vector(betaCIhi.i[1:100])))
   
   BetaNoInt.LPR.i=as(beta[-seq(1,length(beta.LPR),by=(nPredics+1))],"sparseVector")
   betaCIlow.LPR.i=as(betaCIlow[-seq(1,length(betaCIlow.LPR),by=(nPredics+1))],"sparseVector")
