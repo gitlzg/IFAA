@@ -127,9 +127,9 @@ runBootLassoHDCI=function(
   print("beta and CI after insert:")
   print(rbind(as.vector(beta[1:400]),as.vector(betaCIlow[1:400]),as.vector(betaCIhi[1:400])))
   
-  BetaNoInt.LPR.i=as(beta[-seq(1,length(beta.LPR),by=(nPredics+1))],"sparseVector")
-  betaCIlow.LPR.i=as(betaCIlow[-seq(1,length(betaCIlow.LPR),by=(nPredics+1))],"sparseVector")
-  betaCIhi.LPR.i=as(betaCIhi[-seq(1,length(betaCIhi.LPR),by=(nPredics+1))],"sparseVector")
+  BetaNoInt.LPR.i=as(beta.LPR[-seq(1,length(beta.LPR),by=(nPredics+1))],"sparseVector")
+  betaCIlow.LPR.i=as(betaCIlow.LPR[-seq(1,length(betaCIlow.LPR),by=(nPredics+1))],"sparseVector")
+  betaCIhi.LPR.i=as(betaCIhi.LPR[-seq(1,length(betaCIhi.LPR),by=(nPredics+1))],"sparseVector")
   
   nAlphaSelec=nPredics*nTaxa
   nAlphaNoInt=nPredics*(nTaxa-1)
