@@ -12,7 +12,7 @@ runBootLassoHDCI=function(
   refTaxaPosition,
   zeroSDCut=10^(-5),
   #zeroSDCut=0,
-  correCut=0.95,
+  correCut=0.99,
   standardize=T,
   bootB,
   bootLassoAlpha,
@@ -28,23 +28,25 @@ runBootLassoHDCI=function(
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
   cat("xWithNearZeroSd 1:",xWithNearZeroSd,"\n")
+  cat("length(xWithNearZeroSd) 1:",length(xWithNearZeroSd),"\n")
+  
+  write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = F)
   
   df.cor=suppressWarnings(cor(as.matrix(x)))
   df.cor[is.na(df.cor)]=0
   df.cor[!lower.tri(df.cor)]=0
-  excluCorColumns=which(apply(df.cor, 2, function(x) any(abs(x) > correCut)))
+  excluCorColumns=which(apply(df.cor, 2, function(x) any(abs(x)>=correCut)))
   
   xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
   rm(excluCorColumns)
   cat("xWithNearZeroSd 2:",xWithNearZeroSd,"\n")
+  cat("length(xWithNearZeroSd) 2:",length(xWithNearZeroSd),"\n")
   
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
     x=x[,-xWithNearZeroSd]
   }
   rm(sdX)
-  
-  write.csv(cbind(as.matrix(x),as.vector(y)),file="xy.csv",row.names = F)
   
   nearZeroSd=length(xWithNearZeroSd)
   
