@@ -39,4 +39,5 @@ M="pathToTheCsvFile/microbiomeData.csv" or M="pathToTheTsvFile/microbiomeData.ts
 C="pathToTheCsvFile/covariatesData.csv" or C="pathToTheTsvFile/covariatesData.tsv"
 
 results=IFAA(MicrobData=M,CovData=C,...)
-      
+
+Reference: Li et al. IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. https://arxiv.org/abs/1909.10101
