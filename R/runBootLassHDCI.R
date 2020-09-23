@@ -10,9 +10,9 @@ runBootLassoHDCI=function(
   nfolds=10,
   lambdaOPT=NULL,
   refTaxaPosition,
-  zeroSDCut=10^(-5),
-  #zeroSDCut=0,
-  correCut=0.99,
+  #zeroSDCut=10^(-5),
+  zeroSDCut=0,
+  correCut=1.1,
   standardize=T,
   bootB,
   bootLassoAlpha,
@@ -27,10 +27,10 @@ runBootLassoHDCI=function(
   
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
-  cat("xWithNearZeroSd 1:",xWithNearZeroSd,"\n")
-  cat("length(xWithNearZeroSd) 1:",length(xWithNearZeroSd),"\n")
+  #cat("xWithNearZeroSd 1:",xWithNearZeroSd,"\n")
+  #cat("length(xWithNearZeroSd) 1:",length(xWithNearZeroSd),"\n")
   
-  write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = F)
+  #write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = F)
   
   df.cor=suppressWarnings(cor(as.matrix(x)))
   df.cor[is.na(df.cor)]=0
@@ -39,8 +39,8 @@ runBootLassoHDCI=function(
   
   xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
   rm(excluCorColumns)
-  cat("xWithNearZeroSd 2:",xWithNearZeroSd,"\n")
-  cat("length(xWithNearZeroSd) 2:",length(xWithNearZeroSd),"\n")
+  #cat("xWithNearZeroSd 2:",xWithNearZeroSd,"\n")
+  #cat("length(xWithNearZeroSd) 2:",length(xWithNearZeroSd),"\n")
   
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
