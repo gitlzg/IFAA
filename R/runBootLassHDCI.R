@@ -36,8 +36,9 @@ runBootLassoHDCI=function(
   df.cor[is.na(df.cor)]=0
   df.cor[!lower.tri(df.cor)]=0
   excluCorColumns=which(apply(df.cor, 2, function(x) any(abs(x)>=correCut)))
-  
   xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
+  cat("length(excluCorColumns):",length(excluCorColumns),"\n")
+  
   rm(excluCorColumns)
   #cat("xWithNearZeroSd 2:",xWithNearZeroSd,"\n")
   #cat("length(xWithNearZeroSd) 2:",length(xWithNearZeroSd),"\n")
