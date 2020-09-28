@@ -13,7 +13,7 @@ runBootLassoHDCI=function(
   #zeroSDCut=10^(-5),
   zeroSDCut=0,
   correCut=1.1,
-  standardize=T,
+  standardize=F,
   bootB,
   bootLassoAlpha,
   seed
