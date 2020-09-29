@@ -2,6 +2,8 @@
 ##' @export
 
 
+
+
 IFAA=function(
   MicrobData,
   CovData,
@@ -10,18 +12,21 @@ IFAA=function(
   ctrlCov=NULL,
   testMany=F,
   ctrlMany=F,
-  nRef,
-  nPermu,
+  nRef=40,
+  nRefMaxForEsti=1,
+  nPermu=40,
+  x1permut=T,
   refTaxa=NULL,
-  reguMethod=c("mcp"), ## "lasso" or "mcp"
-  fwerRate,
-  boot=T,
+  reguMethod=c("mcp"), 
+  fwerRate=0.25,
   paraJobs=NULL,
-  bootB,
+  bootB=500,
   bootLassoAlpha=0.05,
+  standardize=F,
+  sequentialRun=F,
   allFunc=allUserFunc(),
-  refReadsThresh=0,
-  SDThresh=0.0001,
+  refReadsThresh=0.2,
+  SDThresh=0.01,
   SDquantilThresh=0,
   balanceCut=0,
   seed=1
@@ -44,23 +49,29 @@ IFAA=function(
   results$covriateNames=runMeta$xNames
   rm(runMeta)
   
-  if(length(refTaxa)>1){
-    stop("Too many reference taxa specified. Only one at a time is allowed.")
-  }
-  if(length(refTaxa)==1 ){
-    if(!refTaxa%in%microbName)
-      stop("The specified reference taxon is not in the data set, 
+  # if(length(refTaxa)>1){
+  #   stop("Error: Too many reference taxa specified. Only one at a time is allowed.")
+  #   }
+  if(length(refTaxa)>0){
+    nRef=length(refTaxa)
+    if(sum(refTaxa%in%microbName)!=length(refTaxa)){
+      stop("Error: One or more of the specified reference taxa is not in the data set, 
          double check the name of the reference taxon.")
+    }
   }
   results$analysisResults=Regulariz(data=data,testCovInd=testCovInd,
                                     testCovInOrder=testCovInOrder,
                                     testCovInNewNam=testCovInNewNam,
                                     microbName=microbName,nRef=nRef,
+                                    nRefMaxForEsti=nRefMaxForEsti,
                                     nPermu=nPermu,binaryInd=binaryInd,
+                                    x1permut=x1permut,
                                     covsPrefix=covsPrefix,Mprefix=Mprefix,
                                     refTaxa=refTaxa,paraJobs=paraJobs,
                                     reguMethod=reguMethod,fwerRate=fwerRate,
-                                    boot=boot,bootB=bootB,bootLassoAlpha=bootLassoAlpha,
+                                    bootB=bootB,bootLassoAlpha=bootLassoAlpha,
+                                    standardize=standardize,
+                                    sequentialRun=sequentialRun,
                                     allFunc=allFunc,refReadsThresh=refReadsThresh,
                                     SDThresh=SDThresh,
                                     SDquantilThresh=SDquantilThresh,
@@ -76,9 +87,12 @@ IFAA=function(
   results$refReadsThresh=refReadsThresh
   results$balanceCut=balanceCut
   results$SDThresh=SDThresh
-  results$boot=boot
   results$paraJobs=paraJobs
   results$SDquantilThresh=SDquantilThresh
+  results$nRef=nRef
+  results$nPermu=nPermu
+  results$x1permut=x1permut
+  
   if(length(seed)==1){
     results$seed=seed
   }else{
@@ -90,5 +104,8 @@ IFAA=function(
   totalTimeMins = (proc.time()[3] - start.time)/60
   cat("The entire analysis took",totalTimeMins, "minutes","\n")
   
+  results$totalTimeMins=totalTimeMins
+  
   return(results)
 }
+

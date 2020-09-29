@@ -1,5 +1,6 @@
 ##' @export
 
+
 metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMany=F,ctrlMany=F){
   results=list()
   

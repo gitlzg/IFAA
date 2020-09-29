@@ -10,6 +10,7 @@ bootResuHDCI=function(
   binPredInd,
   covsPrefix,
   Mprefix,
+  standardize,
   seed
 ){
   
@@ -42,12 +43,18 @@ bootResuHDCI=function(
   
   penal=runBootLassoHDCI(x=x,y=y,nPredics=nPredics,nTaxa=nTaxa,
                          refTaxaPosition=ii,bootLassoAlpha=bootLassoAlpha,
-                         bootB=bootB,seed=seed)
+                         bootB=bootB,standardize=standardize,
+                         seed=seed)
   rm(x,y)
   
   results$finalBetaEst=penal$beta
   results$CIvecLow=penal$betaCIlow
   results$CIvecUp=penal$betaCIhi
+  
+  results$finalBetaEst.LPR=penal$beta.LPR
+  results$CIvecLow.LPR=penal$betaCIlow.LPR
+  results$CIvecUp.LPR=penal$betaCIhi.LPR
+  
   rm(penal)
   return(results)
 }

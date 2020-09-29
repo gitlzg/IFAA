@@ -16,7 +16,7 @@ runPicasso=function(
   lambda.min.ratio=0.05,
   nLam=100,
   method="mcp",
-  standardize=F,
+  standardize,
   permutY,
   allFunc=allFunc,
   seed,
@@ -77,6 +77,8 @@ runPicasso=function(
   rm(x,y)
   
   # convert to a sparse vector format from sparse matrix format
+  
+  OverallIntercp=finalRun$intercept[1]
   finalRunBeta=as(finalRun$beta[,1],"sparseVector")
   if(length(xWithNearZeroSd)>0){
     betaTrans=groupBetaToFullBeta(nTaxa=nBeta,nPredics=1,
@@ -102,6 +104,7 @@ runPicasso=function(
   results$betaNoInt=beta[-seq(1,length(beta),by=(nPredics+1))]
   rm(beta,nPredics)
   results$lambda=lambda
+  results$overalIntercp=OverallIntercp
   rm(lambda)
   
   results$successCV=1
@@ -109,3 +112,4 @@ runPicasso=function(
   rm(nCV)
   return(results)
 }
+

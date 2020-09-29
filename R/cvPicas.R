@@ -1,4 +1,3 @@
-
 ##' @export
 
 cvPicasso=function(
@@ -83,8 +82,12 @@ cvPicasso=function(
         missPositions=c(missPositions,xWithNearZeroSd.i+(iLam-1)*nBeta)
       }
       rm(xWithNearZeroSd.i)
+      gc()
+      betaa=as.vector(cv.i$beta)
       betaTrans=groupBetaToFullBeta(nTaxa=(nBeta*nLam),nPredics=1,
-                                    unSelectList=sort(missPositions),newBetaNoInt=as(cv.i$beta,"sparseVector"))
+                                    unSelectList=sort(missPositions),newBetaNoInt=betaa)
+      rm(betaa)
+      gc()
       betaMatrix=Matrix(betaTrans$finalBeta,nrow=nBeta,ncol=nLam)
       rm(betaTrans)
     } else {betaMatrix=cv.i$beta}

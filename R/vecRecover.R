@@ -1,73 +1,52 @@
 ##' @export
 
 
+
 groupBetaToFullBeta=function(
   nTaxa,
   nPredics,
   unSelectList,
   newBetaNoInt
 ){
-
+  
   results=list()
   unSelectList=unique(sort(unSelectList))
   nUnSelec=length(unSelectList)
   nAlphaSelec=nTaxa*nPredics
   nNewBetaNoInt=length(newBetaNoInt)
-
-  if(nNewBetaNoInt!=((nTaxa-nUnSelec)*nPredics))
-  {
-    stop("Beta dimension from grouped analyis does not match the expected number")
+  
+  if(nNewBetaNoInt!=((nTaxa-nUnSelec)*nPredics)) {
+    stop("Error: Beta dimension from grouped analyis does not match the expected number")
+  }  
+  
+  if(nTaxa<max(unSelectList) | 1>min(unSelectList)){
+    stop("Error: unSelectList out of range")
   }
-
-  finalBeta=rep(0,nAlphaSelec)
-
-  for (i in 1:nUnSelec)
-  {
+  finalBeta=newBetaNoInt
+  for (i in unSelectList){
+    finalBetaTemp=rep(NA,(length(finalBeta)+nPredics))
+    lengthTemp=length(finalBetaTemp)
+    
     if(i==1){
-      unSelec.i=1
-      unSelec.i1=unSelectList[i]
-    }else{
-      unSelec.i=unSelectList[i-1]
-      unSelec.i1=unSelectList[i]
+      finalBetaTemp[1:nPredics]=0
+      finalBetaTemp[(nPredics+1):lengthTemp]=finalBeta
+      finalBeta=finalBetaTemp
     }
-    if (nUnSelec==1) {
-      if(unSelec.i1==1) {
-        finalBeta[(nPredics+1):nAlphaSelec]=newBetaNoInt
+    
+    if(i>1){
+      if((i*nPredics)<=(length(finalBeta))){
+        finalBetaTemp[1:((i-1)*nPredics)]=finalBeta[1:((i-1)*nPredics)]
+        finalBetaTemp[((i-1)*nPredics+1):(i*nPredics)]=0
+        finalBetaTemp[(i*nPredics+1):lengthTemp]=finalBeta[((i-1)*nPredics+1):(length(finalBeta))]
+      }else{
+        finalBetaTemp[1:((i-1)*nPredics)]=finalBeta
+        finalBetaTemp[((i-1)*nPredics+1):lengthTemp]=0
       }
-      if(unSelec.i1==nTaxa) {
-        finalBeta[1:(nAlphaSelec-nPredics)]=newBetaNoInt
-      }
-      if((unSelec.i1>1) & (unSelec.i1<nTaxa)) {
-        finalBeta[1:((unSelec.i1-1)*nPredics)]=newBetaNoInt[1:((unSelec.i1-1)*nPredics)]
-        finalBeta[(unSelec.i1*nPredics+1):nAlphaSelec]=newBetaNoInt[((unSelec.i1-1)*nPredics+1):nNewBetaNoInt]
-      }
-    }
-    else {
-      distance.i=unSelec.i1-unSelec.i
-      if (distance.i==0) next
-      if (distance.i>1){
-        if(i==1){
-          finalBeta[1:((unSelec.i1-1)*nPredics)]=newBetaNoInt[1:((unSelec.i1-1)*nPredics)]
-        } else {
-          finalBeta[(unSelec.i*nPredics+1):((unSelec.i1-1)*nPredics)]=newBetaNoInt[((unSelec.i-i+1)*nPredics+1):((unSelec.i1-i)*nPredics)]
-          if ((i==nUnSelec) & (unSelec.i1<nTaxa)){
-            finalBeta[(unSelec.i1*nPredics+1):nAlphaSelec]=newBetaNoInt[((unSelec.i1-i)*nPredics+1):nNewBetaNoInt]
-          }
-        }
-      }
-
-      if((distance.i==1) & (i==1)){
-        finalBeta[1:((unSelec.i1-1)*nPredics)]=newBetaNoInt[1:((unSelec.i1-1)*nPredics)]
-      }
-      if ((distance.i==1) & (i==nUnSelec) & (unSelec.i1<nTaxa)){
-        finalBeta[(unSelec.i1*nPredics+1):nAlphaSelec]=newBetaNoInt[((unSelec.i1-i)*nPredics+1):nNewBetaNoInt]
-      }
-      if ((distance.i==1) & (i>1) & (i<nUnSelec)) next
-
-      if ((distance.i==1) & (i=nUnSelec) & (unSelec.i1=nTaxa)) next
+      finalBeta=finalBetaTemp
     }
   }
-
+  rm(finalBetaTemp)
   results$finalBeta=finalBeta
+  rm(finalBeta)
   return(results)
 }

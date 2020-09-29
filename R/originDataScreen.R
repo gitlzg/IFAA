@@ -1,5 +1,6 @@
 ##' @export
 
+
 originDataScreen=function(
   method,
   data,
@@ -8,6 +9,8 @@ originDataScreen=function(
   paraJobs,
   lambda=NULL,
   refTaxa,
+  standardize,
+  sequentialRun,
   allFunc,
   Mprefix,
   covsPrefix,
@@ -45,12 +48,16 @@ originDataScreen=function(
     if(!is.numeric(availCores))paraJobs=1
   }
   
-  cat(paraJobs, "parallel jobs are registered for running the analysis.","\n")
-  
   c1<-snow::makeCluster(paraJobs)
+  
+  if(!sequentialRun){
+    cat(paraJobs, "parallel jobs are registered for analyzing", nRef, "reference taxa in Phase 1a.","\n")
+  }
   
   snow::clusterExport(c1, allFunc)
   doSNOW::registerDoSNOW(c1)
+  
+  if(sequentialRun){foreach::registerDoSEQ()}
   
   startT1=proc.time()[3]
   cat("OriginDataScreen parallel setup took",startT1-startT,"seconds","\n")
@@ -58,6 +65,7 @@ originDataScreen=function(
   scr1Resu=foreach(i=1:nRef,.multicombine=T,
                    .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
                    .errorhandling="pass") %dopar% {
+                     
                      #for(i in 1:nRef) {
                      ii=which(taxaNames==refTaxa[i])
                      dataForEst=dataRecovTrans(data=data,ref=refTaxa[i],Mprefix=Mprefix,
@@ -68,12 +76,16 @@ originDataScreen=function(
                      gc()
                      
                      if(method=="lasso") {
-                       Penal.i=runGlmnet(x=xTildLongTild.ig,y=yTildLongTild.i,nPredics=nPredics)
+                       Penal.i=runGlmnet(x=xTildLongTild.i,y=yTildLongTild.i,
+                                         nPredics=nPredics,
+                                         standardize=standardize)
                      }
                      if(method=="mcp") {
                        Penal.i=runPicasso(x=xTildLongTild.i,y=yTildLongTild.i,
                                           lambda=lambda,nPredics=nPredics,
-                                          method="mcp",permutY=F,seed=seed,seedi=i)
+                                          method="mcp",permutY=F,
+                                          standardize=standardize,
+                                          seed=seed,seedi=i)
                      }
                      rm(xTildLongTild.i)
                      
@@ -131,7 +143,7 @@ originDataScreen=function(
   # create overall count of selection for all testCov as a whole
   countOfSelecForAPred=as(matrix(rep(0,nTaxa),nrow=1),"sparseMatrix")
   for (tax in 1:nTaxa){
-    countMatForTaxni=scr1ResuSelec[(1+(tax-1)*nPredics):(tax*nPredics),]
+    countMatForTaxni=scr1ResuSelec[(1+(tax-1)*nPredics):(tax*nPredics),,drop=F]
     totCountVecForTaxoni=Matrix::colSums(countMatForTaxni)
     countOfSelecForAPred[1,tax]=sum(totCountVecForTaxoni>0)
   }

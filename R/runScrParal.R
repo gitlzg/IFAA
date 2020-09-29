@@ -13,8 +13,11 @@ runScrParal=function(
   paraJobs,
   doPermut,
   permutY=F,
+  x1permut,
   nPermu,
   refTaxa=NULL,
+  standardize,
+  sequentialRun,
   allFunc=allFunc,
   refReadsThresh,
   SDThresh,
@@ -71,7 +74,10 @@ runScrParal=function(
                            nRef=nRef,refTaxa=refTaxa,paraJobs=paraJobs,
                            method=method,allFunc=allFunc,Mprefix=Mprefix,
                            covsPrefix=covsPrefix,
-                           binPredInd=binPredInd,seed=seed)
+                           binPredInd=binPredInd,
+                           standardize=standardize,
+                           sequentialRun=sequentialRun,
+                           seed=seed)
   
   results$countOfSelecForAPred=screen1$countOfSelecForAPred
   yTildLongList=screen1$yTildLongList
@@ -79,6 +85,20 @@ runScrParal=function(
   rm(screen1)
   gc()
   
+  if(!x1permut){
+    # generate Xbeta and residues for reduced model permutation
+    XbetResi=XbetaAndResidu(data=data,testCovInd=testCovInd,
+                            nRef=nRef,refTaxa=refTaxa,paraJobs=paraJobs,
+                            method=method,allFunc=allFunc,Mprefix=Mprefix,
+                            covsPrefix=covsPrefix,
+                            binPredInd=binPredInd,
+                            sequentialRun=sequentialRun,
+                            seed=seed)
+    xBetaList=XbetResi$xBetaList
+    residuList=XbetResi$residuList
+    xTildLong=XbetResi$xTildLong
+    rm(XbetResi)
+  }
   #
   ## start to run permutation screen
   #
@@ -90,6 +110,9 @@ runScrParal=function(
     if(length(seed)>0)set.seed(as.numeric(seed)+10^6)
     
     permutOrder=lapply(rep(nSub,nPermu),sample)
+    if(!x1permut){
+      residuPermuOrder=lapply(rep(length(residuList[[1]]),nPermu),sample)
+    }
     
     screenStartTime = proc.time()[3]
     
@@ -103,10 +126,17 @@ runScrParal=function(
       if(is.numeric(availCores))paraJobs=max(1,availableCores()-2)
       if(!is.numeric(availCores))paraJobs=1
     }
+    
     c2 <- snow::makeCluster(paraJobs)
+    
+    if(!sequentialRun){
+      cat(paraJobs, "parallel jobs are registered for the permutation analysis in Phase 1b.","\n")
+    }
     
     snow::clusterExport(c2, allFunc)
     doSNOW::registerDoSNOW(c2)
+    
+    if(sequentialRun){foreach::registerDoSEQ()}
     
     refResu=foreach (i=1:totNumOfLoops,.multicombine=T,
                      .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
@@ -114,27 +144,50 @@ runScrParal=function(
                        #for(j in 1:nRef){
                        
                        permut.i=1+(i-1)%%nPermu
-                       permutX1=EVar[permutOrder[[permut.i]],,drop=F]
-                       newData=data
-                       newData[,EName]=permutX1
-                       rm(permutX1)
-                       
                        ref.i=1+floor((i-1)/nPermu)
                        ii=which(taxaNames==refTaxa[ref.i])
                        
-                       xLong.i=dataRecovTrans(data=newData,ref=refTaxa[ref.i],
-                                              Mprefix=Mprefix,covsPrefix=covsPrefix,xOnly=T)
-                       xLongTild.i=xLong.i$xTildalong
-                       rm(newData,xLong.i)
-                       gc()
-                       if(method=="lasso") {
-                         Penal.i=runGlmnet(x=xLongTild.i,y=yTildLongList[[ref.i]],nPredics=nPredics)
+                       if(x1permut){
+                         permutX1=EVar[permutOrder[[permut.i]],,drop=F]
+                         newData=data
+                         newData[,EName]=permutX1
+                         rm(permutX1)
+                         
+                         xLong.i=dataRecovTrans(data=newData,ref=refTaxa[ref.i],
+                                                Mprefix=Mprefix,covsPrefix=covsPrefix,xOnly=T)
+                         xLongTild.i=xLong.i$xTildalong
+                         rm(newData,xLong.i)
+                         gc()
+                         
+                         if(method=="lasso") {
+                           Penal.i=runGlmnet(x=xLongTild.i,y=yTildLongList[[ref.i]],
+                                             nPredics=nPredics,
+                                             standardize=standardize)
+                         }
+                         if(method=="mcp") {
+                           Penal.i=runPicasso(x=xLongTild.i,y=yTildLongList[[ref.i]],nPredics=nPredics,
+                                              method="mcp",permutY=permutY,
+                                              standardize=standardize,
+                                              seed=seed,seedi=i)
+                         }
+                         rm(xLongTild.i)
+                       }else{
+                         resid=residuList[[ref.i]][residuPermuOrder[[permut.i]]]
+                         yTildLong.i=xBetaList[[ref.i]]+resid
+                         rm(resid)
+                         if(method=="lasso") {
+                           Penal.i=runGlmnet(x=xTildLong,y=yTildLong.i,
+                                             nPredics=nPredics,
+                                             standardize=standardize)
+                         }
+                         if(method=="mcp") {
+                           Penal.i=runPicasso(x=xTildLong,y=yTildLong.i,nPredics=nPredics,
+                                              method="mcp",permutY=permutY,
+                                              standardize=standardize,
+                                              seed=seed,seedi=i)
+                         }
+                         rm(yTildLong.i)
                        }
-                       if(method=="mcp") {
-                         Penal.i=runPicasso(x=xLongTild.i,y=yTildLongList[[ref.i]],nPredics=nPredics,
-                                            method="mcp",permutY=permutY,seed=seed,seedi=i)
-                       }
-                       rm(xLongTild.i)
                        BetaNoInt.i=as(Penal.i$betaNoInt,"sparseVector")
                        rm(Penal.i)
                        gc()

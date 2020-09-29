@@ -2,6 +2,8 @@
 ##' @export
 
 
+
+
 dataInfo=function(
   data,
   Mprefix,
@@ -31,7 +33,7 @@ dataInfo=function(
     qualifyData=data[rowSums(data[,taxaNames]>0)>=2,,drop=F]
     w=qualifyData[,taxaNames]
     nSubQualif=nrow(qualifyData)
-    taxaOverThresh=taxaNames[(Matrix::colSums(w>0)>=nSubQualif*refReadsThresh)]
+    taxaOverThresh=taxaNames[(Matrix::colSums(w>0)>=(nSubQualif*refReadsThresh))]
     if(length(taxaOverThresh)==0){
       cat("There are no taxa with presence over the threshold:",refReadsThresh,
           ". Try lower the reference taxa reads threshold.","\n")
@@ -86,7 +88,6 @@ dataInfo=function(
     if(length(binPredInd)>0){
       allBinPred=predNames[binPredInd:nPredics]
       nBinPred=length(allBinPred)
-      rm(predNames)
       
       taxaBalanceBin=c()
       
@@ -113,6 +114,8 @@ dataInfo=function(
   # return 
   results$taxaNames=taxaNames
   rm(taxaNames)
+  results$predNames=predNames
+  rm(predNames)
   results$nTaxa=nTaxa
   results$nSub=nSub
   results$nPredics=nPredics

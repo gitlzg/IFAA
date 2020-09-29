@@ -10,10 +10,10 @@ runBootLassoHDCI=function(
   nfolds=10,
   lambdaOPT=NULL,
   refTaxaPosition,
-  #zeroSDCut=10^(-5),
+  #zeroSDCut=10^(-6),
   zeroSDCut=0,
   correCut=1.1,
-  standardize=F,
+  standardize,
   bootB,
   bootLassoAlpha,
   seed
@@ -27,21 +27,18 @@ runBootLassoHDCI=function(
   
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
-  #cat("xWithNearZeroSd 1:",xWithNearZeroSd,"\n")
-  #cat("length(xWithNearZeroSd) 1:",length(xWithNearZeroSd),"\n")
+  cat("xWithNearZeroSd 1:",length(xWithNearZeroSd),"\n")
   
-  #write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = F)
+  # write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = F)
   
   df.cor=suppressWarnings(cor(as.matrix(x)))
   df.cor[is.na(df.cor)]=0
   df.cor[!lower.tri(df.cor)]=0
   excluCorColumns=which(apply(df.cor, 2, function(x) any(abs(x)>=correCut)))
-  xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
-  cat("length(excluCorColumns):",length(excluCorColumns),"\n")
   
+  xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
   rm(excluCorColumns)
-  #cat("xWithNearZeroSd 2:",xWithNearZeroSd,"\n")
-  #cat("length(xWithNearZeroSd) 2:",length(xWithNearZeroSd),"\n")
+  cat("xWithNearZeroSd 2:",length(xWithNearZeroSd),"\n")
   
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
@@ -81,8 +78,6 @@ runBootLassoHDCI=function(
   # convert to a sparse vector format from sparse matrix format
   beta=as(bootResu$Beta,"sparseVector")
   betaCI=as(bootResu$interval,"sparseMatrix")
-  #print("beta and CI:")
-  #print(rbind(as.vector(beta[1:400]),as.matrix(betaCI[,1:400])))
   
   beta.LPR=as(bootResu$Beta.LPR,"sparseVector")
   betaCI.LPR=as(bootResu$interval.LPR,"sparseMatrix")
@@ -127,8 +122,6 @@ runBootLassoHDCI=function(
   BetaNoInt.i=as(beta[-seq(1,length(beta),by=(nPredics+1))],"sparseVector")
   betaCIlow.i=as(betaCIlow[-seq(1,length(betaCIlow),by=(nPredics+1))],"sparseVector")
   betaCIhi.i=as(betaCIhi[-seq(1,length(betaCIhi),by=(nPredics+1))],"sparseVector")
-  #print("beta and CI after insert:")
-  #print(rbind(as.vector(beta[1:400]),as.vector(betaCIlow[1:400]),as.vector(betaCIhi[1:400])))
   
   BetaNoInt.LPR.i=as(beta.LPR[-seq(1,length(beta.LPR),by=(nPredics+1))],"sparseVector")
   betaCIlow.LPR.i=as(betaCIlow.LPR[-seq(1,length(betaCIlow.LPR),by=(nPredics+1))],"sparseVector")

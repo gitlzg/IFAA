@@ -10,7 +10,9 @@ Regulariz=function(
   testCovInNewNam,
   microbName,
   nRef,
+  nRefMaxForEsti,
   nPermu,
+  x1permut,
   refTaxa,
   paraJobs,
   binaryInd,
@@ -18,9 +20,10 @@ Regulariz=function(
   Mprefix,
   reguMethod,
   fwerRate,
-  boot,
   bootB,
   bootLassoAlpha,
+  standardize,
+  sequentialRun,
   allFunc=allFunc,
   refReadsThresh,
   SDThresh,
@@ -45,6 +48,8 @@ Regulariz=function(
   nTaxa=data.info$nTaxa
   rm(data.info)
   
+  results$x1permut=x1permut
+  
   if(length(refTaxa)==0 & length(reguMethod)==1){
     # run MCP penalization
     
@@ -54,8 +59,12 @@ Regulariz=function(
                              testCovInOrder=testCovInOrder,
                              testCovInNewNam=testCovInNewNam,nRef=nRef,
                              nPermu=nPermu,paraJobs=paraJobs,
+                             x1permut=x1permut,
                              refTaxa=NULL,fwerRate=fwerRate,
-                             method=reguMethod,allFunc=allFunc,
+                             method=reguMethod,
+                             standardize=standardize,
+                             sequentialRun=sequentialRun,
+                             allFunc=allFunc,
                              refReadsThresh=refReadsThresh,
                              SDThresh=SDThresh,
                              SDquantilThresh=SDquantilThresh,
@@ -72,25 +81,31 @@ Regulariz=function(
     results$maxVec=selectRegroup$maxVec
     results$MaxMatTestCovByPermu=selectRegroup$MaxMatTestCovByPermu
     
-    finalIndpRefTax=selectRegroup$finalIndpRefTax
+    finalIndpRefTax=microbName[taxaNames%in%(selectRegroup$finalIndpRefTax)]
     results$finalRefTaxonQualified=selectRegroup$refTaxonQualified
     
-    results$goodIndpRefTaxLeastCount=selectRegroup$goodIndpRefTaxLeastCount
+    results$goodIndpRefTaxLeastCount=microbName[taxaNames%in%(selectRegroup$goodIndpRefTaxLeastCount)]
     results$goodIndpRefTaxWithCount=selectRegroup$goodIndpRefTaxWithCount
-    results$goodIndpRefTaxFWERcut=selectRegroup$goodIndpRefTaxFWERcut
+    names(results$goodIndpRefTaxWithCount)=microbName[taxaNames%in%names(selectRegroup$goodIndpRefTaxWithCount)]
     
-    results$goodIndpRefTaxFWERcutLeastCount=selectRegroup$goodIndpRefTaxFWERcutLeastCount
+    results$goodIndpRefTaxFWERcutLeastCount=microbName[taxaNames%in%(selectRegroup$goodIndpRefTaxFWERcutLeastCount)]
     results$goodIndpRefTaxFWERcut=selectRegroup$goodIndpRefTaxFWERcut
-    results$goodRefTaxaCandi=selectRegroup$goodRefTaxaCandi
+    names(results$goodIndpRefTaxFWERcut)=microbName[taxaNames%in%names(selectRegroup$goodIndpRefTaxFWERcut)]
+    
+    results$goodRefTaxaCandi=microbName[taxaNames%in%(selectRegroup$goodRefTaxaCandi)]
     
     results$taxaLessGoodCut=selectRegroup$taxaLessGoodCut
+    names(results$taxaLessGoodCut)=microbName[taxaNames%in%names(selectRegroup$taxaLessGoodCut)]
+    
+    
     results$taxaLessFWERCut=selectRegroup$taxaLessFWERCut
-    results$refTaxa=selectRegroup$refTaxa
+    names(results$taxaLessFWERCut)=microbName[taxaNames%in%names(selectRegroup$taxaLessFWERCut)]
+    
+    results$randomRefTaxa=microbName[taxaNames%in%(selectRegroup$refTaxa)]
     
     results$fwerCut=selectRegroup$fwerCut
     results$twoMeanUsed=selectRegroup$twoMeanUsed
     results$fwerCutIndv=selectRegroup$fwerCutIndv
-    results$taxaNames=selectRegroup$taxaNames
     rm(selectRegroup)
     
     MCPExecuTime = (proc.time()[3] - regul.start.time)/60
@@ -98,7 +113,6 @@ Regulariz=function(
     cat("Phase 1 Associaiton identification is done and used", MCPExecuTime,"minutes","\n")
     
     results$finalizedBootRefTaxon=finalIndpRefTax
-    cat("Final Reference Taxon is",results$finalizedBootRefTaxon,"\n")
     
     startT=proc.time()[3]
     cat("Start Phase 2 parameter estimation","\n")
@@ -112,7 +126,7 @@ Regulariz=function(
       nBinPred=length(allBinPred)
       
       # find the pairs of binary preds and taxa for which the assocaiton is not identifiable
-      AllTaxaNamesNoRefTax=results$taxaNames[!results$taxaNames%in%results$finalizedBootRefTaxon]
+      AllTaxaNamesNoRefTax=taxaNames[!taxaNames%in%(results$finalizedBootRefTaxon)]
       unbalanceTaxa=c()
       for(i in AllTaxaNamesNoRefTax){
         for(j in allBinPred){
@@ -129,76 +143,150 @@ Regulariz=function(
     }
     
     # check zero taxa and subjects with zero taxa reads
-    TaxaNoReads=which(Matrix::colSums(qualifyData[,results$taxaNames])==0)
+    TaxaNoReads=which(Matrix::colSums(qualifyData[,taxaNames])==0)
     rm(qualifyData)
-    unestimableTaxa=unique(c(unestimableTaxa,results$taxaNames[TaxaNoReads]))
-    results$unEstTaxaPos=which(results$taxaNames%in%unestimableTaxa)
+    unestimableTaxa=unique(c(unestimableTaxa,taxaNames[TaxaNoReads]))
+    results$unEstTaxaPos=which(taxaNames%in%unestimableTaxa)
     rm(TaxaNoReads,unestimableTaxa)
     
-    estiResults=bootResuHDCI(data=data,refTaxa=results$finalizedBootRefTaxon,
-                             bootB=bootB,bootLassoAlpha=bootLassoAlpha,
-                             binPredInd=binaryInd,
-                             covsPrefix=covsPrefix,Mprefix=Mprefix,
-                             seed=seed)
+    goodIndpRefTax.ascend=sort(results$goodIndpRefTaxWithCount)
+    print("goodIndpRefTax.ascend:")
+    print(goodIndpRefTax.ascend)
+    
+    goodIndpRefTaxNam=names(goodIndpRefTax.ascend)
+    allRefTaxNam=unique(c(results$finalizedBootRefTaxon,goodIndpRefTaxNam))
+    nGoodIndpRef=length(allRefTaxNam)
+    results$allRefTaxNam=allRefTaxNam
+    
+    print("allRefTaxNam:")
+    print(allRefTaxNam)
+    
+    results$nRefUsedForEsti=min(nGoodIndpRef,nRefMaxForEsti)
+    
+    cat("nRefUsedForEsti:",results$nRefUsedForEsti,"\n")
+    
+    cat("Final Reference Taxa are:",allRefTaxNam[seq(results$nRefUsedForEsti)],"\n")
+    
+    #selecResu=paste0("../../../ufrc/selecResul_",sample,".RData")
+    #selecResu=paste0("./sim_results/selecResul_",sample,".RData")
+    
+    #save(results,file=selecResu)
+    
+    results$estiList=list()
+    for(iii in 1:(results$nRefUsedForEsti)){
+      cat("Start estimation for the", iii,"th final reference taxon:",allRefTaxNam[iii],"\n")
+      time11=proc.time()[3]
+      newRefTaxNam=taxaNames[microbName%in%(allRefTaxNam[iii])]
+      results$estiList[[allRefTaxNam[iii]]]=bootResuHDCI(data=data,
+                                                         refTaxa=newRefTaxNam,
+                                                         bootB=bootB,bootLassoAlpha=bootLassoAlpha,
+                                                         binPredInd=binaryInd,covsPrefix=covsPrefix,
+                                                         Mprefix=Mprefix,
+                                                         standardize=standardize,
+                                                         seed=seed)
+      time12=proc.time()[3]
+      cat("Estimation done for the", iii,"th final reference taxon:",allRefTaxNam[iii],
+          "and it took",(time12-time11)/60,"minutes","\n")
+    }
+    estiResults=results$estiList[[results$finalizedBootRefTaxon]]
+    
     endT=proc.time()[3]
+    
     cat("Phase 2 parameter estimation done and took",(endT-startT)/60,"minutes.","\n")
   }
-  if(length(refTaxa)==1){
+  if(length(refTaxa)>0){
     CItime1 = proc.time()[3]
-    refTaxaWithNewNam=paste0(Mprefix,which(microbName==refTaxa))
+    results$estiList=list()
+    nRef=length(refTaxa)
+    refTaxaPosi=which(microbName%in%refTaxa)
+    refTaxaWithNewNam=paste0(Mprefix,refTaxaPosi)
     results$finalizedBootRefTaxon=refTaxaWithNewNam
     
-    cat("Final Reference Taxon is",results$finalRefTaxon,"\n")
+    cat("Final Reference Taxa are:",refTaxa,"\n")
     
     cat("Start association estimation","\n")
-    estiResults=bootResuHDCI(data=data,refTaxa=refTaxaWithNewNam,
-                             bootB=bootB,bootLassoAlpha=bootLassoAlpha,
-                             binPredInd=binaryInd,
-                             covsPrefix=covsPrefix,Mprefix=Mprefix,
-                             seed=seed)
     
+    for (iii in 1:nRef){
+      originTaxNam=microbName[refTaxaPosi[iii]]
+      
+      cat("Start estimation for the", iii,"th final reference taxon:",originTaxNam,"\n")
+      time21=proc.time()[3]
+      results$estiList[[originTaxNam]]=bootResuHDCI(data=data,
+                                                    refTaxa=refTaxaWithNewNam[iii],
+                                                    bootB=bootB,bootLassoAlpha=bootLassoAlpha,
+                                                    binPredInd=binaryInd,
+                                                    covsPrefix=covsPrefix,Mprefix=Mprefix,
+                                                    standardize=standardize,
+                                                    seed=seed)
+      time22=proc.time()[3]
+      cat("Estimation done for the", iii,"th final reference taxon:",originTaxNam,
+          "and it took",(time22-time21)/60,"minutes","\n")
+    }
     cat("Association estimation done","\n")
     CItime2 = proc.time()[3]
     CIduration=(CItime2-CItime1)/60
     cat("Calculation of CI took", CIduration,"minutes","\n")
     
-    results$betaMat=as(matrix(estiResults$finalBetaEst,nrow=nPredics),"sparseMatrix")
-    results$CILowMat=as(matrix(estiResults$CIvecLow,nrow=nPredics),"sparseMatrix")
-    results$CIUpMat=as(matrix(estiResults$CIvecUp,nrow=nPredics),"sparseMatrix")
-    rm(estiResults)
+    vecLength=length(results$estiList[[refTaxa[1]]]$finalBetaEst)
+    finalBetaEst=rep(0,vecLength)
+    CIvecLow=rep(0,vecLength)
+    CIvecUp=rep(0,vecLength)
+    
+    finalBetaEst.LPR=rep(0,vecLength)
+    CIvecLow.LPR=rep(0,vecLength)
+    CIvecUp.LPR=rep(0,vecLength)
+    
+    for(iii in 1:nRef){
+      finalBetaEst=finalBetaEst+results$estiList[[refTaxa[iii]]]$finalBetaEst
+      CIvecLow=CIvecLow+results$estiList[[refTaxa[iii]]]$CIvecLow
+      CIvecUp=CIvecUp+results$estiList[[refTaxa[iii]]]$CIvecUp
+      
+      finalBetaEst.LPR=finalBetaEst.LPR+results$estiList[[refTaxa[iii]]]$finalBetaEst.LPR
+      CIvecLow.LPR=CIvecLow.LPR+results$estiList[[refTaxa[iii]]]$CIvecLow.LPR
+      CIvecUp.LPR=CIvecUp.LPR+results$estiList[[refTaxa[iii]]]$CIvecUp.LPR
+    }
+    
+    results$betaMat=as(matrix((finalBetaEst/nRef),nrow=nPredics),"sparseMatrix")
+    results$CILowMat=as(matrix((CIvecLow/nRef),nrow=nPredics),"sparseMatrix")
+    results$CIUpMat=as(matrix((CIvecUp/nRef),nrow=nPredics),"sparseMatrix")
+    
+    results$betaMat.LPR=as(matrix((finalBetaEst.LPR/nRef),nrow=nPredics),"sparseMatrix")
+    results$CILowMat.LPR=as(matrix((CIvecLow.LPR/nRef),nrow=nPredics),"sparseMatrix")
+    results$CIUpMat.LPR=as(matrix((CIvecUp.LPR/nRef),nrow=nPredics),"sparseMatrix")
     return(results)
   }
   
   results$betaMat=as(matrix(estiResults$finalBetaEst,nrow=nPredics),"sparseMatrix")
   results$CILowMat=as(matrix(estiResults$CIvecLow,nrow=nPredics),"sparseMatrix")
   results$CIUpMat=as(matrix(estiResults$CIvecUp,nrow=nPredics),"sparseMatrix")
+  
+  results$betaMat.LPR=as(matrix(estiResults$finalBetaEst.LPR,nrow=nPredics),"sparseMatrix")
+  results$CILowMat.LPR=as(matrix(estiResults$CIvecLow.LPR,nrow=nPredics),"sparseMatrix")
+  results$CIUpMat.LPR=as(matrix(estiResults$CIvecUp.LPR,nrow=nPredics),"sparseMatrix")
   rm(estiResults)
   
   estByCovList=list()
-  count=0
   
   for(i in 1:nTestCov){
     sigTaxaPosition=which(results$selecIndvInOverall[i,]!=0)
     nrow=length(sigTaxaPosition)
     if(nrow==0)next
     
-    count=count+1
     ncol=3
     estByCovMat=matrix(NA,nrow=nrow,ncol=ncol)
     
     for(j in 1:nrow){
       for(k in 1:ncol){
-        if(k==1)estByCovMat[j,k]=results$betaMat[i,sigTaxaPosition[j]]
-        if(k==2)estByCovMat[j,k]=results$CILowMat[i,sigTaxaPosition[j]]
-        if(k==3)estByCovMat[j,k]=results$CIUpMat[i,sigTaxaPosition[j]]
+        if(k==1)estByCovMat[j,k]=results$betaMat.LPR[i,sigTaxaPosition[j]]
+        if(k==2)estByCovMat[j,k]=results$CILowMat.LPR[i,sigTaxaPosition[j]]
+        if(k==3)estByCovMat[j,k]=results$CIUpMat.LPR[i,sigTaxaPosition[j]]
       }
     }
     
     rownames(estByCovMat)=microbName[results$selecIndvInOverall[i,]!=0]
-    colnames(estByCovMat)=c("Beta","LowBound95%CI","UpBound95%CI")  
+    colnames(estByCovMat)=c("Beta.LPR","LowB95%CI.LPR","UpB95%CI.LPR")  
     
-    estByCovList[[count]]=estByCovMat
-    names(estByCovList)[count]=testCovInOrder[i]
+    estByCovList[[testCovInOrder[i]]]=estByCovMat
     rm(estByCovMat)
   }
   
@@ -210,13 +298,10 @@ Regulariz=function(
   rm(estByCovList)
   
   SigCovByTaxaList=list()
-  count=0
   for(i in 1:nTaxa){
     sigCov=which(results$selecIndvInOverall[,i]!=0)
     if(length(sigCov)==0)next
-    count=count+1
-    SigCovByTaxaList[[count]]=testCovInOrder[sigCov]
-    names(SigCovByTaxaList)[[count]]=microbName[i]
+    SigCovByTaxaList[[microbName[i]]]=testCovInOrder[sigCov]
   }
   if(length(SigCovByTaxaList)==0){
     results$SigCovByTaxaList="No significant assoication is identified. You may consider a higher FDR level."
