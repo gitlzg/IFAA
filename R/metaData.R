@@ -1,7 +1,9 @@
 ##' @export
 
 
-metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,testMany=F,ctrlMany=F){
+
+metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
+                  testMany=T,ctrlMany=T){
   results=list()
   
   if(length(linkIDname)==0){
