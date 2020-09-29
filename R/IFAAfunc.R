@@ -10,8 +10,8 @@ IFAA=function(
   linkIDname,
   testCov=NULL,
   ctrlCov=NULL,
-  testMany=F,
-  ctrlMany=F,
+  testMany=T,
+  ctrlMany=T,
   nRef=40,
   nRefMaxForEsti=1,
   nPermu=40,
@@ -26,9 +26,9 @@ IFAA=function(
   sequentialRun=F,
   allFunc=allUserFunc(),
   refReadsThresh=0.2,
-  SDThresh=0.01,
+  SDThresh=0.05,
   SDquantilThresh=0,
-  balanceCut=0,
+  balanceCut=0.2,
   seed=1
 ){
   results=list()
