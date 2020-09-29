@@ -3,6 +3,7 @@
 
 
 
+
 Regulariz=function(
   data,
   testCovInd,
@@ -150,16 +151,16 @@ Regulariz=function(
     rm(TaxaNoReads,unestimableTaxa)
     
     goodIndpRefTax.ascend=sort(results$goodIndpRefTaxWithCount)
-    print("goodIndpRefTax.ascend:")
-    print(goodIndpRefTax.ascend)
+    #print("goodIndpRefTax.ascend:")
+    #print(goodIndpRefTax.ascend)
     
     goodIndpRefTaxNam=names(goodIndpRefTax.ascend)
     allRefTaxNam=unique(c(results$finalizedBootRefTaxon,goodIndpRefTaxNam))
     nGoodIndpRef=length(allRefTaxNam)
     results$allRefTaxNam=allRefTaxNam
     
-    print("allRefTaxNam:")
-    print(allRefTaxNam)
+    #print("allRefTaxNam:")
+    #print(allRefTaxNam)
     
     results$nRefUsedForEsti=min(nGoodIndpRef,nRefMaxForEsti)
     

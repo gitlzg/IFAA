@@ -29,13 +29,15 @@ dataSparsCheck=function(
   # check zero taxa and subjects with zero taxa reads
   numTaxaNoReads=length(which(Matrix::colSums(w)==0))
   if(numTaxaNoReads>0){
-    cat("There are",numTaxaNoReads,"taxa without any sequencing reads","\n")
+    cat("There are",numTaxaNoReads,"taxa without any sequencing reads and 
+        excluded from the analysis","\n")
   }
   rm(numTaxaNoReads)
   
   numSubNoReads=length(which(Matrix::rowSums(w)==0))
   if(numSubNoReads>0){
-    cat("There are",numSubNoReads,"subjects without any sequencing reads","\n")
+    cat("There are",numSubNoReads,"subjects without any sequencing reads and 
+        excluded from the analysis","\n")
   }
   rm(numSubNoReads,w)
 }
