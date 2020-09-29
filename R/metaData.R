@@ -9,9 +9,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   if(length(linkIDname)==0){
     stop("linkIDname is missing.")
   }
-  if(testMany&ctrlMany){
-    stop("The options testMany and ctrlMany cannot be TRUE at the same time.")
-  }
+
   if(sum(testCov%in%ctrlCov)>0){
     cat("Warnings: Variables appeared in both testCov list and ctrlCov list will be treated as testCov.","\n")
   }
