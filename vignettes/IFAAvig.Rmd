@@ -68,6 +68,8 @@ The `IFAA()` function is the main function accessed by the users. The User Input
 
 - `nPermu`: The number of permutation used in phase 1. Default number is `40`. 
 
+- `x1permut`: This takes a logical value `TRUE` or `FALSE`. If true, it will permute the variables in testCov. If false, it will use residual-permutation proposed by Freedman and Lane (1983). 
+
 - `refTaxa`: Reference taxa will be used in phase 1. The default is `NULL` since the algorithm will pick those randomly. If a vector of taxa names are provided, the algorithm will use the provided taxa instead of randomly picking random reference taxa.
 
 - `reguMethod`: regularization approach used in phase 1 of the algorithm. Take value `"mcp"` or `"lasso"`, default is `"mcp"`.
@@ -76,7 +78,7 @@ The `IFAA()` function is the main function accessed by the users. The User Input
 
 - `paraJobs`: Number of parallel jobs that will be registered to run the algorithm. Default is `8`. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs.
 
-- `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Sometimes parallel jobs can not be successfully run for unknown reasons (such as hardware issues). For example, socket related errors may pop up or some slave cores return error message instead of numerical results. In those scenarios, setting `sequentialRun = TRUE` may help, but it will take more time to run. Default is `FALSE`.
+- `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting `sequentialRun = TRUE` may help, but it will take more time to run. Default is `FALSE`.
 
 - `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 
