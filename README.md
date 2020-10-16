@@ -36,7 +36,7 @@ results <- MZILN(MicrobData = dataM,
                 refTaxa=c("rawCount11")
                 )
 
-Regression results can be extracted in the following way:
+# Regression results including confidence intervals can be extracted in the following way:
 
 results$analysisResults$estByRefTaxaList$rawCount11$estByCovList
 
