@@ -1,6 +1,8 @@
 
 ##' @export
 
+
+
 Regulariz_MZILN=function(
   data,
   testCovInd,
@@ -122,9 +124,9 @@ Regulariz_MZILN=function(
       SigCovByTaxaList[[microbName[i]]]=testCovInOrder[sigCov]
     }
     if(length(SigCovByTaxaList)==0){
-      results$estByRefTaxaList[[refTaxa[iii]]][["SigCovByTaxaList"]]="No significant assoication is identified."
+      results$estByRefTaxaList[[refTaxa_reOrder[iii]]][["SigCovByTaxaList"]]="No significant assoication is identified."
     }else{
-      results$estByRefTaxaList[[refTaxa[iii]]][["SigCovByTaxaList"]]=SigCovByTaxaList
+      results$estByRefTaxaList[[refTaxa_reOrder[iii]]][["SigCovByTaxaList"]]=SigCovByTaxaList
     }
   }
   
@@ -138,3 +140,4 @@ Regulariz_MZILN=function(
   # return results
   return(results)
 }
+
