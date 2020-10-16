@@ -37,6 +37,7 @@ results <- MZILN(MicrobData = dataM,
                 )
 
 Regression results can be extracted in the following way:
+
 results$analysisResults$estByRefTaxaList$rawCount11$estByCovList
 
 # Reference: 
