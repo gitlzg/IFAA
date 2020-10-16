@@ -45,25 +45,13 @@ runPicasso=function(
   
   # calculate lambda max
   lamMax=max(abs(Matrix::colSums(as.matrix(x)*as.vector(y))))/nObsAll
-  print("Start cross validatoin with picasso")
-  cvStartTime= proc.time()[3]
   
   if(length(lambda)!=1){
     for(i in 1:nCV){
-      print(paste("Start the",i,"th set of picasso cross validatoin"))
-      cvStartTimei = proc.time()[3]
-      
       cvResul=cvPicasso(x=x,y=y,lamMax=lamMax,lambda=lambda,nfolds=nfolds,zeroSDCut=zeroSDCut,
                         lambda.min.ratio=lambda.min.ratio,nLam=nLam,
                         method=method,family=family,standardize=standardize,seed=seed,seedi=seedi)
-      cvExeTimei= (proc.time()[3] - cvStartTimei)/60
-      print(paste("The",i,"th set of cross validation with picasso is done and took",cvExeTimei,"minutes"))
     }
-    
-    print(paste("cross validation with picasso is successful at the",i,"th cross validation"))
-    
-    cvAllTime= (proc.time()[3] - cvStartTime)/60
-    print(paste("Cross validation with picasso is done and took", cvAllTime, "minutes"))
     
     results$lamList=cvResul$lamList
     results$SSE=cvResul$SSE
@@ -92,11 +80,6 @@ runPicasso=function(
   
   rm(finalRun,finalRunBeta)
   
-  # parameter being set to zero
-  if(length(xWithNearZeroSd)>0) {
-    print("beta that should be set to 0: ")
-    print(xWithNearZeroSd)
-  }
   rm(xWithNearZeroSd)
   
   # return results
@@ -112,4 +95,3 @@ runPicasso=function(
   rm(nCV)
   return(results)
 }
-

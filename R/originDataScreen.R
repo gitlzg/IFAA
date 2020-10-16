@@ -66,7 +66,6 @@ originDataScreen=function(
                    .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
                    .errorhandling="pass") %dopar% {
                      
-                     #for(i in 1:nRef) {
                      ii=which(taxaNames==refTaxa[i])
                      dataForEst=dataRecovTrans(data=data,ref=refTaxa[i],Mprefix=Mprefix,
                                                covsPrefix=covsPrefix)
@@ -109,6 +108,7 @@ originDataScreen=function(
                      recturnlist=list()
                      recturnlist[[1]]=selection.i
                      recturnlist[[2]]=yTildLongTild.i
+                     
                      rm(selection.i,yTildLongTild.i)
                      return(recturnlist)
                    }
@@ -135,6 +135,8 @@ originDataScreen=function(
   scr1ResuSelec=do.call(cbind, selecList)
   rm(selecList)
   
+  results$scr1ResuSelec=scr1ResuSelec
+  
   # create count of selection for individual testCov
   countOfSelecForAllPred=as(matrix(Matrix::rowSums(scr1ResuSelec),nrow=nPredics),"sparseMatrix")
   testCovCountMat=countOfSelecForAllPred[testCovInd,,drop=F]
@@ -160,3 +162,4 @@ originDataScreen=function(
   rm(countOfSelecForAPred)
   return(results)
 }
+

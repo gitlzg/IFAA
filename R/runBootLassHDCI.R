@@ -27,7 +27,6 @@ runBootLassoHDCI=function(
   
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
-  cat("xWithNearZeroSd 1:",length(xWithNearZeroSd),"\n")
   
   # write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = F)
   
@@ -38,7 +37,6 @@ runBootLassoHDCI=function(
   
   xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
   rm(excluCorColumns)
-  cat("xWithNearZeroSd 2:",length(xWithNearZeroSd),"\n")
   
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){

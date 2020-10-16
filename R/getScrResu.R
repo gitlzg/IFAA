@@ -61,7 +61,6 @@ getScrResu=function(
   rm(scrParal)
   gc()
   
-  if(length(refTaxa)>0){nRef=length(refTaxa)}
   if(doPermut){
     # control family wise error rate
     originFwerCut=quantile(maxVec,probs=(1-fwerRate))

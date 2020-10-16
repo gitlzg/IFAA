@@ -52,21 +52,22 @@ runScrParal=function(
   nAlphaSelec=nPredics*nTaxa
   
   # make reference taxa list
-  if(length(refTaxa)==0){
-    if(nRef>length(taxaNames)){
-      stop("Error: number of random reference taxa can not be larger than the number
-           of candidate reference taxa. Try lower nRef")
-    }
+  if(length(refTaxa)<nRef){
     if(length(seed)>0){
       set.seed(as.numeric(seed))
     }
-    refTaxa=sample(taxaNames,nRef)
+    refTaxa_extra=sample((taxaNames[!(taxaNames%in%refTaxa)]),(nRef-length(refTaxa)))
+    refTaxa=c(refTaxa,refTaxa_extra)
     results$refTaxa=refTaxa
   }
   
-  # overwrite nRef if the reference taxon is specified
-  nRef=length(refTaxa)
-  
+  if(length(refTaxa)>=nRef){
+    if(length(seed)>0){
+      set.seed(as.numeric(seed))
+    }
+    refTaxa=sample(refTaxa,nRef)
+    results$refTaxa=refTaxa
+  }
   #
   ## run original data screen
   #

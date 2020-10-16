@@ -1,5 +1,6 @@
 ##' @export
 
+
 cvPicasso=function(
   x,
   y,
@@ -66,15 +67,11 @@ cvPicasso=function(
       xi=xi[,-xWithNearZeroSd.i]
     }
     nearZeroSd.i=length(xWithNearZeroSd.i)
-    print(paste("Number of x in partition with near-zero sd: ", nearZeroSd.i))
     
     yi=as(y[-sampleInd[[i]]],"sparseVector")
     
-    print(paste("start picasso cross validation for fold: ",i))
     cv.i=picasso(X=xi,Y=yi,lambda=lamList,method=method,family=family,standardize=standardize)
     rm(xi,yi)
-    print("xWithNearZeroSd.i:")
-    print(xWithNearZeroSd.i)
     
     if(length(xWithNearZeroSd.i)>0) {
       missPositions=xWithNearZeroSd.i
@@ -91,7 +88,6 @@ cvPicasso=function(
       betaMatrix=Matrix(betaTrans$finalBeta,nrow=nBeta,ncol=nLam)
       rm(betaTrans)
     } else {betaMatrix=cv.i$beta}
-    rm(xWithNearZeroSd.i)
     
     # training is done, start testing
     if(sum(is.na(cv.i$intercept))>0){
@@ -136,3 +132,4 @@ cvPicasso=function(
   rm(nLam)
   return(results)
 }
+

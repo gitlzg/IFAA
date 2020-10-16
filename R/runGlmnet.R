@@ -41,18 +41,12 @@ runGlmnet=function(
   if(family=="binomial"){lamMax=max(abs(Matrix::colSums(x*(y-mean(y)))))/nObsAll}
   lamVec=seq(lamMax,0,length=(nLam+1))[1:nLam]
   
-  print("Start cross validatoin with glmnet")
-  cvStartTime= proc.time()[3]
-  
   for(i in 1:nCV){
     print(paste("Start the",i,"th set of cross validatoin with glmnet"))
     cvStartTimei = proc.time()[3]
     
     cvResul=cv.glmnet(x=x,y=as.vector(y),lambda=lamVec,nfolds=nfolds,
                       family=family,intercept=intercept,standardize=standardize)
-    
-    cvExeTimei= (proc.time()[3] - cvStartTimei)/60
-    print(paste("The",i,"th set of cross validation with glmnet is done and took",cvExeTimei,"minutes"))
     
     lamOpi=as.numeric(cvResul$lambda.min)
     cvm=as.vector(cvResul$cvm)*nObsAll
