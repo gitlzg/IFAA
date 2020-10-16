@@ -2,7 +2,9 @@
 
 export(AIcalcu)
 export(IFAA)
+export(MZILN)
 export(Regulariz)
+export(Regulariz_MZILN)
 export(allUserFunc)
 export(bootResuHDCI)
 export(cvPicasso)

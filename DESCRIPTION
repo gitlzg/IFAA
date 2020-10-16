@@ -1,8 +1,7 @@
 Package: IFAA
 Title: IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses
 Version: 0.0.0.9000
-Authors@R: 
-    person(given = "Zhigang",
+Authors@R: person(given = "Zhigang",
            family = "Li",
            role = c("aut", "cre"),
            email = "zhigang.li@ufl.edu",
