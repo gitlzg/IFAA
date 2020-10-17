@@ -13,7 +13,6 @@ LazyData: true
 RoxygenNote: 7.1.1
 Depends:
   picasso (>= 1.2.0),
-  glmnet (>= 2.0-16),
   expm (>= 0.999-3),
   foreach (>= 1.4.3),
   snow (>= 0.4-2),

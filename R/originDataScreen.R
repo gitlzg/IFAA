@@ -1,6 +1,5 @@
 ##' @export
 
-
 originDataScreen=function(
   method,
   data,
@@ -63,7 +62,7 @@ originDataScreen=function(
   cat("OriginDataScreen parallel setup took",startT1-startT,"seconds","\n")
   # start parallel computing
   scr1Resu=foreach(i=1:nRef,.multicombine=T,
-                   .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
+                   .packages=c("picasso","expm","doSNOW","snow","foreach","Matrix"),
                    .errorhandling="pass") %dopar% {
                      
                      ii=which(taxaNames==refTaxa[i])
@@ -74,11 +73,6 @@ originDataScreen=function(
                      rm(dataForEst)
                      gc()
                      
-                     if(method=="lasso") {
-                       Penal.i=runGlmnet(x=xTildLongTild.i,y=yTildLongTild.i,
-                                         nPredics=nPredics,
-                                         standardize=standardize)
-                     }
                      if(method=="mcp") {
                        Penal.i=runPicasso(x=xTildLongTild.i,y=yTildLongTild.i,
                                           lambda=lambda,nPredics=nPredics,
@@ -162,4 +156,5 @@ originDataScreen=function(
   rm(countOfSelecForAPred)
   return(results)
 }
+
 

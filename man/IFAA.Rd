@@ -20,10 +20,10 @@ IFAA(
   reguMethod = c("mcp"),
   fwerRate = 0.25,
   paraJobs = NULL,
-  sequentialRun = F,
   bootB = 500,
   bootLassoAlpha = 0.05,
   standardize = F,
+  sequentialRun = F,
   allFunc = allUserFunc(),
   refReadsThresh = 0.2,
   SDThresh = 0.05,
@@ -55,21 +55,21 @@ IFAA(
 
 \item{x1permut}{This takes a logical value \code{TRUE} or \code{FALSE}. If true, it will permute the variables in testCov. If false, it will use residual-permutation proposed by Freedman and Lane (1983).}
 
-\item{refTaxa}{Reference taxa will be used in phase 1. The default is \code{NULL} since the algorithm will pick those randomly. If a vector of taxa names are provided, the algorithm will use the provided taxa instead of randomly picking random reference taxa.}
+\item{refTaxa}{A vector of taxa or OTU or ASV names. These are reference taxa specified by the user to be used in phase 1. If the number of reference taxa is less than 'nRef', the algorithm will randomly pick extra reference taxa to make up 'nRef'. The default is \code{NULL} since the algorithm will pick reference taxa randomly.}
 
-\item{reguMethod}{regularization approach used in phase 1 of the algorithm. Take value \code{"mcp"} or \code{"lasso"}, default is \code{"mcp"}.}
+\item{reguMethod}{regularization approach used in phase 1 of the algorithm. Default is \code{"mcp"}. Other methods are under development.}
 
 \item{fwerRate}{The family wise error rate for identifying taxa/OTU/ASV associated with \code{testCov} in phase 1. Default is \code{0.25}.}
 
-\item{paraJobs}{Number of parallel jobs that will be registered to run the algorithm. Default is \code{8}. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs.}
-
-\item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting \code{sequentialRun = TRUE} may help, but it will take more time to run. Default is \code{FALSE}.}
+\item{paraJobs}{If \code{sequentialRun} is \code{FALSE}, this specifies the number of parallel jobs that will be registered to run the algorithm. Default is \code{8}. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs.}
 
 \item{bootB}{Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is \code{500}.}
 
 \item{bootLassoAlpha}{The significance level in phase 2. Default is \code{0.05}.}
 
 \item{standardize}{This takes a logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is \code{FALSE}.}
+
+\item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting \code{sequentialRun = TRUE} may help, but it will take more time to run. Default is \code{FALSE}.}
 
 \item{refReadsThresh}{The threshold of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is \code{0.2} which means at least 20\% non-zero sequencing reads.}
 
@@ -110,7 +110,9 @@ results <- IFAA(MicrobData = dataM,
 
 }
 \references{
-Li et al.(2020) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. \url{https://arxiv.org/pdf/1909.10101.pdf}
+Li et al.(2020) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. arXiv:1909.10101v3
+
+Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
 
 Freedman and Lane (1983) A nonstochastic interpretation of reported significance levels. Journal of Business & Economic Statistics. 1(4):292-298.
 }

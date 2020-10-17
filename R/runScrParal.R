@@ -2,7 +2,6 @@
 ##' @export
 
 
-
 runScrParal=function(
   method=c("mcp"),
   data,
@@ -91,7 +90,7 @@ runScrParal=function(
     XbetResi=XbetaAndResidu(data=data,testCovInd=testCovInd,
                             nRef=nRef,refTaxa=refTaxa,paraJobs=paraJobs,
                             method=method,allFunc=allFunc,Mprefix=Mprefix,
-                            covsPrefix=covsPrefix,
+                            covsPrefix=covsPrefix,standardize=standardize,
                             binPredInd=binPredInd,
                             sequentialRun=sequentialRun,
                             seed=seed)
@@ -140,7 +139,7 @@ runScrParal=function(
     if(sequentialRun){foreach::registerDoSEQ()}
     
     refResu=foreach (i=1:totNumOfLoops,.multicombine=T,
-                     .packages=c("picasso","glmnet","expm","doSNOW","snow","foreach","Matrix"),
+                     .packages=c("picasso","expm","doSNOW","snow","foreach","Matrix"),
                      .errorhandling="pass") %dopar% {
                        #for(j in 1:nRef){
                        
@@ -160,11 +159,6 @@ runScrParal=function(
                          rm(newData,xLong.i)
                          gc()
                          
-                         if(method=="lasso") {
-                           Penal.i=runGlmnet(x=xLongTild.i,y=yTildLongList[[ref.i]],
-                                             nPredics=nPredics,
-                                             standardize=standardize)
-                         }
                          if(method=="mcp") {
                            Penal.i=runPicasso(x=xLongTild.i,y=yTildLongList[[ref.i]],nPredics=nPredics,
                                               method="mcp",permutY=permutY,
@@ -176,11 +170,7 @@ runScrParal=function(
                          resid=residuList[[ref.i]][residuPermuOrder[[permut.i]]]
                          yTildLong.i=xBetaList[[ref.i]]+resid
                          rm(resid)
-                         if(method=="lasso") {
-                           Penal.i=runGlmnet(x=xTildLong,y=yTildLong.i,
-                                             nPredics=nPredics,
-                                             standardize=standardize)
-                         }
+                         
                          if(method=="mcp") {
                            Penal.i=runPicasso(x=xTildLong,y=yTildLong.i,nPredics=nPredics,
                                               method="mcp",permutY=permutY,

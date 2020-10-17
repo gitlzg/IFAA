@@ -31,7 +31,7 @@ MZILN(
 
 \item{refTaxa}{Reference taxa specified by the user and will be used as the reference taxa.}
 
-\item{reguMethod}{regularization approach used in phase 1 of the algorithm. Take value \code{"mcp"} or \code{"lasso"}, default is \code{"mcp"}.}
+\item{reguMethod}{regularization approach used in phase 1 of the algorithm. Default is \code{"mcp"}. Other methods are under development.}
 
 \item{paraJobs}{If \code{sequentialRun} is \code{FALSE}, this specifies the number of parallel jobs that will be registered to run the algorithm. Default is \code{8}. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs.}
 
