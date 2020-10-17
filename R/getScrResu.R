@@ -1,6 +1,3 @@
-##' @export
-
-
 
 getScrResu=function(
   method,
@@ -29,8 +26,8 @@ getScrResu=function(
   seed
 ){
   results=list()
-  
-  # run permutation 
+
+  # run permutation
   scrParal=runScrParal(data=data,testCovInd=testCovInd,
                        testCovInOrder=testCovInOrder,
                        testCovInNewNam=testCovInNewNam,nRef=nRef,
@@ -44,12 +41,12 @@ getScrResu=function(
                        SDquantilThresh=SDquantilThresh,balanceCut=balanceCut,
                        Mprefix=Mprefix,covsPrefix=covsPrefix,
                        binPredInd=binPredInd,seed=seed)
-  
+
   selecCountOverall=scrParal$countOfSelecForAPred
   selecCountMatIndv=scrParal$testCovCountMat
   taxaNames=scrParal$taxaNames
   goodRefTaxaCandi=scrParal$goodRefTaxaCandi
-  
+
   nTaxa=scrParal$nTaxa
   nPredics=scrParal$nPredics
   nTestCov=scrParal$nTestCov
@@ -60,14 +57,14 @@ getScrResu=function(
   results$refTaxa=scrParal$refTaxa
   rm(scrParal)
   gc()
-  
+
   if(doPermut){
     # control family wise error rate
     originFwerCut=quantile(maxVec,probs=(1-fwerRate))
     fwerCut=originFwerCut
-    
+
     results$twoMeanUsed=0
-    
+
     if(fwerCut<=min(selecCountOverall)){
       # use two mean clustering
       twoMeanClusResu=twoMeanClus(matrix=selecCountOverall,nRef=nRef)
@@ -77,15 +74,15 @@ getScrResu=function(
       results$twoMeanUsed=1
     }
     results$fwerCut=fwerCut
-    
+
     results$selecTaxaFWER=as(as.vector((selecCountOverall>=fwerCut)+0),"sparseVector")
     rm(maxVec)
-    
+
     if(nTestCov==1){
       results$selecMatIndv=matrix(results$selecTaxaFWER,nrow=1)
       results$fwerCutIndv=fwerCut
     }
-    
+
     if(nTestCov>1){
       fwerCutIndv=vector()
       for(i in 1:nTestCov){
@@ -103,27 +100,27 @@ getScrResu=function(
       selecIndvInOverall_trans=t(as.matrix(results$selecMatIndv))*as.vector(results$selecTaxaFWER)
       results$selecIndvInOverall=as(t(as.matrix(selecIndvInOverall_trans)),"sparseMatrix")
       rm(selecIndvInOverall_trans)
-      
+
       results$selecCountMatIndv=as(selecCountMatIndv,"sparseMatrix")
       results$fwerCutIndv=as(fwerCutIndv,"sparseVector")
       results$MaxMatTestCovByPermu=as(MaxMatTestCovByPermu,"sparseMatrix")
       rm(selecCountMatIndv,fwerCutIndv,MaxMatTestCovByPermu)
     }
-    
+
     goodIndpCut=quantile(selecCountOverall[1,(selecCountOverall[1,]<=fwerCut)],prob=goodIndeCutPerc)
     taxaLessGoodCut=selecCountOverall[1,(selecCountOverall[1,]<=goodIndpCut)]
     taxaLessFWERCut=selecCountOverall[1,(selecCountOverall[1,]<fwerCut)]
     results$taxaNames=taxaNames
     results$selecCountOverall=selecCountOverall
     rm(taxaNames,selecCountOverall)
-    
+
     goodIndpRefTaxWithCount=taxaLessGoodCut[(names(taxaLessGoodCut)%in%goodRefTaxaCandi)]
     if(length(goodIndpRefTaxWithCount)==0){
       results$goodIndpRefTaxLeastCount=NULL
     } else {
       results$goodIndpRefTaxLeastCount=names(tail(goodIndpRefTaxWithCount[goodIndpRefTaxWithCount==min(goodIndpRefTaxWithCount)],n=1))
     }
-    
+
     results$goodIndpRefTaxWithCount=goodIndpRefTaxWithCount
     goodIndpRefTaxFWERcut=taxaLessFWERCut[(names(taxaLessFWERCut)%in%goodRefTaxaCandi)]
     results$goodIndpRefTaxFWERcut=goodIndpRefTaxFWERcut
@@ -135,22 +132,22 @@ getScrResu=function(
     results$goodIndpRefTaxFWERcut=goodIndpRefTaxFWERcut
     results$goodRefTaxaCandi=goodRefTaxaCandi
     rm(goodRefTaxaCandi)
-    
+
     minPosGoodCut=NULL
     if(sum(taxaLessGoodCut>0)>0){
       minPosGoodCut=min(taxaLessGoodCut[taxaLessGoodCut>0])
     }
-    
+
     minPosFWERCut=NULL
     if(sum(taxaLessFWERCut>0)>0){
       minPosFWERCut=min(taxaLessFWERCut[taxaLessFWERCut>0])
     }
     results$taxaLessGoodCut=taxaLessGoodCut
     results$taxaLessFWERCut=taxaLessFWERCut
-    
+
     results$minPosGoodCut=minPosGoodCut
     results$minPosFWERCut=minPosFWERCut
-    
+
     results$refTaxonQualified=1
     if(length(results$goodIndpRefTaxLeastCount)==1){
       results$finalIndpRefTax=results$goodIndpRefTaxLeastCount
@@ -169,7 +166,7 @@ getScrResu=function(
     }
     rm(taxaLessGoodCut,taxaLessFWERCut)
   }
-  
+
   if(!doPermut){results$finalIndpRefTax=refTaxa}
   return(results)
 }

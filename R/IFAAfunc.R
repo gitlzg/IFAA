@@ -13,7 +13,7 @@
 ##' @param ctrlMany This takes logical value `TRUE` or `FALSE`. If `TRUE`, all variables except `testCov` are considered as control covariates provided `ctrlCov` is set to be `NULL`. The default value is `TRUE` which does not do anything if `ctrlCov` is not `NULL`.
 ##' @param nRef The number of randomly picked reference taxa used in phase 1. Default number is `40`.
 ##' @param nPermu The number of permutation used in phase 1. Default number is `40`.
-##' @param x1permut This takes a logical value `TRUE` or `FALSE`. If true, it will permute the variables in testCov. If false, it will use residual-permutation proposed by Freedman and Lane (1983). 
+##' @param x1permut This takes a logical value `TRUE` or `FALSE`. If true, it will permute the variables in testCov. If false, it will use residual-permutation proposed by Freedman and Lane (1983).
 ##' @param refTaxa A vector of taxa or OTU or ASV names. These are reference taxa specified by the user to be used in phase 1. If the number of reference taxa is less than 'nRef', the algorithm will randomly pick extra reference taxa to make up 'nRef'. The default is `NULL` since the algorithm will pick reference taxa randomly.
 ##' @param reguMethod regularization approach used in phase 1 of the algorithm. Default is `"mcp"`. Other methods are under development.
 ##' @param fwerRate The family wise error rate for identifying taxa/OTU/ASV associated with `testCov` in phase 1. Default is `0.25`.
@@ -53,6 +53,15 @@
 ##' @references Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
 ##' @references Freedman and Lane (1983) A nonstochastic interpretation of reported significance levels. Journal of Business & Economic Statistics. 1(4):292-298.
 
+##' @importFrom stats cor kmeans na.omit quantile sd
+##' @importFrom utils read.csv read.table tail
+##' @importFrom methods as
+##' @importFrom foreach `%dopar%` foreach
+##' @importFrom future availableCores
+##' @importFrom Matrix Diagonal Matrix
+##' @importFrom HDCI bootLOPR
+##' @importFrom glmnet cv.glmnet glmnet
+##' @importFrom picasso picasso
 ##' @export
 ##' @md
 
@@ -73,7 +82,7 @@ IFAA=function(
   nPermu=40,
   x1permut=T,
   refTaxa=NULL,
-  reguMethod=c("mcp"), 
+  reguMethod=c("mcp"),
   fwerRate=0.25,
   paraJobs=NULL,
   bootB=500,
@@ -88,7 +97,7 @@ IFAA=function(
   seed=1
 ){
   results=list()
-  start.time = proc.time()[3] 
+  start.time = proc.time()[3]
   runMeta=metaData(MicrobData=MicrobData,CovData=CovData,
                    linkIDname=linkIDname,testCov=testCov,
                    ctrlCov=ctrlCov,testMany=testMany,ctrlMany=ctrlMany)
@@ -104,15 +113,15 @@ IFAA=function(
   microbName=runMeta$microbName
   results$covriateNames=runMeta$xNames
   rm(runMeta)
-  
+
   if(length(refTaxa)>0){
     if(sum(refTaxa%in%microbName)!=length(refTaxa)){
-      stop("Error: One or more of the specified reference taxa have no sequencing reads 
-      or are not in the data set. Double check the names of the reference taxa and their 
+      stop("Error: One or more of the specified reference taxa have no sequencing reads
+      or are not in the data set. Double check the names of the reference taxa and their
            sparsity levels.")
     }
   }
-  
+
   if(nRef>(length(microbName))){
     stop("Error: number of random reference taxa can not be larger than the total number
            of taxa in the data. Try lower nRef")
@@ -136,7 +145,7 @@ IFAA=function(
                                     balanceCut=balanceCut,seed=seed
   )
   rm(data)
-  
+
   results$testCov=testCovInOrder
   results$ctrlCov=ctrlCov
   results$microbName=microbName
@@ -150,20 +159,20 @@ IFAA=function(
   results$nRef=nRef
   results$nPermu=nPermu
   results$x1permut=x1permut
-  
+
   if(length(seed)==1){
     results$seed=seed
   }else{
     results$seed="No seed used."
   }
-  
+
   rm(testCovInOrder,ctrlCov,microbName)
-  
+
   totalTimeMins = (proc.time()[3] - start.time)/60
   cat("The entire analysis took",totalTimeMins, "minutes","\n")
-  
+
   results$totalTimeMins=totalTimeMins
-  
+
   return(results)
 }
 
