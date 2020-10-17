@@ -21,10 +21,12 @@
 ##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. Default is `8`. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs.
 ##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 ##' @param nRefMaxForEsti The maximum number of reference taxa used in phase 2. The default is `1`.
+##' @param allFunc all the user-defined function names that will be passed to the parallel computing environment (foreach loop).
 ##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
 ##' @param bootLassoAlpha The significance level in phase 2. Default is `0.05`.
 ##' @param refReadsThresh The threshold of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
 ##' @param SDThresh The threshold of standard deviations of sequencing reads for choosing the reference taxon in phase 2. The default is `0.5` which means the standard deviation of sequencing reads should be at least `0.5`.
+##' @param SDquantilThresh Threshold for the quantile of standard deviation for selecting final reference taxon
 ##' @param balanceCut The threshold of non-zero sequencing reads in each group of a binary variable for choosing the reference taxon in phase 2. The default number is `0.2` which means at least 20% sequencing reads are non-zero in each group.
 ##' @param seed Random seed for reproducibility. Default is `1`.
 ##' @return A list containing the estimation results.

@@ -71,9 +71,13 @@ IFAA(
 
 \item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting \code{sequentialRun = TRUE} may help, but it will take more time to run. Default is \code{FALSE}.}
 
+\item{allFunc}{all the user-defined function names that will be passed to the parallel computing environment (foreach loop).}
+
 \item{refReadsThresh}{The threshold of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is \code{0.2} which means at least 20\% non-zero sequencing reads.}
 
 \item{SDThresh}{The threshold of standard deviations of sequencing reads for choosing the reference taxon in phase 2. The default is \code{0.5} which means the standard deviation of sequencing reads should be at least \code{0.5}.}
+
+\item{SDquantilThresh}{Threshold for the quantile of standard deviation for selecting final reference taxon}
 
 \item{balanceCut}{The threshold of non-zero sequencing reads in each group of a binary variable for choosing the reference taxon in phase 2. The default number is \code{0.2} which means at least 20\% sequencing reads are non-zero in each group.}
 

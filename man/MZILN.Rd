@@ -43,6 +43,8 @@ MZILN(
 
 \item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting \code{sequentialRun = TRUE} may help, but it will take more time to run. Default is \code{TRUE}.}
 
+\item{allFunc}{all the user-defined function names that will be passed to the parallel computing environment (foreach loop).}
+
 \item{seed}{Random seed for reproducibility. Default is \code{1}.}
 }
 \value{
