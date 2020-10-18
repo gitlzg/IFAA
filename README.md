@@ -1,5 +1,7 @@
 # IFAA <img src="man/figures/logo.png" align="right" width="120" />
 
+[![Build Status](https://travis-ci.org/songshangchen6/IFAA.svg?branch=master)](https://travis-ci.org/songshangchen6/IFAA)
+
 ## Overview
 
 IFAA is a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. 
