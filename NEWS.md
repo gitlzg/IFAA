@@ -2,4 +2,4 @@
 
 * First edition
 
-* Only `IFAA()` and `MZILN()` availible on the user-level.
+* Only `IFAA()` and `MZILN()` available on the user-level.

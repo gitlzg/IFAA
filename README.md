@@ -37,7 +37,7 @@ Once the analysis is done, you can extract the regression coefficients along wit
 results$analysisResults$estByCovList
 ```
 
-The function can also take csv or tsv data files directly by reading the file directory paths using the first two arugments:
+The function can also take csv or tsv data files directly by reading the file directory paths using the first two arguments:
 ```r
 M="pathToTheCsvFile/microbiomeData.csv" 
 # or 
