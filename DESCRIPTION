@@ -1,11 +1,11 @@
 Package: IFAA
-Title: Robust association identification and Inference For Absolute Abundance in microbiome analyses
+Title: Robust association identification and Inference For Absolute Abundance in 'microbiome' analyses
 Version: 0.0.1
 Authors@R: person(given = "Zhigang",
            family = "Li",
            role = c("aut", "cre"),
            email = "zhigang.li@ufl.edu")
-Description: IFAA is a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem.
+Description: A novel approach to make inference on the association of covariates with the absolute abundance (AA) of 'microbiome' in an ecosystem.
 License: GNU General Public License version 2
 Encoding: UTF-8
 LazyData: true
@@ -14,7 +14,6 @@ Depends:
   R (>= 3.2.0)
 Imports:
   methods (>= 3.3.0),
-  glmnet (>= 4.0),
   picasso (>= 1.2.0),
   expm (>= 0.999-3),
   foreach (>= 1.4.3),

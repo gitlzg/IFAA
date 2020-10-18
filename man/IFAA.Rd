@@ -103,6 +103,7 @@ dataM[1:5, 1:8]
 data(dataC)
 dim(dataC)
 dataC[1:5, ]
+\dontrun{
 results <- IFAA(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
@@ -111,6 +112,7 @@ results <- IFAA(MicrobData = dataM,
                 nPermu = 4,
                 fwerRate = 0.25,
                 bootB = 5)
+}
 
 }
 \references{

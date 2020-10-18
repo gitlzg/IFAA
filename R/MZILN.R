@@ -30,11 +30,13 @@
 ##' data(dataC)
 ##' dim(dataC)
 ##' dataC[1:5, ]
+##' \dontrun{
 ##' results <- MZILN(MicrobData = dataM,
 ##'                 CovData = dataC,
 ##'                 linkIDname = "id",
 ##'                 allCov=c("v1","v2","v3"),
 ##'                 refTaxa=c("rawCount11"))
+##' }
 ##'
 ##' @references Li et al.(2018) Conditional Regression Based on a Multivariate Zero-Inflated Logistic-Normal Model for Microbiome Relative Abundance Data. Statistics in Biosciences 10(3): 587-608
 ##' @references Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.

@@ -42,6 +42,7 @@
 ##' data(dataC)
 ##' dim(dataC)
 ##' dataC[1:5, ]
+##' \dontrun{
 ##' results <- IFAA(MicrobData = dataM,
 ##'                 CovData = dataC,
 ##'                 linkIDname = "id",
@@ -50,6 +51,7 @@
 ##'                 nPermu = 4,
 ##'                 fwerRate = 0.25,
 ##'                 bootB = 5)
+##'}
 ##'
 ##' @references Li et al.(2020) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. arXiv:1909.10101v3
 ##' @references Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
@@ -62,7 +64,6 @@
 ##' @importFrom future availableCores
 ##' @importFrom Matrix Diagonal Matrix
 ##' @importFrom HDCI bootLOPR
-##' @importFrom glmnet cv.glmnet glmnet
 ##' @importFrom picasso picasso
 ##' @export
 ##' @md

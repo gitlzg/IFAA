@@ -67,11 +67,13 @@ dataM[1:5, 1:8]
 data(dataC)
 dim(dataC)
 dataC[1:5, ]
+\dontrun{
 results <- MZILN(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
                 allCov=c("v1","v2","v3"),
                 refTaxa=c("rawCount11"))
+}
 
 }
 \references{
