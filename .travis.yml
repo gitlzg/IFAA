@@ -2,9 +2,7 @@
 
 language: R
 r:
-  - oldrel
-  - release
   - devel
 os:
-  - osx
+  - linux
 cache: packages
