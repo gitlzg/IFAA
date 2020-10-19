@@ -1,4 +1,4 @@
-# IFAA 0.0.1
+# IFAA 1.0.0
 
 * First edition
 
