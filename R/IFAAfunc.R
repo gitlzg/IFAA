@@ -2,10 +2,29 @@
 ##'
 ##' Make inference on the association of covariates of microbiome
 ##'
-##' The `IFAA()` uses a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem.
-##'
-##' @param MicrobData Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`.
-##' @param CovData Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`.
+##' To model the association, the following equation is used: 
+##' \deqn{\log(\mathcal{Y}_i^k)|\mathcal{Y}_i^k>0=\beta^{0k}+X_i^T\beta^k+W_i^T\gamma^k+Z_i^Tb_i+\epsilon_i^k,\hspace{0.2cm}k=1,...,K+1,}
+##' where
+##' \eqn{\mathcal{Y}_i^k} is the AA of taxa \eqn{k} in subject \eqn{i} in the entire ecosystem. 
+##' \eqn{X_i} is the covariate matrix.
+##' \eqn{W_i} is the confounder matrix.
+##' \eqn{Z_i} is the design matrix for random effects. 
+##' \eqn{\beta^k} is the regression coefficients that will be estimated and tested with the `IFAA()` function.
+##' The challenge in microbiome analysis is that \eqn{\mathcal{Y}_i^k} can not be oberved. What is observed is its small 
+##' proportion: \eqn{Y_i^k=C_i\mathcal{Y}^k_i} where \eqn{C_i} is an unknown number between 0 
+##' and 1 that denote the observed proportion. The IFAA method can handle this challenge by 
+##' identifying and employing reference taxa. The `IFAA()` will estimate the parameter 
+##' \eqn{\beta^k} and their 95% confidence intervals. High-dimensional \eqn{X_i} is handled by 
+##' regularization.
+
+##' @param MicrobData Microbiome data matrix containing microbiome abundance with each row per
+##' sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond 
+##' to the `"id"` variable in the covariates data: `CovData`. This argument can also take file 
+##' directory path. For example, MicrobData="C:\\\\...\\\\microbiomeData.tsv".
+##' @param CovData Covariates data matrix containing covariates and confounders with each row 
+##' per sample and each column per variable. It should also contain an `"id"` variable to 
+##' correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file 
+##' directory path. For example, CovData="C:\\\\...\\\\covariatesData.tsv".
 ##' @param linkIDname Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
 ##' @param testCov Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is `NULL` which means all covariates are `testCov`.
 ##' @param ctrlCov Potential confounders that will be adjusted in the model. It corresponds to $W_i$ in the equation. Default is `NULL` which means all covariates except those in `testCov` are adjusted as confounders.

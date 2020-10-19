@@ -2,6 +2,7 @@
 ##' @export
 
 
+
 runScrParal=function(
   method=c("mcp"),
   data,
@@ -127,19 +128,19 @@ runScrParal=function(
       if(!is.numeric(availCores))paraJobs=1
     }
     
-    c2 <- snow::makeCluster(paraJobs)
+    c2 <- parallel::makeCluster(paraJobs)
     
     if(!sequentialRun){
       cat(paraJobs, "parallel jobs are registered for the permutation analysis in Phase 1b.","\n")
     }
     
-    snow::clusterExport(c2, allFunc)
-    doSNOW::registerDoSNOW(c2)
+    parallel::clusterExport(cl=c2,varlist=allFunc,envir=parent.env(environment()))
+    doParallel::registerDoParallel(c2)
     
     if(sequentialRun){foreach::registerDoSEQ()}
     
     refResu=foreach (i=1:totNumOfLoops,.multicombine=T,
-                     .packages=c("picasso","expm","doSNOW","snow","foreach","Matrix"),
+                     .packages=c("picasso","expm","foreach","Matrix"),
                      .errorhandling="pass") %dopar% {
                        #for(j in 1:nRef){
                        
@@ -201,7 +202,7 @@ runScrParal=function(
                        return(recturnVec)
                      }
     rm(yTildLongList)
-    snow::stopCluster(c2)
+    parallel::stopCluster(c2)
     gc()
     
     refResu<- lapply(refResu, as, "sparseMatrix")

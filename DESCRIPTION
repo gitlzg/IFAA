@@ -1,25 +1,25 @@
 Package: IFAA
-Title: IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses
-Version: 0.0.0.9000
+Title: IFAA: Robust Association Identification and Inference for Absolute Abundance in Microbiome Analyses
+Version: 1.0.0
 Authors@R: person(given = "Zhigang",
            family = "Li",
            role = c("aut", "cre"),
            email = "zhigang.li@ufl.edu",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: IFAA is a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem.
+Description: IFAA is a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. It can be also directly applied to relative abundance (RA) data to make inference on AA because the ratio of two RA is equal ratio of their AA. This algorithm can estimate and test the associations of interest while adjusting for potential confounders. The estimates of this method have easy interpretation like a typical regression analysis. High-dimensional covariates are handled with regularization and it is implemented by parallel computing. This algorithm finds optimal reference taxa/OTU/ASV and uses permutation to control FDR as described in the papers listed in the URL below.
 License: GNU General Public License version 2
 Encoding: UTF-8
+URL: https://arxiv.org/abs/1909.10101v3, https://pubmed.ncbi.nlm.nih.gov/30923584/
 LazyData: true
 RoxygenNote: 7.1.1
 Depends:
   picasso (>= 1.2.0),
   expm (>= 0.999-3),
   foreach (>= 1.4.3),
-  snow (>= 0.4-2),
-  doSNOW (>= 1.0.15),
   rlecuyer (>= 0.3-3),
   Matrix (>= 1.2-14),
   HDCI (>= 1.0-2),
+  parallel,
   doParallel (>= 1.0.11),
   future (>= 1.12.0)
 Suggests: 

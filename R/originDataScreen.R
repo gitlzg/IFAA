@@ -1,5 +1,6 @@
 ##' @export
 
+
 originDataScreen=function(
   method,
   data,
@@ -47,14 +48,14 @@ originDataScreen=function(
     if(!is.numeric(availCores))paraJobs=1
   }
   
-  c1<-snow::makeCluster(paraJobs)
+  c1<-parallel::makeCluster(paraJobs)
   
   if(!sequentialRun){
     cat(paraJobs, "parallel jobs are registered for analyzing", nRef, "reference taxa in Phase 1a.","\n")
   }
   
-  snow::clusterExport(c1, allFunc)
-  doSNOW::registerDoSNOW(c1)
+  parallel::clusterExport(cl=c1,varlist=allFunc,envir=parent.env(environment()))
+  doParallel::registerDoParallel(c1)
   
   if(sequentialRun){foreach::registerDoSEQ()}
   
@@ -62,7 +63,7 @@ originDataScreen=function(
   cat("OriginDataScreen parallel setup took",startT1-startT,"seconds","\n")
   # start parallel computing
   scr1Resu=foreach(i=1:nRef,.multicombine=T,
-                   .packages=c("picasso","expm","doSNOW","snow","foreach","Matrix"),
+                   .packages=c("picasso","expm","foreach","Matrix"),
                    .errorhandling="pass") %dopar% {
                      
                      ii=which(taxaNames==refTaxa[i])
@@ -106,7 +107,7 @@ originDataScreen=function(
                      rm(selection.i,yTildLongTild.i)
                      return(recturnlist)
                    }
-  snow::stopCluster(c1)
+  parallel::stopCluster(c1)
   rm(data)
   gc()
   

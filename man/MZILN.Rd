@@ -21,9 +21,15 @@ MZILN(
 )
 }
 \arguments{
-\item{MicrobData}{Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an \code{"id"} variable to correspond to the \code{"id"} variable in the covariates data: \code{CovData}.}
+\item{MicrobData}{Microbiome data matrix containing microbiome abundance with each row
+per sample and each column per taxon/OTU/ASV. It should contain an \code{"id"} variable to
+correspond to the \code{"id"} variable in the covariates data: \code{CovData}. This argument can
+also take file directory path. For example, MicrobData="C:\\\\...\\\\microbiomeData.tsv".}
 
-\item{CovData}{Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an \code{"id"} variable to correspond to the \code{"id"} variable in the microbiome data: \code{MicrobData}.}
+\item{CovData}{Covariates data matrix containing covariates and confounders with each row
+per sample and each column per variable. It should also contain an \code{"id"} variable to
+correspond to the \code{"id"} variable in the microbiome data: \code{MicrobData}. This argument can
+also take file directory path. For example, CovData="C:\\\\...\\\\covariatesData.tsv".}
 
 \item{linkIDname}{Variable name of the \code{"id"} variable in both \code{MicrobData} and \code{CovData}. The two data sets will be merged by this \code{"id"} variable.}
 
@@ -56,7 +62,13 @@ A list containing the estimation results.
 Make inference on the associations of microbiome with covariates given a user-specified reference taxon/OTU/ASV.
 }
 \details{
-The \code{MZILN()} function can implement the Multivariate Zero-Inflated Logistic Normal model. It estimate and test the association given a user-specified reference taxon/OTU/ASV, whereas the \code{IFAA()} does not require any user-specified reference taxa.
+The regression model for \code{MZILN()} can be expressed as follows:
+\deqn{\log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K,}
+where \eqn{\mathcal{Y}_i^k} is the AA of taxa \eqn{k} in subject \eqn{i} in the entire
+ecosystem. \eqn{\mathcal{Y}_i^{K+1}} is the reference taxon (specified by user).
+\eqn{\mathcal{X}_i} is the covariate matrix for all covariates including confounders.
+\eqn{\alpha^k} is the regression coefficients along with their 95\% confidence intervals that will be estimated by the \code{MZILN()} function.
+High-dimensional \eqn{X_i} is handled by regularization.
 }
 \examples{
 data(dataM)
