@@ -66,17 +66,17 @@ Make inference on the associations of microbiome with covariates given a user-sp
 }
 \details{
 The regression model for \code{MZILN()} can be expressed as follows:
-\mjdeqn{\log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K}{ASCII representation}
+\mjdeqn{\log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K}{}
 where
 \itemize{
-\item \mjeqn{\mathcal{Y}_i^k}{ASCII representation} is the AA of taxa \mjeqn{k}{ASCII representation} in subject \mjeqn{i}{ASCII representation} in the entire
+\item \mjeqn{\mathcal{Y}_i^k}{} is the AA of taxa \mjeqn{k}{} in subject \mjeqn{i}{} in the entire
 ecosystem.
-\item \mjeqn{\mathcal{Y}_i^{K+1}}{ASCII representation} is the reference taxon (specified by user).
-\item \mjeqn{\mathcal{X}_i}{ASCII representation} is the covariate matrix for all covariates including confounders.
-\item \mjeqn{\alpha^k}{ASCII representation} is the regression coefficients along with their 95\% confidence intervals that will be estimated by the \code{MZILN()} function.
+\item \mjeqn{\mathcal{Y}_i^{K+1}}{} is the reference taxon (specified by user).
+\item \mjeqn{\mathcal{X}_i}{} is the covariate matrix for all covariates including confounders.
+\item \mjeqn{\alpha^k}{} is the regression coefficients along with their 95\% confidence intervals that will be estimated by the \code{MZILN()} function.
 }
 
-High-dimensional \mjeqn{X_i}{ASCII representation} is handled by regularization.
+High-dimensional \mjeqn{X_i}{} is handled by regularization.
 }
 \examples{
 data(dataM)

@@ -101,25 +101,26 @@ Make inference on the association of covariates of microbiome
 }
 \details{
 To model the association, the following equation is used:
+
 \loadmathjax
 
-\mjdeqn{\log(\mathcal{Y}_i^k)|\mathcal{Y}_i^k>0=\beta^{0k}+X_i^T\beta^k+W_i^T\gamma^k+Z_i^Tb_i+\epsilon_i^k,\hspace{0.2cm}k=1,...,K+1}{ASCII representation}
+\mjdeqn{\log(\mathcal{Y}_i^k)|\mathcal{Y}_i^k>0=\beta^{0k}+X_i^T\beta^k+W_i^T\gamma^k+Z_i^Tb_i+\epsilon_i^k,\hspace{0.2cm}k=1,...,K+1}{}
 where
 \itemize{
-\item \mjeqn{\mathcal{Y}_i^k}{} is the AA of taxa \mjeqn{k}{ASCII representation} in subject \mjeqn{i}{ASCII representation} in the entire ecosystem.
+\item \mjeqn{\mathcal{Y}_i^k}{} is the AA of taxa \mjeqn{k}{} in subject \mjeqn{i}{} in the entire ecosystem.
 \item \mjeqn{X_i}{} is the covariate matrix.
-\item \mjeqn{W_i}{ASCII representation} is the confounder matrix.
-\item \mjeqn{Z_i}{ASCII representation} is the design matrix for random effects.
-\item \mjeqn{\beta^k}{ASCII representation} is the regression coefficients that will be estimated and tested with the \code{IFAA()} function.
+\item \mjeqn{W_i}{} is the confounder matrix.
+\item \mjeqn{Z_i}{} is the design matrix for random effects.
+\item \mjeqn{\beta^k}{} is the regression coefficients that will be estimated and tested with the \code{IFAA()} function.
 }
 
-The challenge in microbiome analysis is that \mjeqn{\mathcal{Y}_i^k}{ASCII representation} can not be observed. What is observed is its small proportion:
-\mjeqn{Y_i^k=C_i\mathcal{Y}^k_i}{ascii}, where \mjeqn{C_i}{ASCII representation} is an unknown number between 0
+The challenge in microbiome analysis is that \mjeqn{\mathcal{Y}_i^k}{} can not be observed. What is observed is its small proportion:
+\mjeqn{Y_i^k=C_i\mathcal{Y}^k_i}{}, where \mjeqn{C_i}{} is an unknown number between 0
 and 1 that denote the observed proportion.
 
 The IFAA method can handle this challenge by
 identifying and employing reference taxa. The \code{IFAA()} will estimate the parameter
-\mjeqn{\beta^k}{ASCII representation} and their 95\% confidence intervals. High-dimensional \mjeqn{X_i}{ASCII representation} is handled by
+\mjeqn{\beta^k}{} and their 95\% confidence intervals. High-dimensional \mjeqn{X_i}{} is handled by
 regularization.
 }
 \examples{
@@ -146,5 +147,5 @@ Li et al.(2020) IFAA: Robust association identification and Inference For Absolu
 
 Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
 
-Freedman and Lane (1983) A nonstochastic interpretation of reported significance levels. Journal of Business & Economic Statistics. 1(4):292-298.
+Freedman and Lane (1983) A non-stochastic interpretation of reported significance levels. Journal of Business & Economic Statistics. 1(4):292-298.
 }

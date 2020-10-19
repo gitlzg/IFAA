@@ -4,15 +4,15 @@
 ##' \loadmathjax
 ##'
 ##' The regression model for `MZILN()` can be expressed as follows:
-##' \mjdeqn{\log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K}{ASCII representation}
+##' \mjdeqn{\log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K}{}
 ##' where
-##' - \mjeqn{\mathcal{Y}_i^k}{ASCII representation} is the AA of taxa \mjeqn{k}{ASCII representation} in subject \mjeqn{i}{ASCII representation} in the entire
+##' - \mjeqn{\mathcal{Y}_i^k}{} is the AA of taxa \mjeqn{k}{} in subject \mjeqn{i}{} in the entire
 ##' ecosystem.
-##' - \mjeqn{\mathcal{Y}_i^{K+1}}{ASCII representation} is the reference taxon (specified by user).
-##' - \mjeqn{\mathcal{X}_i}{ASCII representation} is the covariate matrix for all covariates including confounders.
-##' - \mjeqn{\alpha^k}{ASCII representation} is the regression coefficients along with their 95% confidence intervals that will be estimated by the `MZILN()` function.
+##' - \mjeqn{\mathcal{Y}_i^{K+1}}{} is the reference taxon (specified by user).
+##' - \mjeqn{\mathcal{X}_i}{} is the covariate matrix for all covariates including confounders.
+##' - \mjeqn{\alpha^k}{} is the regression coefficients along with their 95% confidence intervals that will be estimated by the `MZILN()` function.
 ##'
-##' High-dimensional \mjeqn{X_i}{ASCII representation} is handled by regularization.
+##' High-dimensional \mjeqn{X_i}{} is handled by regularization.
 ##'
 ##' @param MicrobData Microbiome data matrix containing microbiome abundance with each row
 ##' per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to
