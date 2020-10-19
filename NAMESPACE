@@ -2,6 +2,7 @@
 
 export(IFAA)
 export(MZILN)
+import(mathjaxr)
 importFrom(HDCI,bootLOPR)
 importFrom(Matrix,Diagonal)
 importFrom(Matrix,Matrix)

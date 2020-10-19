@@ -33,9 +33,15 @@ IFAA(
 )
 }
 \arguments{
-\item{MicrobData}{Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an \code{"id"} variable to correspond to the \code{"id"} variable in the covariates data: \code{CovData}.}
+\item{MicrobData}{Microbiome data matrix containing microbiome abundance with each row per
+sample and each column per taxon/OTU/ASV. It should contain an \code{"id"} variable to correspond
+to the \code{"id"} variable in the covariates data: \code{CovData}. This argument can also take file
+directory path. For example, \code{MicrobData="C:\\...\\microbiomeData.tsv"}.}
 
-\item{CovData}{Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an \code{"id"} variable to correspond to the \code{"id"} variable in the microbiome data: \code{MicrobData}.}
+\item{CovData}{Covariates data matrix containing covariates and confounders with each row
+per sample and each column per variable. It should also contain an \code{"id"} variable to
+correspond to the \code{"id"} variable in the microbiome data: \code{MicrobData}. This argument can also take file
+directory path. For example, \code{CovData = "C:\\...\\covariatesData.tsv"}.}
 
 \item{linkIDname}{Variable name of the \code{"id"} variable in both \code{MicrobData} and \code{CovData}. The two data sets will be merged by this \code{"id"} variable.}
 
@@ -94,7 +100,27 @@ A list containing the estimation results.
 Make inference on the association of covariates of microbiome
 }
 \details{
-The \code{IFAA()} uses a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem.
+To model the association, the following equation is used:
+\loadmathjax
+
+\mjdeqn{\log(\mathcal{Y}_i^k)|\mathcal{Y}_i^k>0=\beta^{0k}+X_i^T\beta^k+W_i^T\gamma^k+Z_i^Tb_i+\epsilon_i^k,\hspace{0.2cm}k=1,...,K+1}{ASCII representation}
+where
+\itemize{
+\item \mjeqn{\mathcal{Y}_i^k}{} is the AA of taxa \mjeqn{k}{ASCII representation} in subject \mjeqn{i}{ASCII representation} in the entire ecosystem.
+\item \mjeqn{X_i}{} is the covariate matrix.
+\item \mjeqn{W_i}{ASCII representation} is the confounder matrix.
+\item \mjeqn{Z_i}{ASCII representation} is the design matrix for random effects.
+\item \mjeqn{\beta^k}{ASCII representation} is the regression coefficients that will be estimated and tested with the \code{IFAA()} function.
+}
+
+The challenge in microbiome analysis is that \mjeqn{\mathcal{Y}_i^k}{ASCII representation} can not be observed. What is observed is its small proportion:
+\mjeqn{Y_i^k=C_i\mathcal{Y}^k_i}{ascii}, where \mjeqn{C_i}{ASCII representation} is an unknown number between 0
+and 1 that denote the observed proportion.
+
+The IFAA method can handle this challenge by
+identifying and employing reference taxa. The \code{IFAA()} will estimate the parameter
+\mjeqn{\beta^k}{ASCII representation} and their 95\% confidence intervals. High-dimensional \mjeqn{X_i}{ASCII representation} is handled by
+regularization.
 }
 \examples{
 data(dataM)

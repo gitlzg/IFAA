@@ -1,3 +1,5 @@
+
+
 XbetaAndResidu=function(
   method,
   data,
@@ -62,21 +64,21 @@ XbetaAndResidu=function(
     if(!is.numeric(availCores))paraJobs=1
   }
 
-  c4<-snow::makeCluster(paraJobs)
+  c4<-parallel::makeCluster(paraJobs)
 
   if(!sequentialRun){
     cat(paraJobs, "parallel jobs are registered for generate residues in Phase 1a.","\n")
   }
 
-  snow::clusterExport(c4, allFunc, envir = parent.env(environment()))
-  doSNOW::registerDoSNOW(c4)
+  parallel::clusterExport(cl=c4, varlist=allFunc,envir=parent.env(environment()))
+  doParallel::registerDoParallel(c4)
 
   if(sequentialRun){foreach::registerDoSEQ()}
 
   startT1=proc.time()[3]
   # start parallel computing
   residu1Resu=foreach(i=1:nRef,.multicombine=T,
-                      .packages=c("picasso","expm","doSNOW","snow","foreach","Matrix"),
+                      .packages=c("picasso","expm","foreach","Matrix"),
                       .errorhandling="pass") %dopar% {
 
                         ii=which(taxaNames==refTaxa[i])
@@ -111,7 +113,7 @@ XbetaAndResidu=function(
                         recturnlist[[2]]=residu
                         return(recturnlist)
                       }
-  snow::stopCluster(c4)
+  parallel::stopCluster(c4)
   rm(data)
   gc()
 

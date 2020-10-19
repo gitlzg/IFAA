@@ -1,7 +1,6 @@
 ---
 title: "Introduction to IFAA"
-#output: rmarkdown::html_vignette
-output: pdf_document
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{IFAA}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,7 +16,7 @@ knitr::opts_chunk$set(
 library(IFAA)
 ```
 
-IFAA is a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. 
+IFAA is a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. It can be also directly applied to relative abundance (RA) data to make inference on AA because the ratio of two RA is equal ratio of their AA. This algorithm can estimate and test the associations of interest while adjusting for potential confounders. High-dimensional covariates are handled with regularization. The estimates of this method have easy interpretation like a typical regression analysis. This algorithm can find optimal reference taxa/OTU/ASV and control FDR by permutation.
 
 To model the association, the following equation is used: 
 $$
@@ -38,7 +37,14 @@ where
 The challenge in microbiome analysis is that we can not oberve $\mathcal{Y}_i^k$. What is observed is its small proportion: $Y_i^k=C_i\mathcal{Y}^k_i$ where $C_i$ is an unknown number between 0 and 1 that denote the observed proportion. The IFAA method can handle this challenge by identifying and employing reference taxa.
 
 ## Package installation 
-The package "IFAA" could be installed from GitHub using the following code: 
+
+To install, type the following command in R console:
+
+```{r eval=FALSE}
+install.packages("IFAA", repos = "http://cran.us.r-project.org")
+```
+
+The package could be also installed from GitHub using the following code: 
 
 ```{r eval=FALSE}
 require(devtools)
@@ -50,9 +56,9 @@ library(IFAA)
 
 The `IFAA()` function is the main function. The User Inputs are: 
 
-- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`.
+- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C:\...\microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`.
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, `CovData="C:\...\covariatesData.tsv"`.
 
 - `linkIDname`: Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
 
@@ -109,6 +115,8 @@ The covariates data including `testCov` and `ctrlCov` can be extracted in the ou
 
 The example datasets `dataM` and `dataC` are included in the package. They could be accessed by: 
 ```{r}
+library(IFAA)
+
 data(dataM)
 dim(dataM)
 dataM[1:5, 1:8]
@@ -178,9 +186,9 @@ where
 
 The `MZILN()` function is to implement the Multivariate Zero-Inflated Logistic Normal model. It estimates and tests the associations given a user-specified reference taxon/OTU/ASV, whereas the 'IFAA()' does not require any user-specified reference taxa. If the user-specified taxon is independent of the covariates, 'MZILN()' should generate similar results as 'IFAA()'. The User Inputs for 'MZILN()' are: 
 
-- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`.
+- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C:\...\microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`.
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, CovData="C:\...\covariatesData.tsv".
 
 - `linkIDname`: Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
 
