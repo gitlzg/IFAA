@@ -15,7 +15,7 @@ runScrParal=function(
   permutY=F,
   x1permut,
   nPermu,
-  refTaxa=NULL,
+  refTaxa,
   standardize,
   sequentialRun,
   allFunc=allFunc,

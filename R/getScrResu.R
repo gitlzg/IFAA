@@ -13,7 +13,7 @@ getScrResu=function(
   x1permut,
   nRef,
   paraJobs,
-  refTaxa=NULL,
+  refTaxa,
   fwerRate,
   goodIndeCutPerc=0.33,
   standardize,

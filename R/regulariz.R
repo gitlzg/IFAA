@@ -58,7 +58,7 @@ Regulariz=function(
                            testCovInNewNam=testCovInNewNam,nRef=nRef,
                            nPermu=nPermu,paraJobs=paraJobs,
                            x1permut=x1permut,
-                           refTaxa=NULL,fwerRate=fwerRate,
+                           refTaxa=refTaxa,fwerRate=fwerRate,
                            method=reguMethod,
                            standardize=standardize,
                            sequentialRun=sequentialRun,
