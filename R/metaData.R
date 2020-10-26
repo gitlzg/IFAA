@@ -118,8 +118,10 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   if(numSubNoReads>0){
     cat("There are",numSubNoReads,"subjects without any sequencing reads and 
         excluded from the analysis","\n")
-    Mdata_raw=Mdata_raw[!(rowSums(Mdata_raw)==0),]
-    MdataWithId=MdataWithId[!(rowSums(Mdata_raw)==0),]
+    subKeep=!(rowSums(Mdata_raw)==0)
+    Mdata_raw=Mdata_raw[subKeep,]
+    MdataWithId=MdataWithId[subKeep,]
+    rm(subKeep)
   }
   rm(numSubNoReads)
   
