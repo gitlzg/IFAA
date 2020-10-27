@@ -140,6 +140,7 @@ IFAA=function(
   testCovInNewNam=runMeta$testCovInNewNam
   ctrlCov=runMeta$ctrlCov
   microbName=runMeta$microbName
+  newMicrobNames=runMeta$newMicrobNames
   results$covriateNames=runMeta$xNames
   rm(runMeta)
 
@@ -155,6 +156,9 @@ IFAA=function(
     stop("Error: number of random reference taxa can not be larger than the total number
            of taxa in the data. Try lower nRef")
   }
+
+  refTaxa_newNam=newMicrobNames[microbName%in%refTaxa]
+
   results$analysisResults=Regulariz(data=data,testCovInd=testCovInd,
                                     testCovInOrder=testCovInOrder,
                                     testCovInNewNam=testCovInNewNam,
@@ -163,7 +167,7 @@ IFAA=function(
                                     nPermu=nPermu,binaryInd=binaryInd,
                                     x1permut=x1permut,
                                     covsPrefix=covsPrefix,Mprefix=Mprefix,
-                                    refTaxa=refTaxa,paraJobs=paraJobs,
+                                    refTaxa=refTaxa_newNam,paraJobs=paraJobs,
                                     reguMethod=reguMethod,fwerRate=fwerRate,
                                     bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                                     standardize=standardize,
@@ -204,4 +208,5 @@ IFAA=function(
 
   return(results)
 }
+
 

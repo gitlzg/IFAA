@@ -74,10 +74,11 @@ Regulariz_MZILN=function(
   rm(estiResults)
 
   estByRefTaxaList=list()
-  estByCovList=list()
 
   for(iii in 1:nRef){
     SelecRefTaxa.i=matrix(results$SelecAllRefTaxaPred[,iii],nrow=nPredics)
+    estByCovList=list()
+
     for(i in 1:nTestCov){
       sigTaxaPosition=which(SelecRefTaxa.i[i,]!=0)
       nrow=length(sigTaxaPosition)
@@ -111,10 +112,10 @@ Regulariz_MZILN=function(
 
   rm(estByCovList)
 
-  SigCovByTaxaList=list()
-
   for(iii in 1:nRef){
     SelecRefTaxa.i=matrix(results$SelecAllRefTaxaPred[,iii],nrow=nPredics)
+    SigCovByTaxaList=list()
+
     for(i in 1:nTaxa){
       sigCov=which(SelecRefTaxa.i[,i]!=0)
       if(length(sigCov)==0)next

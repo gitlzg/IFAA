@@ -1,5 +1,4 @@
 
-
 twoMeanClus=function(
   matrix,
   nRef
