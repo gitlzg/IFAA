@@ -1,7 +1,4 @@
 
-##' @export
-
-
 
 runScrParal=function(
   method=c("mcp"),

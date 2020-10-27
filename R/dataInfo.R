@@ -1,8 +1,4 @@
 
-##' @export
-
-
-
 
 dataInfo=function(
   data,

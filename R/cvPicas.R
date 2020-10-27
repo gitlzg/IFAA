@@ -1,5 +1,3 @@
-##' @export
-
 
 cvPicasso=function(
   x,

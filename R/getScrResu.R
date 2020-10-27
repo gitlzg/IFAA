@@ -1,6 +1,3 @@
-##' @export
-
-
 
 getScrResu=function(
   method,

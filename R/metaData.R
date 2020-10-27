@@ -1,4 +1,3 @@
-##' @export
 
 
 metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,

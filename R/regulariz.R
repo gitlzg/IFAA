@@ -1,8 +1,4 @@
 
-##' @export
-
-
-
 
 Regulariz=function(
   data,

@@ -1,5 +1,3 @@
-##' @export
-
 
 originDataScreen=function(
   method,

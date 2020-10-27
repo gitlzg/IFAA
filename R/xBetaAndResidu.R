@@ -1,7 +1,3 @@
-##' @export
-
-
-
 
 XbetaAndResidu=function(
   method,

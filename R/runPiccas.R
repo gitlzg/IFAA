@@ -1,7 +1,4 @@
 
-##' @export
-
-
 
 runPicasso=function(
   x,

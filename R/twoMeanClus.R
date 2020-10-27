@@ -1,6 +1,3 @@
-##' @export
-
-
 
 twoMeanClus=function(
   matrix,

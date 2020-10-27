@@ -1,7 +1,3 @@
-##' @export
-
-
-
 
 groupBetaToFullBeta=function(
   nTaxa,

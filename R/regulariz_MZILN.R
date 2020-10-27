@@ -1,6 +1,4 @@
 
-##' @export
-
 
 
 Regulariz_MZILN=function(

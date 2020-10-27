@@ -1,7 +1,4 @@
 
-##' @export
-
-
 
 dataSparsCheck=function(
   data,

@@ -1,6 +1,3 @@
-##' @export
-
-
 
 bootResuHDCI=function(
   data,

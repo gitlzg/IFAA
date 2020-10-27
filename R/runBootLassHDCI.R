@@ -1,6 +1,3 @@
-##' @export
-
-
 
 runBootLassoHDCI=function(
   x,

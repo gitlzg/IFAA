@@ -1,5 +1,4 @@
 
-##' @export
 
 
 
@@ -109,14 +108,14 @@ dataRecovTrans=function(
     # stack Utilda
     for (j in 1:lengthTwoList){
       i=twoList[j]
-      if (j==1) {UtildaLong=Utilda[[i]]
+      if (j==1) {UtildaLong=as.numeric(Utilda[[i]])
       } else {
-        UtildaLong=rbind(UtildaLong,Utilda[[i]])
+        UtildaLong=c(UtildaLong,as.numeric(Utilda[[i]]))
       }
     }
     
     rm(Utilda)
-    results$UtildaLong=UtildaLong
+    results$UtildaLong=as(UtildaLong,"sparseVector")
     rm(UtildaLong)
     return(results)
   }
@@ -148,9 +147,9 @@ dataRecovTrans=function(
   # stack Utilda
   for (j in 1:lengthTwoList){
     i=twoList[j]
-    if (j==1) {UtildaLong=Utilda[[i]]
+    if (j==1) {UtildaLong=as.numeric(Utilda[[i]])
     } else {
-      UtildaLong=rbind(UtildaLong,Utilda[[i]])
+      UtildaLong=c(UtildaLong,as.numeric(Utilda[[i]]))
     }
   }
   rm(Utilda)
@@ -164,9 +163,8 @@ dataRecovTrans=function(
     }
   }
   rm(xDataTilda,lengthTwoList)
-  
   # return objects 
-  results$UtildaLong=UtildaLong
+  results$UtildaLong=as(UtildaLong,"sparseVector")
   rm(UtildaLong)
   results$xTildalong=xTildalong
   rm(xTildalong)
