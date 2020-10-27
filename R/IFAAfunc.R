@@ -6,7 +6,7 @@
 ##'
 ##' \loadmathjax
 ##'
-##' \mjdeqn{\log(\mathcal{Y}_i^k)|\mathcal{Y}_i^k>0=\beta^{0k}+X_i^T\beta^k+W_i^T\gamma^k+Z_i^Tb_i+\epsilon_i^k,\hspace{0.2cm}k=1,...,K+1}{}
+#' \mjdeqn{\log(\mathcal{Y}_i^k)|\mathcal{Y}_i^k>0=\beta^{0k}+X_i^T\beta^k+W_i^T\gamma^k+Z_i^Tb_i+\epsilon_i^k,\hspace{0.2cm}k=1,...,K+1}{}
 ##' where
 ##' - \mjeqn{\mathcal{Y}_i^k}{} is the AA of taxa \mjeqn{k}{} in subject \mjeqn{i}{} in the entire ecosystem.
 ##' - \mjeqn{X_i}{} is the covariate matrix.
@@ -104,20 +104,20 @@ IFAA=function(
   linkIDname,
   testCov=NULL,
   ctrlCov=NULL,
-  testMany=T,
-  ctrlMany=F,
+  testMany=TRUE,
+  ctrlMany=FALSE,
   nRef=40,
   nRefMaxForEsti=1,
   nPermu=40,
-  x1permut=T,
+  x1permut=TRUE,
   refTaxa=NULL,
   reguMethod=c("mcp"),
   fwerRate=0.25,
   paraJobs=NULL,
   bootB=500,
   bootLassoAlpha=0.05,
-  standardize=F,
-  sequentialRun=F,
+  standardize=FALSE,
+  sequentialRun=FALSE,
   allFunc=allUserFunc(),
   refReadsThresh=0.2,
   SDThresh=0.05,

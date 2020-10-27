@@ -17,7 +17,7 @@ dataSparsCheck=function(
   taxaNames=colnames(data)[microPositions]
   rm(microPositions)
 
-  w=data[,taxaNames,drop=F]
+  w=data[,taxaNames,drop=FALSE]
   rm(data,taxaNames)
   overallSparsity=round(100*sum(w==0)/(nrow(w)*ncol(w)),2)
   cat(overallSparsity,"percent of microbiome sequencing reads are zero","\n")

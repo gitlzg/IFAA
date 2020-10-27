@@ -4,8 +4,8 @@ dataRecovTrans=function(
   ref,
   Mprefix,
   covsPrefix,
-  xOnly=F,
-  yOnly=F
+  xOnly=FALSE,
+  yOnly=FALSE
 ){
   results=list()
 

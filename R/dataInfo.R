@@ -3,7 +3,7 @@ dataInfo=function(
   data,
   Mprefix,
   covsPrefix,
-  qualifyRefTax=F,
+  qualifyRefTax=FALSE,
   binPredInd,
   refReadsThresh,
   SDThresh,
@@ -25,7 +25,7 @@ dataInfo=function(
   rm(microPositions)
 
   if(qualifyRefTax){
-    qualifyData=data[rowSums(data[,taxaNames]>0)>=2,,drop=F]
+    qualifyData=data[rowSums(data[,taxaNames]>0)>=2,,drop=FALSE]
     w=qualifyData[,taxaNames]
     nSubQualif=nrow(qualifyData)
     taxaOverThresh=taxaNames[(Matrix::colSums(w>0)>=(nSubQualif*refReadsThresh))]

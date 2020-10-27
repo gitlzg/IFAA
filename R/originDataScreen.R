@@ -60,7 +60,7 @@ originDataScreen=function(
   startT1=proc.time()[3]
   cat("OriginDataScreen parallel setup took",startT1-startT,"seconds","\n")
   # start parallel computing
-  scr1Resu=foreach(i=1:nRef,.multicombine=T,
+  scr1Resu=foreach(i=1:nRef,.multicombine=TRUE,
                    .packages=c("picasso","expm","foreach","Matrix"),
                    .errorhandling="pass") %dopar% {
 
@@ -75,7 +75,7 @@ originDataScreen=function(
                      if(method=="mcp") {
                        Penal.i=runPicasso(x=xTildLongTild.i,y=yTildLongTild.i,
                                           lambda=lambda,nPredics=nPredics,
-                                          method="mcp",permutY=F,
+                                          method="mcp",permutY=FALSE,
                                           standardize=standardize,
                                           seed=seed,seedi=i)
                      }
@@ -132,13 +132,13 @@ originDataScreen=function(
 
   # create count of selection for individual testCov
   countOfSelecForAllPred=as(matrix(Matrix::rowSums(scr1ResuSelec),nrow=nPredics),"sparseMatrix")
-  testCovCountMat=countOfSelecForAllPred[testCovInd,,drop=F]
+  testCovCountMat=countOfSelecForAllPred[testCovInd,,drop=FALSE]
   rm(testCovInd,countOfSelecForAllPred)
 
   # create overall count of selection for all testCov as a whole
   countOfSelecForAPred=as(matrix(rep(0,nTaxa),nrow=1),"sparseMatrix")
   for (tax in 1:nTaxa){
-    countMatForTaxni=scr1ResuSelec[(1+(tax-1)*nPredics):(tax*nPredics),,drop=F]
+    countMatForTaxni=scr1ResuSelec[(1+(tax-1)*nPredics):(tax*nPredics),,drop=FALSE]
     totCountVecForTaxoni=Matrix::colSums(countMatForTaxni)
     countOfSelecForAPred[1,tax]=sum(totCountVecForTaxoni>0)
   }

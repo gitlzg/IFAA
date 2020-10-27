@@ -113,7 +113,7 @@ Regulariz=function(
   unestimableTaxa=c()
   qualifyData=data
   if(length(binaryInd)>0){
-    qualifyData=data[rowSums(data[,results$taxaNames]>0)>=2,,drop=F]
+    qualifyData=data[rowSums(data[,results$taxaNames]>0)>=2,,drop=FALSE]
     firstBinPredNam=paste0(covsPrefix,binaryInd)
     allBinPred=paste0(covsPrefix,binaryInd:nPredics)
     nBinPred=length(allBinPred)
@@ -255,3 +255,4 @@ Regulariz=function(
   return(results)
 }
 
+#

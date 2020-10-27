@@ -77,7 +77,7 @@ XbetaAndResidu=function(
 
   startT1=proc.time()[3]
   # start parallel computing
-  residu1Resu=foreach(i=1:nRef,.multicombine=T,
+  residu1Resu=foreach(i=1:nRef,.multicombine=TRUE,
                       .packages=c("picasso","expm","foreach","Matrix"),
                       .errorhandling="pass") %dopar% {
 
@@ -93,7 +93,7 @@ XbetaAndResidu=function(
                           Penal.i=runPicasso(x=xTildLongTild.i,y=yTildLongTild.i,
                                              lambda=lambda,nPredics=nPredics,
                                              standardize=standardize,
-                                             method="mcp",permutY=F,seed=seed,seedi=i)
+                                             method="mcp",permutY=FALSE,seed=seed,seedi=i)
                         }
 
                         betaInt=Penal.i$betaInt

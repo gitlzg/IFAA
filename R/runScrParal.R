@@ -9,7 +9,7 @@ runScrParal=function(
   nRef,
   paraJobs,
   doPermut,
-  permutY=F,
+  permutY=FALSE,
   x1permut,
   nPermu,
   refTaxa,
@@ -28,7 +28,7 @@ runScrParal=function(
   results=list()
 
   # load data info
-  basicInfo=dataInfo(data=data,qualifyRefTax=T,
+  basicInfo=dataInfo(data=data,qualifyRefTax=TRUE,
                      refReadsThresh=refReadsThresh,
                      SDThresh=SDThresh,SDquantilThresh=SDquantilThresh,
                      balanceCut=balanceCut,Mprefix=Mprefix,
@@ -115,7 +115,7 @@ runScrParal=function(
     screenStartTime = proc.time()[3]
 
     EName=testCovInNewNam
-    EVar=data[,EName,drop=F]
+    EVar=data[,EName,drop=FALSE]
 
     totNumOfLoops=nRef*nPermu
 
@@ -136,7 +136,7 @@ runScrParal=function(
 
     if(sequentialRun){foreach::registerDoSEQ()}
 
-    refResu=foreach (i=1:totNumOfLoops,.multicombine=T,
+    refResu=foreach (i=1:totNumOfLoops,.multicombine=TRUE,
                      .packages=c("picasso","expm","foreach","Matrix"),
                      .errorhandling="pass") %dopar% {
                        #for(j in 1:nRef){
@@ -146,13 +146,13 @@ runScrParal=function(
                        ii=which(taxaNames==refTaxa[ref.i])
 
                        if(x1permut){
-                         permutX1=EVar[permutOrder[[permut.i]],,drop=F]
+                         permutX1=EVar[permutOrder[[permut.i]],,drop=FALSE]
                          newData=data
                          newData[,EName]=permutX1
                          rm(permutX1)
 
                          xLong.i=dataRecovTrans(data=newData,ref=refTaxa[ref.i],
-                                                Mprefix=Mprefix,covsPrefix=covsPrefix,xOnly=T)
+                                                Mprefix=Mprefix,covsPrefix=covsPrefix,xOnly=TRUE)
                          xLongTild.i=xLong.i$xTildalong
                          rm(newData,xLong.i)
                          gc()
@@ -218,13 +218,13 @@ runScrParal=function(
     nTestCov=length(testCovInd)
 
     for(i in 1:nPermu){
-      matrix.i.permu=refResu[,(permuColInd==i),drop=F]
+      matrix.i.permu=refResu[,(permuColInd==i),drop=FALSE]
       vec.i=as(rep(0,nTaxa),"sparseVector")
 
       for(j in 1:nRef){
         vector.j.ref=matrix.i.permu[,j]
         matrix.i.j=as(matrix(vector.j.ref,nrow=nPredics),"sparseMatrix")
-        testCovVec.j.ref=as((Matrix::colSums(matrix.i.j[testCovInd,,drop=F])>0)+0,"sparseVector")
+        testCovVec.j.ref=as((Matrix::colSums(matrix.i.j[testCovInd,,drop=FALSE])>0)+0,"sparseVector")
         vec.i=vec.i+testCovVec.j.ref
       }
 
@@ -234,9 +234,9 @@ runScrParal=function(
 
     if(nTestCov>1){
       for(i in 1:nPermu){
-        matrix.i.permu=refResu[,(permuColInd==i),drop=F]
+        matrix.i.permu=refResu[,(permuColInd==i),drop=FALSE]
         allCovCountMat.i=as(matrix(Matrix::rowSums(matrix.i.permu),nrow=nPredics),"sparseMatrix")
-        permutTestCovList[[i]]=allCovCountMat.i[testCovInd,,drop=F]
+        permutTestCovList[[i]]=allCovCountMat.i[testCovInd,,drop=FALSE]
       }
       rm(matrix.i.permu,allCovCountMat.i)
     }

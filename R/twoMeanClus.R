@@ -15,7 +15,7 @@ twoMeanClus=function(
   finalSelec=matrix(NA,nrow=n.row,ncol=n.col)
   for (i in 1:n.col){
     vecI=matrix[,i]
-    cluster2=try(kmeans(vecI,centers=c(0,nRef)),silent=T)
+    cluster2=try(kmeans(vecI,centers=c(0,nRef)),silent=TRUE)
     twoMeanSucVec[i]=1-inherits(cluster2,"try-error")
 
     if(inherits(cluster2,"try-error")){

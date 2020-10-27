@@ -74,14 +74,14 @@ MZILN=function(
   paraJobs=NULL,
   bootB=500,
   bootLassoAlpha=0.05,
-  standardize=F,
-  sequentialRun=T,
+  standardize=FALSE,
+  sequentialRun=TRUE,
   allFunc=allUserFunc(),
   seed=1
 ){
   results=list()
   start.time = proc.time()[3]
-  MZILN=T
+  MZILN=TRUE
   runMeta=metaData(MicrobData=MicrobData,CovData=CovData,
                    linkIDname=linkIDname,testCov=allCov,MZILN=MZILN)
 

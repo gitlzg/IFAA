@@ -1,6 +1,6 @@
 
 metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
-                  testMany=T,ctrlMany=F,MZILN=F){
+                  testMany=TRUE,ctrlMany=FALSE,MZILN=FALSE){
   results=list()
 
   if(length(linkIDname)==0){
@@ -23,10 +23,10 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   if(is.character(MicrobData)){
     nCharac=nchar(MicrobData)
     if(substr(MicrobData,(nCharac-2),nCharac)=="csv"){
-      MdataWithId=data.matrix(read.csv(file=MicrobData,header=T,na.strings=c("","NA")))
+      MdataWithId=data.matrix(read.csv(file=MicrobData,header=TRUE,na.strings=c("","NA")))
     }
     if(substr(MicrobData,(nCharac-2),nCharac)=="tsv"){
-      MdataWithId=data.matrix(read.table(file=MicrobData, sep='\t',header=T,na.strings=c("","NA")))
+      MdataWithId=data.matrix(read.table(file=MicrobData, sep='\t',header=TRUE,na.strings=c("","NA")))
     }
   }
 
@@ -45,10 +45,10 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   if(is.character(CovData)){
     nCharac=nchar(CovData)
     if(substr(CovData,(nCharac-2),nCharac)=="csv"){
-      CovarWithId=data.matrix(read.csv(file=CovData,header=T,na.strings=c("","NA")))
+      CovarWithId=data.matrix(read.csv(file=CovData,header=TRUE,na.strings=c("","NA")))
     }
     if(substr(CovData,(nCharac-2),nCharac)=="tsv"){
-      CovarWithId=data.matrix(read.table(file=CovData, sep='\t',header=T,na.strings=c("","NA")))
+      CovarWithId=data.matrix(read.table(file=CovData, sep='\t',header=TRUE,na.strings=c("","NA")))
     }
   }
 
@@ -61,7 +61,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
              Double check the data format.","\n")
   }
 
-  Covariates1=CovarWithId[,!colnames(CovarWithId)%in%linkIDname,drop=F]
+  Covariates1=CovarWithId[,!colnames(CovarWithId)%in%linkIDname,drop=FALSE]
 
   # determine testCov and ctrlCov
   if(length(testCov)==0){
@@ -89,18 +89,18 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   # merge data to remove missing
   CovarWithId1=CovarWithId[,c(linkIDname,testCov,ctrlCov)]
 
-  allRawData=data.matrix(na.omit(merge(CovarWithId1,MdataWithId,by=linkIDname,all.x=F,all.y=F)))
+  allRawData=data.matrix(na.omit(merge(CovarWithId1,MdataWithId,by=linkIDname,all.x=FALSE,all.y=FALSE)))
 
-  CovarWithId=allRawData[,(colnames(allRawData)%in%colnames(CovarWithId1)),drop=F]
-  Covariates=CovarWithId[,!colnames(CovarWithId)%in%linkIDname,drop=F]
+  CovarWithId=allRawData[,(colnames(allRawData)%in%colnames(CovarWithId1)),drop=FALSE]
+  Covariates=CovarWithId[,!colnames(CovarWithId)%in%linkIDname,drop=FALSE]
   rm(CovarWithId1)
 
-  if(!is.numeric(Covariates[,testCov,drop=F])){
+  if(!is.numeric(Covariates[,testCov,drop=FALSE])){
     stop("There are non-numeric variables in the covariates for association test.")
   }
 
   MdataWithId=allRawData[,(colnames(allRawData)%in%colnames(MdataWithId))]
-  Mdata_raw=MdataWithId[,!colnames(MdataWithId)%in%linkIDname,drop=F]
+  Mdata_raw=MdataWithId[,!colnames(MdataWithId)%in%linkIDname,drop=FALSE]
   rm(allRawData)
 
   # check zero taxa and subjects with zero taxa reads
@@ -131,7 +131,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   results$Mprefix="microb"
 
   colnames(Mdata)=newMicrobNames
-  MdataWithId_new=cbind(MdataWithId[,linkIDname,drop=F],Mdata)
+  MdataWithId_new=cbind(MdataWithId[,linkIDname,drop=FALSE],Mdata)
   results$microbName=microbName
   results$newMicrobNames=newMicrobNames
   rm(microbName,newMicrobNames)
@@ -143,7 +143,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
     cat("Samples with missing covariate values are removed from the analysis.","\n")
   }
 
-  if(!is.numeric(Covariates[,ctrlCov,drop=F])){
+  if(!is.numeric(Covariates[,ctrlCov,drop=FALSE])){
     cat("Warnings: there are non-numeric variables in the control covariates","\n")
     nCtrlCov=length(ctrlCov)
     numCheck=unlist(lapply(seq(nCtrlCov),function(i)is.numeric(Covariates[,ctrlCov[i]])))+0
@@ -156,13 +156,13 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   binCheck=unlist(lapply(seq(nCov),function(i)dim(table(Covariates[,xNames[i]]))))
 
   if(length(which(binCheck==2))>0){
-    Covariates=Covariates[,c(xNames[binCheck!=2],xNames[binCheck==2]),drop=F]
+    Covariates=Covariates[,c(xNames[binCheck!=2],xNames[binCheck==2]),drop=FALSE]
     binaryInd=length(which(binCheck!=2))+1
     results$varNamForBin=xNames[binCheck==2]
     results$BinVars=length(results$varNamForBin)
     for(i in results$varNamForBin){
-      mini=min(Covariates[,i],na.rm=T)
-      maxi=max(Covariates[,i],na.rm=T)
+      mini=min(Covariates[,i],na.rm=TRUE)
+      maxi=max(Covariates[,i],na.rm=TRUE)
       if(!(mini==0 & maxi==1)){
         Covariates[Covariates[,i]==mini,i]=0
         Covariates[Covariates[,i]==maxi,i]=1
@@ -189,9 +189,9 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   results$testCovInNewNam=results$xNewNames[results$testCovInd]
   rm(xNames,xNewNames)
 
-  CovarWithId_new=cbind(CovarWithId[,linkIDname,drop=F],Covariates)
+  CovarWithId_new=cbind(CovarWithId[,linkIDname,drop=FALSE],Covariates)
 
-  data=merge(MdataWithId_new, CovarWithId_new,by=linkIDname,all.x=F,all.y=F)
+  data=merge(MdataWithId_new, CovarWithId_new,by=linkIDname,all.x=FALSE,all.y=FALSE)
   results$covariatesData=CovarWithId_new
   colnames(results$covariatesData)=c(linkIDname,results$xNames)
   rm(MdataWithId_new,CovarWithId_new)

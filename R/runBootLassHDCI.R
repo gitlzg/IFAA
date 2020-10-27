@@ -26,7 +26,7 @@ runBootLassoHDCI=function(
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
 
-  # write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = F)
+  # write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = FALSE)
 
   df.cor=suppressWarnings(cor(as.matrix(x)))
   df.cor[is.na(df.cor)]=0
@@ -67,7 +67,7 @@ runBootLassoHDCI=function(
   }
 
   bootResu=bootLOPR(x=x,y=as.vector(y),B=bootB,nfolds=nfolds,
-                    standardize=standardize,parallel.boot=T,
+                    standardize=standardize,parallel.boot=TRUE,
                     ncores.boot=ncores.boot,alpha=bootLassoAlpha)
   parallel::stopCluster(c3)
 

@@ -6,7 +6,7 @@ getScrResu=function(
   testCovInOrder,
   testCovInNewNam,
   nPermu,
-  doPermut=T,
+  doPermut=TRUE,
   x1permut,
   nRef,
   paraJobs,
@@ -90,7 +90,7 @@ getScrResu=function(
         fwerCutIndv[i]=originFwerCut.i
         if(originFwerCut.i<=min(selecCountMatIndv[i,])){
           # use two mean clustering
-          twoMean=twoMeanClus(matrix=selecCountMatIndv[i,,drop=F],nRef=nRef)
+          twoMean=twoMeanClus(matrix=selecCountMatIndv[i,,drop=FALSE],nRef=nRef)
           fwerCutIndv[i]=twoMean$twoMeanCut
           if(twoMean$twoMeanCut==0)fwerCutIndv[i]=0.1
           rm(twoMean,originFwerCut.i)
