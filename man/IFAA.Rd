@@ -10,20 +10,20 @@ IFAA(
   linkIDname,
   testCov = NULL,
   ctrlCov = NULL,
-  testMany = T,
-  ctrlMany = F,
+  testMany = TRUE,
+  ctrlMany = FALSE,
   nRef = 40,
   nRefMaxForEsti = 1,
   nPermu = 40,
-  x1permut = T,
+  x1permut = TRUE,
   refTaxa = NULL,
   reguMethod = c("mcp"),
   fwerRate = 0.25,
   paraJobs = NULL,
   bootB = 500,
   bootLassoAlpha = 0.05,
-  standardize = F,
-  sequentialRun = F,
+  standardize = FALSE,
+  sequentialRun = FALSE,
   allFunc = allUserFunc(),
   refReadsThresh = 0.2,
   SDThresh = 0.05,
@@ -130,7 +130,7 @@ dataM[1:5, 1:8]
 data(dataC)
 dim(dataC)
 dataC[1:5, ]
-\dontrun{
+\donttest{
 results <- IFAA(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",

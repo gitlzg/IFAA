@@ -44,7 +44,7 @@ runBootLassoHDCI=function(
 
   nearZeroSd=length(xWithNearZeroSd)
 
-  # print(paste("Number of x with near-zero sd: ", nearZeroSd))
+  # message(paste("Number of x with near-zero sd: ", nearZeroSd))
 
   cvStartTime= proc.time()[3]
 
@@ -56,7 +56,7 @@ runBootLassoHDCI=function(
     ncores.boot=1
   }
 
-  cat(ncores.boot, "parallel jobs are registered for bootstrp in Phase 2.","\n")
+  message(ncores.boot, "parallel jobs are registered for bootstrp in Phase 2.","\n")
 
   c3 <- parallel::makeCluster(ncores.boot)
   doParallel::registerDoParallel(c3)

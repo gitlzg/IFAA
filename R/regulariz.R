@@ -47,7 +47,7 @@ Regulariz=function(
   results$x1permut=x1permut
 
   regul.start.time = proc.time()[3]
-  cat("Start Phase 1 association identification","\n")
+  message("Start Phase 1 association identification","\n")
   selectRegroup=getScrResu(data=data,testCovInd=testCovInd,
                            testCovInOrder=testCovInOrder,
                            testCovInNewNam=testCovInNewNam,nRef=nRef,
@@ -103,12 +103,12 @@ Regulariz=function(
 
   MCPExecuTime = (proc.time()[3] - regul.start.time)/60
   results$MCPExecuTime=MCPExecuTime
-  cat("Phase 1 Associaiton identification is done and used", MCPExecuTime,"minutes","\n")
+  message("Phase 1 Associaiton identification is done and used", MCPExecuTime,"minutes","\n")
 
   results$finalizedBootRefTaxon=finalIndpRefTax
 
   startT=proc.time()[3]
-  cat("Start Phase 2 parameter estimation","\n")
+  message("Start Phase 2 parameter estimation","\n")
 
   unestimableTaxa=c()
   qualifyData=data
@@ -143,20 +143,20 @@ Regulariz=function(
   rm(TaxaNoReads,unestimableTaxa)
 
   goodIndpRefTax.ascend=sort(results$goodIndpRefTaxWithCount)
-  #print("goodIndpRefTax.ascend:")
-  #print(goodIndpRefTax.ascend)
+  #message("goodIndpRefTax.ascend:")
+  #message(goodIndpRefTax.ascend)
 
   goodIndpRefTaxNam=names(goodIndpRefTax.ascend)
   allRefTaxNam=unique(c(results$finalizedBootRefTaxon,goodIndpRefTaxNam))
   nGoodIndpRef=length(allRefTaxNam)
   results$allRefTaxNam=allRefTaxNam
 
-  #print("allRefTaxNam:")
-  #print(allRefTaxNam)
+  #message("allRefTaxNam:")
+  #message(allRefTaxNam)
 
   results$nRefUsedForEsti=min(nGoodIndpRef,nRefMaxForEsti)
 
-  cat("Final Reference Taxa are:",allRefTaxNam[seq(results$nRefUsedForEsti)],"\n")
+  message("Final Reference Taxa are:",allRefTaxNam[seq(results$nRefUsedForEsti)],"\n")
 
   #selecResu=paste0("../../../ufrc/selecResul_",sample,".RData")
   #selecResu=paste0("./sim_results/selecResul_",sample,".RData")
@@ -165,7 +165,7 @@ Regulariz=function(
 
   results$estiList=list()
   for(iii in 1:(results$nRefUsedForEsti)){
-    cat("Start estimation for the", iii,"th final reference taxon:",allRefTaxNam[iii],"\n")
+    message("Start estimation for the", iii,"th final reference taxon:",allRefTaxNam[iii],"\n")
     time11=proc.time()[3]
     newRefTaxNam=taxaNames[microbName%in%(allRefTaxNam[iii])]
     results$estiList[[allRefTaxNam[iii]]]=bootResuHDCI(data=data,
@@ -176,14 +176,14 @@ Regulariz=function(
                                                        standardize=standardize,
                                                        seed=seed)
     time12=proc.time()[3]
-    cat("Estimation done for the", iii,"th final reference taxon:",allRefTaxNam[iii],
+    message("Estimation done for the", iii,"th final reference taxon:",allRefTaxNam[iii],
         "and it took",(time12-time11)/60,"minutes","\n")
   }
   estiResults=results$estiList[[results$finalizedBootRefTaxon]]
 
   endT=proc.time()[3]
 
-  cat("Phase 2 parameter estimation done and took",(endT-startT)/60,"minutes.","\n")
+  message("Phase 2 parameter estimation done and took",(endT-startT)/60,"minutes.","\n")
 
 
   results$betaMat=as(matrix(estiResults$finalBetaEst,nrow=nPredics),"sparseMatrix")

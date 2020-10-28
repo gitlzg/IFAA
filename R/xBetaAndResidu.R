@@ -57,7 +57,7 @@ XbetaAndResidu=function(
   nRef=length(refTaxa)
 
   startT=proc.time()[3]
-  cat("start generating residues for permutation","\n")
+  message("start generating residues for permutation","\n")
   if(length(paraJobs)==0){
     availCores=availableCores()
     if(is.numeric(availCores))paraJobs=max(1,availableCores()-2)
@@ -67,7 +67,7 @@ XbetaAndResidu=function(
   c4<-parallel::makeCluster(paraJobs)
 
   if(!sequentialRun){
-    cat(paraJobs, "parallel jobs are registered for generate residues in Phase 1a.","\n")
+    message(paraJobs, "parallel jobs are registered for generate residues in Phase 1a.","\n")
   }
 
   parallel::clusterExport(cl=c4, varlist=allFunc,envir=parent.env(environment()))
@@ -119,7 +119,7 @@ XbetaAndResidu=function(
 
   endT=proc.time()[3]
 
-  cat("Generating residu is done and took",(endT-startT1)/60,"minutes","\n")
+  message("Generating residu is done and took",(endT-startT1)/60,"minutes","\n")
 
   xBetaList=list()
   for(i in 1:nRef){

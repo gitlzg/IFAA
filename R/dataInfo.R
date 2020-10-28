@@ -30,7 +30,7 @@ dataInfo=function(
     nSubQualif=nrow(qualifyData)
     taxaOverThresh=taxaNames[(Matrix::colSums(w>0)>=(nSubQualif*refReadsThresh))]
     if(length(taxaOverThresh)==0){
-      cat("There are no taxa with presence over the threshold:",refReadsThresh,
+      message("There are no taxa with presence over the threshold:",refReadsThresh,
           ". Try lower the reference taxa reads threshold.","\n")
     }
 
@@ -47,7 +47,7 @@ dataInfo=function(
 
     TaxaOverSdThresh=taxaOverThresh[(sdTaxaOverThresh>=SDThresh)]
     if(length(TaxaOverSdThresh)==0){
-      cat("There are no taxa with SD over the SD threshold:",SDThresh,
+      message("There are no taxa with SD over the SD threshold:",SDThresh,
           ". Try lower the SD threshold","\n")
     }
     rm(taxa.i,taxaOverThresh)
@@ -63,7 +63,7 @@ dataInfo=function(
     rm(sdAllTaxa,posTaxaAll.i,TaxaOverSdThresh)
 
     if(length(goodRefTaxaCandi)==0){
-      cat("There are no taxa with SD over the SD quantile threshold:",SDquantilThresh,
+      message("There are no taxa with SD over the SD quantile threshold:",SDquantilThresh,
           ". Try lower the SD quantile threshold","\n")
     }
     rm(w)

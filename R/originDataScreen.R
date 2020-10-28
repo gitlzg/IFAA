@@ -39,7 +39,7 @@ originDataScreen=function(
   nRef=length(refTaxa)
 
   startT=proc.time()[3]
-  cat("start Original screen","\n")
+  message("start Original screen","\n")
   if(length(paraJobs)==0){
     availCores=availableCores()
     if(is.numeric(availCores))paraJobs=max(1,availableCores()-2)
@@ -49,7 +49,7 @@ originDataScreen=function(
   c1<-parallel::makeCluster(paraJobs)
 
   if(!sequentialRun){
-    cat(paraJobs, "parallel jobs are registered for analyzing", nRef, "reference taxa in Phase 1a.","\n")
+    message(paraJobs, "parallel jobs are registered for analyzing", nRef, "reference taxa in Phase 1a.","\n")
   }
 
   parallel::clusterExport(cl=c1,varlist=allFunc,envir=parent.env(environment()))
@@ -58,7 +58,7 @@ originDataScreen=function(
   if(sequentialRun){foreach::registerDoSEQ()}
 
   startT1=proc.time()[3]
-  cat("OriginDataScreen parallel setup took",startT1-startT,"seconds","\n")
+  message("OriginDataScreen parallel setup took",startT1-startT,"seconds","\n")
   # start parallel computing
   scr1Resu=foreach(i=1:nRef,.multicombine=TRUE,
                    .packages=c("picasso","expm","foreach","Matrix"),
@@ -111,7 +111,7 @@ originDataScreen=function(
 
   endT=proc.time()[3]
 
-  cat("Original screen done and took",(endT-startT1)/60,"minutes","\n")
+  message("Original screen done and took",(endT-startT1)/60,"minutes","\n")
 
   selecList=list()
   for(i in 1:nRef){

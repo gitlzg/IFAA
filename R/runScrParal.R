@@ -102,7 +102,7 @@ runScrParal=function(
   #
   if(doPermut){
     startT=proc.time()[3]
-    cat("start to run permutation","\n")
+    message("start to run permutation","\n")
 
     # permut the exposure variable
     if(length(seed)>0)set.seed(as.numeric(seed)+10^6)
@@ -128,7 +128,7 @@ runScrParal=function(
     c2 <- parallel::makeCluster(paraJobs)
 
     if(!sequentialRun){
-      cat(paraJobs, "parallel jobs are registered for the permutation analysis in Phase 1b.","\n")
+      message(paraJobs, "parallel jobs are registered for the permutation analysis in Phase 1b.","\n")
     }
 
     parallel::clusterExport(cl=c2,varlist=allFunc,envir=parent.env(environment()))
@@ -209,7 +209,7 @@ runScrParal=function(
 
     endT=proc.time()[3]
 
-    cat("Permutation done and took", (endT-startT)/60,"minutes","\n")
+    message("Permutation done and took", (endT-startT)/60,"minutes","\n")
 
     # obtain the maximum vector
     permuColInd=1+seq(0,totNumOfLoops-1)%%nPermu

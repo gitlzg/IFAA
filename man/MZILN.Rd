@@ -14,8 +14,8 @@ MZILN(
   paraJobs = NULL,
   bootB = 500,
   bootLassoAlpha = 0.05,
-  standardize = F,
-  sequentialRun = T,
+  standardize = FALSE,
+  sequentialRun = TRUE,
   allFunc = allUserFunc(),
   seed = 1
 )
@@ -85,7 +85,7 @@ dataM[1:5, 1:8]
 data(dataC)
 dim(dataC)
 dataC[1:5, ]
-\dontrun{
+\donttest{
 results <- MZILN(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",

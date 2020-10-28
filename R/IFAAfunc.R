@@ -67,7 +67,7 @@
 ##' data(dataC)
 ##' dim(dataC)
 ##' dataC[1:5, ]
-##' \dontrun{
+##' \donttest{
 ##' results <- IFAA(MicrobData = dataM,
 ##'                 CovData = dataC,
 ##'                 linkIDname = "id",
@@ -202,7 +202,7 @@ IFAA=function(
   rm(testCovInOrder,ctrlCov,microbName)
 
   totalTimeMins = (proc.time()[3] - start.time)/60
-  cat("The entire analysis took",totalTimeMins, "minutes","\n")
+  message("The entire analysis took",totalTimeMins, "minutes","\n")
 
   results$totalTimeMins=totalTimeMins
 
