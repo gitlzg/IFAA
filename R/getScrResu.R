@@ -80,6 +80,8 @@ getScrResu=function(
     
     if(nTestCov==1){
       results$selecMatIndv=matrix(results$selecTaxaFWER,nrow=1)
+      results$selecIndvInOverall=matrix(results$selecTaxaFWER,nrow=1)
+      results$selecCountMatIndv=selecCountOverall
       results$fwerCutIndv=fwerCut
     }
     
