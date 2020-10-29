@@ -1,5 +1,3 @@
-
-
 AIcalcu=function(
   data,
   ref,
@@ -7,25 +5,25 @@ AIcalcu=function(
   covsPrefix
 ){
   results=list()
-  
+
   # get the original sample size
   nSub=nrow(data)
   MVarNamLength=nchar(Mprefix)
-  
+
   # get taxa data
   micros = sapply(substr(colnames(data),1,MVarNamLength), function(x) {grep(Mprefix, x)})
   microPositions=which(micros == 1)
   rm(micros)
-  
+
   nTaxa = length(microPositions)
   nNorm=nTaxa-1
   taxaNames=colnames(data)[microPositions]
   rm(microPositions)
-  
+
   # rearrange taxa names
   otherTaxaNames=taxaNames[(taxaNames!=ref)]
   taxaNames=c(otherTaxaNames,ref)
-  
+
   # get predictor data
   xVarNamLength=nchar(covsPrefix)
   predics = sapply(substr(colnames(data),1,xVarNamLength), function(x) {grep(covsPrefix, x)})
@@ -33,14 +31,14 @@ AIcalcu=function(
   predNames=colnames(data)[predPositions]
   nPredics=length(predNames)
   rm(predics,predPositions)
-  
+
   # taxa data
   w=data[,taxaNames]
-  
+
   # extract x data
   xData=data[,predNames]
-  rm(data,predNames) 
-  
+  rm(data,predNames)
+
   # transform data using log-ratio, creat Ai and Li
   l=rep(NA,nSub)
   lLast=rep(NA,nSub)
@@ -62,11 +60,11 @@ AIcalcu=function(
         logRatiow[[i]]=logwi[1:(l[i]-1)]-logwi[l[i]]
         zero.m=matrix(0,nrow=l[i]-1,ncol=nNorm)
         if(last.nonzero==nTaxa){
-          zero.m[cbind(1:(l[i]-1),taxa.nonzero[1:(l[i]-1)])]=1 
+          zero.m[cbind(1:(l[i]-1),taxa.nonzero[1:(l[i]-1)])]=1
         } else {
           zero.m[cbind(1:(l[i]-1),taxa.nonzero[1:(l[i]-1)])]=1
           zero.m[,taxa.nonzero[l[i]]]=-1
-        } 
+        }
         A[[i]]=as(zero.m,"sparseMatrix")
         rm(zero.m)
       } else {
@@ -79,16 +77,16 @@ AIcalcu=function(
       A[[i]]=NA
     }
   }
-  
+
   # obtain the list of samples whose have at least 2 non-zero taxa
   twoList=which(l>1)
   lengthTwoList=length(twoList)
-  
+
   rm(w)
-  
+
   results$xData=xData
   rm(xData)
-  
+
   results$logRatiow=logRatiow
   rm(logRatiow)
   results$A=A

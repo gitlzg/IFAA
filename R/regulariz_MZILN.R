@@ -1,6 +1,5 @@
 
 
-
 Regulariz_MZILN=function(
   data,
   testCovInd,
@@ -22,11 +21,11 @@ Regulariz_MZILN=function(
 ){
   results=list()
   regul.start.time = proc.time()[3]
-  
+
   nTestCov=length(testCovInd)
-  
+
   dataSparsCheck(data=data,Mprefix=Mprefix)
-  
+
   # load abundance data info
   data.info=dataInfo(data=data,Mprefix=Mprefix,
                      covsPrefix=covsPrefix,
@@ -36,21 +35,21 @@ Regulariz_MZILN=function(
   nPredics=data.info$nPredics
   nTaxa=data.info$nTaxa
   rm(data.info)
-  
+
   newRefTaxNam=taxaNames[microbName%in%refTaxa]
   nRef=length(refTaxa)
   refTaxa_reOrder=microbName[microbName%in%refTaxa]
-  
+
   reguResu=originDataScreen(method=reguMethod,data=data,testCovInd=testCovInd,
                             paraJobs=paraJobs,lambda=NULL,refTaxa=newRefTaxNam,standardize=standardize,
                             sequentialRun=sequentialRun,allFunc=allFunc,Mprefix=Mprefix,
                             covsPrefix=covsPrefix,binPredInd=binaryInd,seed=seed)
-  
+
   results$SelecAllRefTaxaPred=reguResu$scr1ResuSelec
   rm(reguResu)
-  
-  cat("Reference taxa are:",refTaxa,"\n")
-  
+
+  message("Reference taxa are: ",refTaxa)
+
   betaMatList=list()
   CILowMatList=list()
   CIUpMatList=list()
@@ -61,33 +60,33 @@ Regulariz_MZILN=function(
                                                           refTaxa=newRefTaxNam[iii],bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                                                           binPredInd=binaryInd,covsPrefix=covsPrefix,Mprefix=Mprefix,
                                                           standardize=standardize,seed=seed)
-    
+
     time12=proc.time()[3]
-    cat("Estimation done for the", iii,"th reference taxon:",refTaxa[iii],
-        "and it took",(time12-time11)/60,"minutes","\n")
-    
+    message("Estimation done for the ", iii,"th reference taxon: ",refTaxa[iii],
+        " and it took ",round((time12-time11)/60,2)," minutes")
+
     estiResults=results$estiList[[refTaxa_reOrder[iii]]]
-    
+
     betaMatList[[iii]]=as(matrix(estiResults$finalBetaEst.LPR,nrow=nPredics),"sparseMatrix")
     CILowMatList[[iii]]=as(matrix(estiResults$CIvecLow.LPR,nrow=nPredics),"sparseMatrix")
     CIUpMatList[[iii]]=as(matrix(estiResults$CIvecUp.LPR,nrow=nPredics),"sparseMatrix")
   }
   rm(estiResults)
-  
+
   estByRefTaxaList=list()
-  
+
   for(iii in 1:nRef){
     SelecRefTaxa.i=matrix(results$SelecAllRefTaxaPred[,iii],nrow=nPredics)
     estByCovList=list()
-    
+
     for(i in 1:nTestCov){
       sigTaxaPosition=which(SelecRefTaxa.i[i,]!=0)
       nrow=length(sigTaxaPosition)
       if(nrow==0)next
-      
+
       ncol=3
       estByCovMat=matrix(NA,nrow=nrow,ncol=ncol)
-      
+
       for(j in 1:nrow){
         for(k in 1:ncol){
           if(k==1)estByCovMat[j,k]=betaMatList[[iii]][i,sigTaxaPosition[j]]
@@ -95,28 +94,28 @@ Regulariz_MZILN=function(
           if(k==3)estByCovMat[j,k]=CIUpMatList[[iii]][i,sigTaxaPosition[j]]
         }
       }
-      
+
       rownames(estByCovMat)=microbName[SelecRefTaxa.i[i,]!=0]
-      colnames(estByCovMat)=c("Beta.LPR","LowB95%CI.LPR","UpB95%CI.LPR")  
-      
+      colnames(estByCovMat)=c("Beta.LPR","LowB95%CI.LPR","UpB95%CI.LPR")
+
       estByCovList[[testCovInOrder[i]]]=estByCovMat
       rm(estByCovMat)
     }
-    
+
     if(length(estByCovList)==0){
       results$estByRefTaxaList[[refTaxa_reOrder[iii]]][["estByCovList"]]="No significant assoication is identified."
     }else{
       results$estByRefTaxaList[[refTaxa_reOrder[iii]]][["estByCovList"]]=estByCovList
     }
   }
-  
-  
+
+
   rm(estByCovList)
-  
+
   for(iii in 1:nRef){
     SelecRefTaxa.i=matrix(results$SelecAllRefTaxaPred[,iii],nrow=nPredics)
     SigCovByTaxaList=list()
-    
+
     for(i in 1:nTaxa){
       sigCov=which(SelecRefTaxa.i[,i]!=0)
       if(length(sigCov)==0)next
@@ -128,9 +127,9 @@ Regulariz_MZILN=function(
       results$estByRefTaxaList[[refTaxa_reOrder[iii]]][["SigCovByTaxaList"]]=SigCovByTaxaList
     }
   }
-  
+
   rm(SigCovByTaxaList,microbName)
-  
+
   results$reguMethod=reguMethod
   results$nSub=nSub
   results$nTaxa=nTaxa
