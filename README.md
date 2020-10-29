@@ -1,7 +1,7 @@
 # Type the following line in R to install the package IFAA
 devtools::install_github("gitlzg/IFAA")
 
-# Detailed instructions for using the package are provided in Manual.pdf and Vignette.pdf
+# Detailed instructions for using the package are provided in Vignette.pdf and Manual.pdf.
 
 # An example to run IFAA() in the package
 library(IFAA)
