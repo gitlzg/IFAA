@@ -62,7 +62,7 @@ Regulariz_MZILN=function(
                                                           standardize=standardize,seed=seed)
 
     time12=proc.time()[3]
-    message("Estimation done for the ", iii,"th reference taxon: ",refTaxa[iii],
+    message("Estimation done for the ", iii,"th reference taxon: ",refTaxa_reOrder[iii],
         " and it took ",round((time12-time11)/60,2)," minutes")
 
     estiResults=results$estiList[[refTaxa_reOrder[iii]]]
