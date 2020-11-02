@@ -137,7 +137,7 @@ runScrParal=function(
     if(sequentialRun){foreach::registerDoSEQ()}
 
     refResu=foreach (i=1:totNumOfLoops,.multicombine=TRUE,
-                     .packages=c("picasso","expm","foreach","Matrix"),
+                     .packages=c("picasso","Matrix"),
                      .errorhandling="pass") %dopar% {
                        #for(j in 1:nRef){
 

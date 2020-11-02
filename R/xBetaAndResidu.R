@@ -78,7 +78,7 @@ XbetaAndResidu=function(
   startT1=proc.time()[3]
   # start parallel computing
   residu1Resu=foreach(i=1:nRef,.multicombine=TRUE,
-                      .packages=c("picasso","expm","foreach","Matrix"),
+                      .packages=c("picasso","Matrix"),
                       .errorhandling="pass") %dopar% {
 
                         ii=which(taxaNames==refTaxa[i])

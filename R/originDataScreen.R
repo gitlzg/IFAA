@@ -61,7 +61,7 @@ originDataScreen=function(
   message("OriginDataScreen parallel setup took ",round(startT1-startT,2)," seconds")
   # start parallel computing
   scr1Resu=foreach(i=1:nRef,.multicombine=TRUE,
-                   .packages=c("picasso","expm","foreach","Matrix"),
+                   .packages=c("picasso","Matrix"),
                    .errorhandling="pass") %dopar% {
 
                      ii=which(taxaNames==refTaxa[i])
