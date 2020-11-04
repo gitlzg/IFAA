@@ -29,13 +29,13 @@ runBootLassoHDCI=function(
   
   # write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = FALSE)
 
-  df.cor=suppressWarnings(corSparse(x))
-  df.cor[is.na(df.cor)]=0
-  df.cor[!lower.tri(df.cor)]=0
-  excluCorColumns=which(apply(df.cor, 2, function(x) any(abs(x)>=correCut)))
-
-  xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
-  rm(excluCorColumns)
+  # df.cor=suppressWarnings(corSparse(x))
+  # df.cor[is.na(df.cor)]=0
+  # df.cor[!lower.tri(df.cor)]=0
+  # excluCorColumns=which(apply(df.cor, 2, function(x) any(abs(x)>=correCut)))
+  # 
+  # xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
+  # rm(excluCorColumns)
 
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
