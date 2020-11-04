@@ -54,7 +54,7 @@ cvPicasso=function(
   for(i in 1:nfolds){
     # check if there is zero-variance x in the partitions
     startT.i=proc.time()[3]
-    xi=x[-sampleInd[[i]],]
+    xi=as(x[-sampleInd[[i]],],"sparseMatrix")
     nObs.i=nrow(xi)
     sdX.i=apply(xi,2,sd)
     xWithNearZeroSd.i=which(sdX.i<=zeroSDCut)
@@ -62,7 +62,7 @@ cvPicasso=function(
 
     # remove near constant columns in x
     if(length(xWithNearZeroSd.i)>0) {
-      xi=xi[,-xWithNearZeroSd.i]
+      xi=as(xi[,-xWithNearZeroSd.i],"sparseMatrix")
     }
     nearZeroSd.i=length(xWithNearZeroSd.i)
 

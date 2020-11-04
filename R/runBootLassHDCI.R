@@ -25,25 +25,24 @@ runBootLassoHDCI=function(
 
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
-
+  rm(sdX)
+  
   # write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = FALSE)
 
-  # df.cor=suppressWarnings(cor(as.matrix(x)))
-  # df.cor[is.na(df.cor)]=0
-  # df.cor[!lower.tri(df.cor)]=0
-  # excluCorColumns=which(apply(df.cor, 2, function(x) any(abs(x)>=correCut)))
-  # 
-  # xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
-  # rm(excluCorColumns)
+  df.cor=suppressWarnings(corSparse(x))
+  df.cor[is.na(df.cor)]=0
+  df.cor[!lower.tri(df.cor)]=0
+  excluCorColumns=which(apply(df.cor, 2, function(x) any(abs(x)>=correCut)))
+
+  xWithNearZeroSd=sort(unique(c(xWithNearZeroSd,excluCorColumns)))
+  rm(excluCorColumns)
 
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
-    x=x[,-xWithNearZeroSd]
+    x=as(x[,-xWithNearZeroSd],"sparseMatrix")
   }
-  rm(sdX)
 
   nearZeroSd=length(xWithNearZeroSd)
-
   # message(paste("Number of x with near-zero sd: ", nearZeroSd))
 
   cvStartTime= proc.time()[3]
@@ -66,7 +65,7 @@ runBootLassoHDCI=function(
     parallel::clusterSetRNGStream(cl=c3,(as.numeric(seed)+10^3))
   }
 
-  bootResu=bootLOPR(x=x,y=as.vector(y),B=bootB,nfolds=nfolds,
+  bootResu=bootLOPR(x=x,y=y,B=bootB,nfolds=nfolds,
                     standardize=standardize,parallel.boot=TRUE,
                     ncores.boot=ncores.boot,alpha=bootLassoAlpha)
   parallel::stopCluster(c3)

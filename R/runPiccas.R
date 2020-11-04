@@ -32,14 +32,16 @@ runPicasso=function(
   }
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
-
+  rm(sdX)
+  
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
-    x=x[,-xWithNearZeroSd]
-  }
-  rm(sdX)
+    x=as(x[,-xWithNearZeroSd],"sparseMatrix")
+    }
   nearZeroSd=length(xWithNearZeroSd)
-
+  
+  if(standardize)x=t(t(x)/apply(x,2,sd))
+  
   # calculate lambda max
   lamMax=max(abs(Matrix::colSums(x*y)))/nObsAll
 
