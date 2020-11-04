@@ -10,7 +10,7 @@ runBootLassoHDCI=function(
   refTaxaPosition,
   #zeroSDCut=10^(-6),
   zeroSDCut=0,
-  correCut=1.1,
+  correCut=0.998,
   standardize,
   bootB,
   bootLassoAlpha,
