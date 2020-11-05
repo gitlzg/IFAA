@@ -40,7 +40,7 @@ bootResuHDCI=function(
   rm(dataForEst)
   
   xCol=ncol(x)
-  subSamplSiz=maxDimension/xCol
+  subSamplSiz=floor(maxDimension/xCol)
   nToSamplFrom=length(y)
   if(nToSamplFrom<=subSamplSiz){
     subSamplK=1
@@ -48,7 +48,8 @@ bootResuHDCI=function(
   }
   if(nToSamplFrom>subSamplSiz & nToSamplFrom<=(2*subSamplSiz))subSamplK=2
   if(nToSamplFrom>(2*subSamplSiz))subSamplK=3
-  cat("subSamplK:",subSamplK,"\n")
+  message("subSamplK:",subSamplK)
+  
   for(k in 1:subSamplK){
     rowToKeep=sample(nToSamplFrom,subSamplSiz)
     xSub=as((x[rowToKeep,]),"sparseMatrix")
