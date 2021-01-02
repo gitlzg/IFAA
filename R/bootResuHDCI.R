@@ -1,13 +1,18 @@
+#---------------------------------------------------------------------------------------
+## bootstrap results function for Lasso OLS HDCI
+#---------------------------------------------------------------------------------------
 
 bootResuHDCI=function(
   data,
   refTaxa,
-  maxDimension=5*434*10^4,
+  originRefTaxNam,
+  maxDimension=434*5*10^4,
   bootB,
   bootLassoAlpha,
   binPredInd,
   covsPrefix,
   Mprefix,
+  paraJobs,
   standardize,
   seed
 ){
@@ -38,25 +43,30 @@ bootResuHDCI=function(
   x=as(dataForEst$xTildalong,"sparseMatrix")
   y=as(dataForEst$UtildaLong,"sparseVector")
   rm(dataForEst)
-  
+
   xCol=ncol(x)
-  subSamplSiz=floor(maxDimension/xCol)
-  nToSamplFrom=length(y)
-  if(nToSamplFrom<=subSamplSiz){
-    subSamplK=1
-    subSamplSiz=nToSamplFrom
-  }
-  if(nToSamplFrom>subSamplSiz & nToSamplFrom<=(2*subSamplSiz))subSamplK=2
-  if(nToSamplFrom>(2*subSamplSiz))subSamplK=3
-  message("subSamplK:",subSamplK)
   
-  for(k in 1:subSamplK){
-    rowToKeep=sample(nToSamplFrom,subSamplSiz)
+  maxSubSamplSiz=floor(maxDimension/xCol)
+  nToSamplFrom=length(y)
+  subSamplK=ceiling(nToSamplFrom/maxSubSamplSiz)
+  if(subSamplK==1)maxSubSamplSiz=nToSamplFrom
+
+  nRuns=(ceiling(subSamplK/3))
+  
+  availCores=availableCores()
+  if(length(paraJobs)==0)paraJobs=availCores
+  
+  message(paraJobs, " parallel jobs are registered for bootstrapping in Phase 2.")
+  
+  for(k in 1:nRuns){
+    rowToKeep=sample(nToSamplFrom,maxSubSamplSiz)
     xSub=as((x[rowToKeep,]),"sparseMatrix")
     ySub=as((y[rowToKeep]),"sparseVector")
+
     penal=runBootLassoHDCI(x=xSub,y=ySub,nPredics=nPredics,nTaxa=nTaxa,
                            refTaxaPosition=ii,bootLassoAlpha=bootLassoAlpha,
                            bootB=bootB,standardize=standardize,
+                           paraJobs=paraJobs,
                            seed=seed)
     rm(xSub,ySub)
     gc()
@@ -68,8 +78,6 @@ bootResuHDCI=function(
     CIvecLow.LPR.k=penal$betaCIlow.LPR
     CIvecUp.LPR.k=penal$betaCIhi.LPR
     rm(penal)
-    gc()
-    
     if(k==1){
       finalBetaEst=finalBetaEst.k
       CIvecLow=CIvecLow.k
@@ -88,18 +96,21 @@ bootResuHDCI=function(
       CIvecLow.LPR=CIvecLow.LPR+CIvecLow.LPR.k
       CIvecUp.LPR=CIvecUp.LPR+CIvecUp.LPR.k
     }
+    if(k>0 & (k%%(ceiling(nRuns/10))==0)){
+      message(floor(100*k/nRuns)," percent of the estimation analsis for the final reference taxon ",originRefTaxNam,
+              " have been done.")
+    }
   }
   rm(x,y)
   gc()
   
-  results$finalBetaEst=finalBetaEst/subSamplK
-  results$CIvecLow=CIvecLow/subSamplK
-  results$CIvecUp=CIvecUp/subSamplK
+  results$finalBetaEst=finalBetaEst/nRuns
+  results$CIvecLow=CIvecLow/nRuns
+  results$CIvecUp=CIvecUp/nRuns
   
-  results$finalBetaEst.LPR=finalBetaEst.LPR/subSamplK
-  results$CIvecLow.LPR=CIvecLow.LPR/subSamplK
-  results$CIvecUp.LPR=CIvecUp.LPR/subSamplK
+  results$finalBetaEst.LPR=finalBetaEst.LPR/nRuns
+  results$CIvecLow.LPR=CIvecLow.LPR/nRuns
+  results$CIvecUp.LPR=CIvecUp.LPR/nRuns
   
   return(results)
 }
-

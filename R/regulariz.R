@@ -157,16 +157,18 @@ Regulariz=function(
   for(iii in 1:(results$nRefUsedForEsti)){
     message("Start estimation for the ", iii,"th final reference taxon: ",allRefTaxNam[iii])
     time11=proc.time()[3]
-    newRefTaxNam=taxaNames[microbName%in%(allRefTaxNam[iii])]
-    results$estiList[[allRefTaxNam[iii]]]=bootResuHDCI(data=data,
+    originTaxNam=allRefTaxNam[iii]
+    newRefTaxNam=taxaNames[microbName%in%originTaxNam]
+    results$estiList[[originTaxNam]]=bootResuHDCI(data=data,
                                                        refTaxa=newRefTaxNam,
+                                                       originRefTaxNam=originTaxNam,
                                                        bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                                                        binPredInd=binaryInd,covsPrefix=covsPrefix,
-                                                       Mprefix=Mprefix,
+                                                       Mprefix=Mprefix,paraJobs=paraJobs,
                                                        standardize=standardize,
                                                        seed=seed)
     time12=proc.time()[3]
-    message("Estimation done for the", iii,"th final reference taxon: ",allRefTaxNam[iii],
+    message("Estimation done for the ", iii,"th final reference taxon: ",allRefTaxNam[iii],
         " and it took ",round((time12-time11)/60,3)," minutes")
   }
   estiResults=results$estiList[[results$finalizedBootRefTaxon]]
@@ -206,6 +208,9 @@ Regulariz=function(
     rownames(estByCovMat)=microbName[results$selecIndvInOverall[i,]!=0]
     colnames(estByCovMat)=c("Beta.LPR","LowB95%CI.LPR","UpB95%CI.LPR")
 
+    rowsToKeep=which(estByCovMat[,1]!=0)
+    estByCovMat=estByCovMat[rowsToKeep,]
+    
     estByCovList[[testCovInOrder[i]]]=estByCovMat
     rm(estByCovMat)
   }

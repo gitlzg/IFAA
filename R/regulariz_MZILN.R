@@ -41,7 +41,7 @@ Regulariz_MZILN=function(
   refTaxa_reOrder=microbName[microbName%in%refTaxa]
 
   reguResu=originDataScreen(method=reguMethod,data=data,testCovInd=testCovInd,
-                            paraJobs=paraJobs,lambda=NULL,refTaxa=newRefTaxNam,standardize=standardize,
+                            paraJobs=paraJobs,refTaxa=newRefTaxNam,standardize=standardize,
                             sequentialRun=sequentialRun,allFunc=allFunc,Mprefix=Mprefix,
                             covsPrefix=covsPrefix,binPredInd=binaryInd,seed=seed)
 
@@ -56,10 +56,13 @@ Regulariz_MZILN=function(
   results$estiList=list()
   for(iii in 1:nRef){
     time11=proc.time()[3]
-    results$estiList[[refTaxa_reOrder[iii]]]=bootResuHDCI(data=data,
-                                                          refTaxa=newRefTaxNam[iii],bootB=bootB,bootLassoAlpha=bootLassoAlpha,
-                                                          binPredInd=binaryInd,covsPrefix=covsPrefix,Mprefix=Mprefix,
-                                                          standardize=standardize,seed=seed)
+    originTaxNam=refTaxa_reOrder[iii]
+    results$estiList[[originTaxNam]]=bootResuHDCI(data=data,
+                             refTaxa=newRefTaxNam[iii],originRefTaxNam=originTaxNam,
+                             bootB=bootB,bootLassoAlpha=bootLassoAlpha,
+                             binPredInd=binaryInd,covsPrefix=covsPrefix,Mprefix=Mprefix,
+                             paraJobs=paraJobs,
+                             standardize=standardize,seed=seed)
 
     time12=proc.time()[3]
     message("Estimation done for the ", iii,"th reference taxon: ",refTaxa_reOrder[iii],

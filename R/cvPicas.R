@@ -33,7 +33,7 @@ cvPicasso=function(
   # partition the data randomly into nfolds partitions
   parSize=floor(nObsAll/nfolds)
 
-  if(length(seed)>0)set.seed(as.numeric(seed)+10^7+seedi)
+  # if(length(seed)>0)set.seed(as.numeric(seed)+10^7+seedi)
 
   randomShuf=sample(nObsAll, nObsAll)
   sampleInd=list()
@@ -45,16 +45,16 @@ cvPicasso=function(
     }
   }
   rm(randomShuf)
-
+  
+  saveRDS(sampleInd,"sampleInd.rds")
+  
   # cross validation
-  #sink(paste("picassoPredict",method,".txt",sep="")) # to avoid output from the predict() function
-
   cvPara=matrix(NA,nrow=nLam,ncol=nfolds)
 
   for(i in 1:nfolds){
     # check if there is zero-variance x in the partitions
     startT.i=proc.time()[3]
-    xi=as(x[-sampleInd[[i]],],"sparseMatrix")
+    xi=x[-sampleInd[[i]],]
     nObs.i=nrow(xi)
     sdX.i=apply(xi,2,sd)
     xWithNearZeroSd.i=which(sdX.i<=zeroSDCut)
@@ -62,7 +62,7 @@ cvPicasso=function(
 
     # remove near constant columns in x
     if(length(xWithNearZeroSd.i)>0) {
-      xi=as(xi[,-xWithNearZeroSd.i],"sparseMatrix")
+      xi=xi[,-xWithNearZeroSd.i]
     }
     nearZeroSd.i=length(xWithNearZeroSd.i)
 

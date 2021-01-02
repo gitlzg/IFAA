@@ -6,7 +6,6 @@ getScrResu=function(
   testCovInOrder,
   testCovInNewNam,
   nPermu,
-  doPermut=TRUE,
   x1permut,
   nRef,
   paraJobs,
@@ -31,7 +30,7 @@ getScrResu=function(
   scrParal=runScrParal(data=data,testCovInd=testCovInd,
                        testCovInOrder=testCovInOrder,
                        testCovInNewNam=testCovInNewNam,nRef=nRef,
-                       nPermu=nPermu,doPermut=doPermut,
+                       nPermu=nPermu,
                        x1permut=x1permut,paraJobs=paraJobs,
                        refTaxa=refTaxa,method=method,
                        standardize=standardize,
@@ -58,7 +57,6 @@ getScrResu=function(
   rm(scrParal)
   gc()
 
-  if(doPermut){
     # control family wise error rate
     originFwerCut=quantile(maxVec,probs=(1-fwerRate))
     fwerCut=originFwerCut
@@ -167,8 +165,6 @@ getScrResu=function(
       results$refTaxonQualified=0
     }
     rm(taxaLessGoodCut,taxaLessFWERCut)
-  }
-
-  if(!doPermut){results$finalIndpRefTax=refTaxa}
+  
   return(results)
 }

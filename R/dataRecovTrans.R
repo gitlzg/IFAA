@@ -35,10 +35,8 @@ dataRecovTrans=function(
   for (j in 1:lengthTwoList){
     i=twoList[j]
     if(lLast[i]==nTaxa){
-      #omega[[i]]=Diagonal(L[i]-1)
       omegaRoot[[i]]=Diagonal(L[i]-1)
     } else{ if(L[i]==2){
-      #omega[[i]]=1/2
       omegaRoot[[i]]=sqrt(0.5)
     }else{
       dim=L[i]-1
@@ -66,28 +64,17 @@ dataRecovTrans=function(
     xDataWithInter=as.matrix(cbind(rep(1,nSub),xData))
     rm(xData)
 
-    xInRegres=list()
     for (j in 1:lengthTwoList){
       i=twoList[j]
-      xInRegres[[i]]=as(t(as.matrix(kronecker(Diagonal(nNorm),xDataWithInter[i,]))),"sparseMatrix")
-    }
-    rm(xDataWithInter)
-
-    xDataTilda=list()
-    for (j in 1:lengthTwoList){
-      i=twoList[j]
-      xDataTilda[[i]]=omegaRoot[[i]]%*%A[[i]]%*%xInRegres[[i]]
-    }
-    rm(omegaRoot,logRatiow,xInRegres)
-
-    # stack xTilda
-    for (j in 1:lengthTwoList){
-      i=twoList[j]
-      if (j==1) {xTildalong=xDataTilda[[i]]
+      xInRegres.i=as(t(as.matrix(kronecker(Diagonal(nNorm),xDataWithInter[i,]))),"sparseMatrix")
+      xDataTilda.i=omegaRoot[[i]]%*%A[[i]]%*%xInRegres.i
+      rm(xInRegres.i)
+      if (j==1) {xTildalong=xDataTilda.i
       } else {
-        xTildalong=rbind(xTildalong,xDataTilda[[i]])
+        xTildalong=rbind(xTildalong,xDataTilda.i)
       }
     }
+    rm(xDataWithInter,xDataTilda.i,omegaRoot,logRatiow)
 
     results$xTildalong=xTildalong
     rm(xTildalong)
@@ -95,23 +82,16 @@ dataRecovTrans=function(
   }
 
   if(yOnly){
-    Utilda=list()
     for (j in 1:lengthTwoList){
       i=twoList[j]
-      Utilda[[i]]=omegaRoot[[i]]%*%logRatiow[[i]]
-    }
-    rm(omegaRoot,logRatiow)
-
-    # stack Utilda
-    for (j in 1:lengthTwoList){
-      i=twoList[j]
-      if (j==1) {UtildaLong=as.numeric(Utilda[[i]])
+      Utilda.i=omegaRoot[[i]]%*%logRatiow[[i]]
+      if (j==1) {UtildaLong=as.numeric(Utilda.i)
       } else {
-        UtildaLong=c(UtildaLong,as.numeric(Utilda[[i]]))
+        UtildaLong=c(UtildaLong,as.numeric(Utilda.i))
       }
     }
+    rm(omegaRoot,logRatiow,Utilda.i)
 
-    rm(Utilda)
     results$UtildaLong=as(UtildaLong,"sparseVector")
     rm(UtildaLong)
     return(results)
@@ -122,50 +102,33 @@ dataRecovTrans=function(
   colnames(xDataWithInter)[1]="Inter"
   rm(xData)
 
-  xInRegres=list()
   for (j in 1:lengthTwoList){
     i=twoList[j]
-    xInRegres[[i]]=as(t(as.matrix(kronecker(Diagonal(nNorm),xDataWithInter[i,]))),"sparseMatrix")
-  }
-
-  rm(xDataWithInter)
-
-  # transfer U and xInRegres using omega root
-  xDataTilda=list()
-  Utilda=list()
-
-  for (j in 1:lengthTwoList){
-    i=twoList[j]
-    Utilda[[i]]=omegaRoot[[i]]%*%logRatiow[[i]]
-    xDataTilda[[i]]=omegaRoot[[i]]%*%A[[i]]%*%xInRegres[[i]]
-  }
-  rm(omegaRoot,logRatiow,xInRegres)
-
-  # stack Utilda
-  for (j in 1:lengthTwoList){
-    i=twoList[j]
-    if (j==1) {UtildaLong=as.numeric(Utilda[[i]])
+    xInRegres.i=as(t(as.matrix(kronecker(Diagonal(nNorm),xDataWithInter[i,]))),"sparseMatrix")
+    xDataTilda.i=omegaRoot[[i]]%*%A[[i]]%*%xInRegres.i
+    rm(xInRegres.i)
+    if (j==1) {xTildalong=xDataTilda.i
     } else {
-      UtildaLong=c(UtildaLong,as.numeric(Utilda[[i]]))
+      xTildalong=rbind(xTildalong,xDataTilda.i)
     }
   }
-  rm(Utilda)
-
-  # stack xTilda
+  rm(xDataWithInter,xDataTilda.i)
+  
   for (j in 1:lengthTwoList){
     i=twoList[j]
-    if (j==1) {xTildalong=xDataTilda[[i]]
+    Utilda.i=omegaRoot[[i]]%*%logRatiow[[i]]
+    if (j==1) {UtildaLong=as.numeric(Utilda.i)
     } else {
-      xTildalong=rbind(xTildalong,xDataTilda[[i]])
+      UtildaLong=c(UtildaLong,as.numeric(Utilda.i))
     }
   }
-  rm(xDataTilda,lengthTwoList)
+  rm(omegaRoot,logRatiow,Utilda.i)
+  
   # return objects
   results$UtildaLong=as(UtildaLong,"sparseVector")
   rm(UtildaLong)
   results$xTildalong=xTildalong
   rm(xTildalong)
-
   results$taxaNames=taxaNames
   rm(taxaNames)
   return(results)

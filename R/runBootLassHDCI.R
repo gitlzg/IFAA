@@ -8,10 +8,10 @@ runBootLassoHDCI=function(
   nfolds=10,
   lambdaOPT=NULL,
   refTaxaPosition,
-  #zeroSDCut=10^(-6),
   zeroSDCut=0,
-  correCut=0.998,
+  correCut=0.996,
   standardize,
+  paraJobs,
   bootB,
   bootLassoAlpha,
   seed
@@ -25,9 +25,6 @@ runBootLassoHDCI=function(
 
   sdX=apply(x,2,sd)
   xWithNearZeroSd=which(sdX<=zeroSDCut)
-  rm(sdX)
-  
-  # write.csv(cbind(as.matrix(x[,-xWithNearZeroSd]),as.vector(y)),file="xy.csv",row.names = FALSE)
 
   df.cor=suppressWarnings(corSparse(x))
   df.cor[is.na(df.cor)]=0
@@ -39,25 +36,17 @@ runBootLassoHDCI=function(
 
   # remove near constant columns
   if(length(xWithNearZeroSd)>0){
-    x=as(x[,-xWithNearZeroSd],"sparseMatrix")
+    x=x[,-xWithNearZeroSd]
   }
+  rm(sdX)
 
   nearZeroSd=length(xWithNearZeroSd)
+
   # message(paste("Number of x with near-zero sd: ", nearZeroSd))
 
   cvStartTime= proc.time()[3]
 
-  availCores=availableCores()
-  if(is.numeric(availCores)){
-    ncores.boot=max(1,availableCores())
-    #ncores.boot=max(1,availableCores()-1)
-  }else{
-    ncores.boot=1
-  }
-
-  message(ncores.boot, " parallel jobs are registered for bootstrp in Phase 2.")
-
-  c3 <- parallel::makeCluster(ncores.boot)
+  c3 <- parallel::makeCluster(paraJobs)
   doParallel::registerDoParallel(c3)
 
   if(length(seed)>0){
@@ -65,9 +54,9 @@ runBootLassoHDCI=function(
     parallel::clusterSetRNGStream(cl=c3,(as.numeric(seed)+10^3))
   }
 
-  bootResu=bootLOPR(x=x,y=y,B=bootB,nfolds=nfolds,
+  bootResu=bootLOPR(x=as.matrix(x),y=as.vector(y),B=bootB,nfolds=nfolds,
                     standardize=standardize,parallel.boot=TRUE,
-                    ncores.boot=ncores.boot,alpha=bootLassoAlpha)
+                    ncores.boot=paraJobs,alpha=bootLassoAlpha)
   parallel::stopCluster(c3)
 
   # convert to a sparse vector format from sparse matrix format
