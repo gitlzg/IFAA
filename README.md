@@ -24,8 +24,9 @@ results <- IFAA(MicrobData = dataM,
                 linkIDname = "id",
                 testCov = c("v1", "v2"),
                 ctrlCov = c("v3"),
-                nRef = 4,
-                nPermu = 4,
+                nRef = 3,
+                nPermu = 3,
+                paraJobs = 3,
                 bootB = 5)
 ```
 

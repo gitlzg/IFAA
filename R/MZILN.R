@@ -29,7 +29,7 @@
 ##' @param refTaxa Reference taxa specified by the user and will be used as the reference taxa.
 ##' @param reguMethod regularization approach used in phase 1 of the algorithm. Default is `"mcp"`. Other methods are under development.
 ##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Default is `TRUE` since there is only 1 reference taxon. 
-##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job.
+##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
 ##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 ##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
 ##' @param bootLassoAlpha The significance level in phase 2. Default is `0.05`.
@@ -52,7 +52,8 @@
 ##'                 CovData = dataC,
 ##'                 linkIDname = "id",
 ##'                 allCov=c("v1","v2","v3"),
-##'                 refTaxa=c("rawCount11"))
+##'                 refTaxa=c("rawCount11"),
+##'                 paraJobs=3)
 ##' }
 ##' analysisResults$estByRefTaxaList
 ##'

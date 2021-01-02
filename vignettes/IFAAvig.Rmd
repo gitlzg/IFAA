@@ -85,7 +85,7 @@ The `IFAA()` function is the main function. The User Inputs are:
 
 - `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
 
-- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4 gb memory per job.
+- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4 gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
 
 - `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 
@@ -142,6 +142,7 @@ results <- IFAA(MicrobData = dataM,
                 ctrlCov = c("v3"),
                 nRef = 3,
                 nPermu = 3,
+                paraJobs = 3,
                 fwerRate = 0.25,
                 bootB = 5)
 ```
@@ -201,7 +202,7 @@ The `MZILN()` function is to implement the Multivariate Zero-Inflated Logistic N
 
 - `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Default is `TRUE` for the MZILN function since typically users should specify one or just a few reference taxa in `refTaxa`.
 
-- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm.  If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job.
+- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm.  If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
 
 - `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 
@@ -245,7 +246,8 @@ results <- MZILN(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
                 allCov = c("v1","v2","v3"),
-                refTaxa=c("rawCount11")
+                refTaxa=c("rawCount11"),
+                paraJobs = 3
                 )
 ```
 

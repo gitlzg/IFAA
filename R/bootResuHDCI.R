@@ -53,7 +53,7 @@ bootResuHDCI=function(
 
   nRuns=(ceiling(subSamplK/3))
   
-  availCores=availableCores()
+  availCores=max(1,(availableCores()-2))
   if(length(paraJobs)==0)paraJobs=availCores
   
   message(paraJobs, " parallel jobs are registered for bootstrapping in Phase 2.")
