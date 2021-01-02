@@ -37,13 +37,13 @@ results$analysisResults$estByCovList
 
 The function can also take csv or tsv data files directly by reading the file directory paths using the first two arguments:
 ```r
-M="pathToTheCsvFile/microbiomeData.csv" 
+M="pathToTheCsvFile//microbiomeData.csv" 
 # or 
-M="pathToTheTsvFile/microbiomeData.tsv"
+M="pathToTheTsvFile//microbiomeData.tsv"
 
-C="pathToTheCsvFile/covariatesData.csv" 
+C="pathToTheCsvFile//covariatesData.csv" 
 # or 
-C="pathToTheTsvFile/covariatesData.tsv"
+C="pathToTheTsvFile//covariatesData.tsv"
 
 results=IFAA(MicrobData=M,CovData=C,...)
 ```
