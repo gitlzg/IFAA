@@ -143,8 +143,7 @@ results <- IFAA(MicrobData = dataM,
                 nRef = 3,
                 nPermu = 3,
                 paraJobs = 3,
-                fwerRate = 0.25,
-                bootB = 5)
+                fwerRate = 0.25)
 ```
 
 
@@ -158,7 +157,7 @@ The results found the two taxa `"rawCount29"` and `"rawCount42"` associated with
 
 The interpretation is that 
 
-- Every unit increase in `"v2"` is associated with approximately 4.0% increase in the absolute abundance of `"rawCount29"` and approximately 2.5% increase in the absolute abundance of `"rawCount42"` in the entire gut ecosystem. 
+- Every unit increase in `"v2"` is associated with approximately 5.9% increase in the absolute abundance of `"rawCount29"` and approximately 4.1% increase in the absolute abundance of `"rawCount42"` in the entire gut ecosystem. 
 
 - There were no taxa associated with `"v1"` in the analysis. 
 

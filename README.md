@@ -26,8 +26,7 @@ results <- IFAA(MicrobData = dataM,
                 ctrlCov = c("v3"),
                 nRef = 3,
                 nPermu = 3,
-                paraJobs = 3,
-                bootB = 5)
+                paraJobs = 3)
 ```
 
 

@@ -10,6 +10,7 @@ originDataScreen=function(
   paraJobs,
   refTaxa,
   maxDimensionScr=0.8*434*10*10^4,
+  #maxDimensionScr=10^5,
   standardize,
   sequentialRun,
   allFunc,
@@ -234,7 +235,7 @@ originDataScreen=function(
   }
 
   rm(scr1Resu)
-  
+
   selecList<- lapply(selecList, as, "sparseMatrix")
   scr1ResuSelec=do.call(cbind, selecList)
   rm(selecList)
@@ -244,22 +245,15 @@ originDataScreen=function(
   # create count of selection for individual testCov
   countOfSelecForAllPred=as(matrix(Matrix::rowSums(scr1ResuSelec),nrow=nPredics),"sparseMatrix")
   testCovCountMat=countOfSelecForAllPred[testCovInd,,drop=FALSE]
-  
-  rm(testCovInd,countOfSelecForAllPred)
-  
+  rm(scr1ResuSelec,testCovInd,countOfSelecForAllPred)
+
   # create overall count of selection for all testCov as a whole
-  countOfSelecForAPred=as(matrix(rep(0,nTaxa),nrow=1),"sparseMatrix")
-  for (tax in 1:nTaxa){
-    countMatForTaxni=scr1ResuSelec[(1+(tax-1)*nPredics):(tax*nPredics),,drop=FALSE]
-    totCountVecForTaxoni=Matrix::colSums(countMatForTaxni)
-    countOfSelecForAPred[1,tax]=sum(totCountVecForTaxoni)
-  }
-  rm(tax,scr1ResuSelec,countMatForTaxni,totCountVecForTaxoni)
+  countOfSelecForAPred=as(matrix(Matrix::colSums(testCovCountMat),nrow=1),"sparseMatrix")
   gc()
   
   colnames(countOfSelecForAPred)=taxaNames
   rm(taxaNames)
-  
+
   # return results
   results$testCovCountMat=testCovCountMat
   rm(testCovCountMat)
