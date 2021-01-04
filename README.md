@@ -1,6 +1,4 @@
-# IFAA <img src="man/figures/logo.png" align="right" width="120" />
 
-[![Build Status](https://travis-ci.org/songshangchen6/IFAA.svg?branch=master)](https://travis-ci.org/songshangchen6/IFAA)
 
 ## Overview
 
