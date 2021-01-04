@@ -1,6 +1,8 @@
 ---
 title: "Introduction to IFAA"
-output: rmarkdown::html_vignette
+#output: rmarkdown::html_vignette
+output: rmarkdown::pdf_document
+
 vignette: >
   %\VignetteIndexEntry{IFAA}
   %\VignetteEngine{knitr::rmarkdown}
@@ -49,16 +51,15 @@ The package could be also installed from GitHub using the following code:
 ```{r eval=FALSE}
 require(devtools)
 devtools::install_github("gitlzg/IFAA")
-library(IFAA)
 ```
 
 ## Input and Output for IFAA() function
 
 The `IFAA()` function is the main function. The User Inputs are: 
 
-- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C:\...\microbiomeData.tsv"`.
+- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, `CovData="C:\...\covariatesData.tsv"`.
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, `CovData="C://...//covariatesData.tsv"`.
 
 - `linkIDname`: Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
 
@@ -68,13 +69,13 @@ The `IFAA()` function is the main function. The User Inputs are:
 
 - `testMany`: This takes logical value `TRUE` or `FALSE`. If `TRUE`, the `testCov` will contain all the variables in `CovData` provided `testCov` is set to be `NULL`. The default value is `TRUE` which does not do anything if `testCov` is not `NULL`.
 
-- `ctrlMany`: This takes logical value `TRUE` or `FALSE`. If `TRUE`, all variables except `testCov` are considered as control covariates provided `ctrlCov` is set to be `NULL`. The default value is `TRUE` which does not do anything if `ctrlCov` is not `NULL`.
+- `ctrlMany`: This takes logical value `TRUE` or `FALSE`. If `TRUE`, all variables except `testCov` are considered as control covariates provided `ctrlCov` is set to be `NULL`. The default value is `FALSE`.
 
 - `nRef`: The number of randomly picked reference taxa used in phase 1. Default number is `40`. 
 
 - `nPermu`: The number of permutation used in phase 1. Default number is `40`. 
 
-- `x1permut`: This takes a logical value `TRUE` or `FALSE`. If true, it will permute the variables in testCov. If false, it will use residual-permutation proposed by Freedman and Lane (1983). 
+- `x1permut`: This takes a logical value `TRUE` or `FALSE`. If true, it will permute the variables in testCov. If false, it will use residual-permutation proposed by Freedman and Lane (1983). Default is "TRUE".
 
 - `refTaxa`: A vector of taxa names. These are reference taxa specified by the user to be used in phase 1. If the number of reference taxa is less than 'nRef', the algorithm will randomly pick extra reference taxa to make up 'nRef'. The default is `NULL` since the algorithm will pick reference taxa randomly. 
 
@@ -82,9 +83,9 @@ The `IFAA()` function is the main function. The User Inputs are:
 
 - `fwerRate`: The family wise error rate for identifying taxa/OTU/ASV associated with `testCov` in phase 1. Default is `0.25`.
 
-- `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting `sequentialRun = TRUE` may help, but it will take more time to run. Default is `FALSE`.
+- `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
 
-- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. Default is `8`. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs.
+- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4 gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
 
 - `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 
@@ -139,10 +140,10 @@ results <- IFAA(MicrobData = dataM,
                 linkIDname = "id",
                 testCov = c("v1", "v2"),
                 ctrlCov = c("v3"),
-                nRef = 4,
-                nPermu = 4,
-                fwerRate = 0.25,
-                bootB = 5)
+                nRef = 3,
+                nPermu = 3,
+                paraJobs = 2,
+                fwerRate = 0.25)
 ```
 
 
@@ -156,7 +157,7 @@ The results found the two taxa `"rawCount29"` and `"rawCount42"` associated with
 
 The interpretation is that 
 
-- Every unit increase in `"v2"` is associated with approximately 4.0% increase in the absolute abundance of `"rawCount29"` and approximately 2.5% increase in the absolute abundance of `"rawCount42"` in the entire gut ecosystem. 
+- Every unit increase in `"v2"` is associated with approximately 5.9% increase in the absolute abundance of `"rawCount29"` and approximately 4.1% increase in the absolute abundance of `"rawCount42"` in the entire gut ecosystem. 
 
 - There were no taxa associated with `"v1"` in the analysis. 
 
@@ -186,9 +187,9 @@ where
 
 The `MZILN()` function is to implement the Multivariate Zero-Inflated Logistic Normal model. It estimates and tests the associations given a user-specified reference taxon/OTU/ASV, whereas the 'IFAA()' does not require any user-specified reference taxa. If the user-specified taxon is independent of the covariates, 'MZILN()' should generate similar results as 'IFAA()'. The User Inputs for 'MZILN()' are: 
 
-- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C:\...\microbiomeData.tsv"`.
+- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, CovData="C:\...\covariatesData.tsv".
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, CovData="C://...//covariatesData.tsv".
 
 - `linkIDname`: Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
 
@@ -198,9 +199,9 @@ The `MZILN()` function is to implement the Multivariate Zero-Inflated Logistic N
 
 - `reguMethod`: regularization approach used in phase 1 of the algorithm. Default is `"mcp"`. Other methods are under development.
 
-- `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting `sequentialRun = TRUE` may help, but it will take more time to run. Default is `TRUE` for the MZILN function since typically users should specify one or just a few reference taxa in `refTaxa`.
+- `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Default is `TRUE` for the MZILN function since typically users should specify one or just a few reference taxa in `refTaxa`.
 
-- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. Default is `8`. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs.
+- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm.  If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
 
 - `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 
@@ -244,7 +245,8 @@ results <- MZILN(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
                 allCov = c("v1","v2","v3"),
-                refTaxa=c("rawCount11")
+                refTaxa=c("rawCount11"),
+                paraJobs = 2
                 )
 ```
 
@@ -255,7 +257,7 @@ The final analysis results are stored in the list `results$analysisResults$estBy
 ```{r,eval=T}
 results$analysisResults$estByRefTaxaList$rawCount11$estByCovList
 ```
-The results found the two taxa `"rawCount29"` and `"rawCount42"` associated with `"v2"`, and a bunch of other taxa assoicated with "'v3'". The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\alpha^k$ in the model equation, and can be interpreted as the associations between the covariates and log-ratio of the significant taxa over the reference taxon.. 
+The results found the two taxa `"rawCount29"` and `"rawCount42"` associated with `"v2"`, and a bunch of other taxa assoicated with "'v3'". The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\alpha^k$ in the model equation, and can be interpreted as the associations between the covariates and log-ratio of the significant taxa over the reference taxon. 
 
 The interpretation is that 
 

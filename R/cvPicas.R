@@ -33,7 +33,7 @@ cvPicasso=function(
   # partition the data randomly into nfolds partitions
   parSize=floor(nObsAll/nfolds)
 
-  if(length(seed)>0)set.seed(as.numeric(seed)+10^7+seedi)
+  # if(length(seed)>0)set.seed(as.numeric(seed)+10^7+seedi)
 
   randomShuf=sample(nObsAll, nObsAll)
   sampleInd=list()
@@ -46,9 +46,9 @@ cvPicasso=function(
   }
   rm(randomShuf)
 
-  # cross validation
-  #sink(paste("picassoPredict",method,".txt",sep="")) # to avoid output from the predict() function
+  # saveRDS(sampleInd,"sampleInd.rds")
 
+  # cross validation
   cvPara=matrix(NA,nrow=nLam,ncol=nfolds)
 
   for(i in 1:nfolds){

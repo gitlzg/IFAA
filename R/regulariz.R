@@ -47,7 +47,7 @@ Regulariz=function(
   results$x1permut=x1permut
 
   regul.start.time = proc.time()[3]
-  message("Start Phase 1 association identification","\n")
+  message("Start Phase 1 association identification")
   selectRegroup=getScrResu(data=data,testCovInd=testCovInd,
                            testCovInOrder=testCovInOrder,
                            testCovInNewNam=testCovInNewNam,nRef=nRef,
@@ -103,12 +103,12 @@ Regulariz=function(
 
   MCPExecuTime = (proc.time()[3] - regul.start.time)/60
   results$MCPExecuTime=MCPExecuTime
-  message("Phase 1 Associaiton identification is done and used", MCPExecuTime,"minutes","\n")
+  message("Phase 1 Associaiton identification is done and used ", round(MCPExecuTime,2)," minutes")
 
   results$finalizedBootRefTaxon=finalIndpRefTax
 
   startT=proc.time()[3]
-  message("Start Phase 2 parameter estimation","\n")
+  message("Start Phase 2 parameter estimation")
 
   unestimableTaxa=c()
   qualifyData=data
@@ -143,47 +143,39 @@ Regulariz=function(
   rm(TaxaNoReads,unestimableTaxa)
 
   goodIndpRefTax.ascend=sort(results$goodIndpRefTaxWithCount)
-  #message("goodIndpRefTax.ascend:")
-  #message(goodIndpRefTax.ascend)
 
   goodIndpRefTaxNam=names(goodIndpRefTax.ascend)
   allRefTaxNam=unique(c(results$finalizedBootRefTaxon,goodIndpRefTaxNam))
   nGoodIndpRef=length(allRefTaxNam)
   results$allRefTaxNam=allRefTaxNam
 
-  #message("allRefTaxNam:")
-  #message(allRefTaxNam)
-
   results$nRefUsedForEsti=min(nGoodIndpRef,nRefMaxForEsti)
 
-  message("Final Reference Taxa are:",allRefTaxNam[seq(results$nRefUsedForEsti)],"\n")
-
-  #selecResu=paste0("../../../ufrc/selecResul_",sample,".RData")
-  #selecResu=paste0("./sim_results/selecResul_",sample,".RData")
-
-  #save(results,file=selecResu)
+  message("Final Reference Taxa are: ",allRefTaxNam[seq(results$nRefUsedForEsti)])
 
   results$estiList=list()
   for(iii in 1:(results$nRefUsedForEsti)){
-    message("Start estimation for the", iii,"th final reference taxon:",allRefTaxNam[iii],"\n")
+    message("Start estimation for the ", iii,"th final reference taxon: ",allRefTaxNam[iii])
     time11=proc.time()[3]
-    newRefTaxNam=taxaNames[microbName%in%(allRefTaxNam[iii])]
-    results$estiList[[allRefTaxNam[iii]]]=bootResuHDCI(data=data,
+    originTaxNam=allRefTaxNam[iii]
+    newRefTaxNam=taxaNames[microbName%in%originTaxNam]
+    results$estiList[[originTaxNam]]=bootResuHDCI(data=data,
                                                        refTaxa=newRefTaxNam,
+                                                       originRefTaxNam=originTaxNam,
                                                        bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                                                        binPredInd=binaryInd,covsPrefix=covsPrefix,
-                                                       Mprefix=Mprefix,
+                                                       Mprefix=Mprefix,paraJobs=paraJobs,
                                                        standardize=standardize,
                                                        seed=seed)
     time12=proc.time()[3]
-    message("Estimation done for the", iii,"th final reference taxon:",allRefTaxNam[iii],
-        "and it took",(time12-time11)/60,"minutes","\n")
+    message("Estimation done for the ", iii,"th final reference taxon: ",allRefTaxNam[iii],
+        " and it took ",round((time12-time11)/60,3)," minutes")
   }
   estiResults=results$estiList[[results$finalizedBootRefTaxon]]
 
   endT=proc.time()[3]
 
-  message("Phase 2 parameter estimation done and took",(endT-startT)/60,"minutes.","\n")
+  message("Phase 2 parameter estimation done and took ",round((endT-startT)/60,3)," minutes.")
 
 
   results$betaMat=as(matrix(estiResults$finalBetaEst,nrow=nPredics),"sparseMatrix")
@@ -216,6 +208,9 @@ Regulariz=function(
     rownames(estByCovMat)=microbName[results$selecIndvInOverall[i,]!=0]
     colnames(estByCovMat)=c("Beta.LPR","LowB95%CI.LPR","UpB95%CI.LPR")
 
+    rowsToKeep=which(estByCovMat[,1]!=0)
+    estByCovMat=estByCovMat[rowsToKeep,]
+    
     estByCovList[[testCovInOrder[i]]]=estByCovMat
     rm(estByCovMat)
   }

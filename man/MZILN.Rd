@@ -16,7 +16,6 @@ MZILN(
   bootLassoAlpha = 0.05,
   standardize = FALSE,
   sequentialRun = TRUE,
-  allFunc = allUserFunc(),
   seed = 1
 )
 }
@@ -24,22 +23,22 @@ MZILN(
 \item{MicrobData}{Microbiome data matrix containing microbiome abundance with each row
 per sample and each column per taxon/OTU/ASV. It should contain an \code{"id"} variable to
 correspond to the \code{"id"} variable in the covariates data: \code{CovData}. This argument can
-also take file directory path. For example, \code{MicrobData="C:\\...\\microbiomeData.tsv"}.}
+take directory path. For example, \code{MicrobData="C://...//microbiomeData.tsv"}.}
 
 \item{CovData}{Covariates data matrix containing covariates and confounders with each row
 per sample and each column per variable. It should also contain an \code{"id"} variable to
 correspond to the \code{"id"} variable in the microbiome data: \code{MicrobData}. This argument can
-also take file directory path. For example, \code{CovData="C:\\...\\covariatesData.tsv"}.}
+take directory path. For example, \code{CovData="C://...//covariatesData.tsv"}.}
 
 \item{linkIDname}{Variable name of the \code{"id"} variable in both \code{MicrobData} and \code{CovData}. The two data sets will be merged by this \code{"id"} variable.}
 
-\item{allCov}{All covariates of interest (including confounders) for estimating and testing their associations with microbiome. Default is all covariates in covData are of interest.}
+\item{allCov}{All covariates of interest (including confounders) for estimating and testing their associations with microbiome. Default is 'NULL' meaning that all covariates in covData are of interest.}
 
 \item{refTaxa}{Reference taxa specified by the user and will be used as the reference taxa.}
 
 \item{reguMethod}{regularization approach used in phase 1 of the algorithm. Default is \code{"mcp"}. Other methods are under development.}
 
-\item{paraJobs}{If \code{sequentialRun} is \code{FALSE}, this specifies the number of parallel jobs that will be registered to run the algorithm. Default is \code{8}. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs.}
+\item{paraJobs}{If \code{sequentialRun} is \code{FALSE}, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs. Default is \code{NULL}. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.}
 
 \item{bootB}{Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is \code{500}.}
 
@@ -47,9 +46,7 @@ also take file directory path. For example, \code{CovData="C:\\...\\covariatesDa
 
 \item{standardize}{This takes a logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is \code{FALSE}.}
 
-\item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting \code{sequentialRun = TRUE} may help, but it will take more time to run. Default is \code{TRUE}.}
-
-\item{allFunc}{all the user-defined function names that will be passed to the parallel computing environment (foreach loop).}
+\item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Default is \code{TRUE} since there is only 1 reference taxon.}
 
 \item{seed}{Random seed for reproducibility. Default is \code{1}.}
 }
@@ -90,8 +87,12 @@ results <- MZILN(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
                 allCov=c("v1","v2","v3"),
-                refTaxa=c("rawCount11"))
+                refTaxa=c("rawCount11"),
+                paraJobs=2)
+
 }
+
+
 
 }
 \references{

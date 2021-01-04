@@ -41,7 +41,7 @@ runPicasso=function(
   nearZeroSd=length(xWithNearZeroSd)
 
   # calculate lambda max
-  lamMax=max(abs(Matrix::colSums(as.matrix(x)*as.vector(y))))/nObsAll
+  lamMax=max(abs(Matrix::colSums(x*y)))/nObsAll
 
   if(length(lambda)!=1){
     for(i in 1:nCV){

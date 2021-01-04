@@ -24,7 +24,6 @@ IFAA(
   bootLassoAlpha = 0.05,
   standardize = FALSE,
   sequentialRun = FALSE,
-  allFunc = allUserFunc(),
   refReadsThresh = 0.2,
   SDThresh = 0.05,
   SDquantilThresh = 0,
@@ -35,13 +34,13 @@ IFAA(
 \arguments{
 \item{MicrobData}{Microbiome data matrix containing microbiome abundance with each row per
 sample and each column per taxon/OTU/ASV. It should contain an \code{"id"} variable to correspond
-to the \code{"id"} variable in the covariates data: \code{CovData}. This argument can also take file
-directory path. For example, \code{MicrobData="C:\\...\\microbiomeData.tsv"}.}
+to the \code{"id"} variable in the covariates data: \code{CovData}. This argument can take
+directory path. For example, \code{MicrobData="C://...//microbiomeData.tsv"}.}
 
 \item{CovData}{Covariates data matrix containing covariates and confounders with each row
 per sample and each column per variable. It should also contain an \code{"id"} variable to
-correspond to the \code{"id"} variable in the microbiome data: \code{MicrobData}. This argument can also take file
-directory path. For example, \code{CovData = "C:\\...\\covariatesData.tsv"}.}
+correspond to the \code{"id"} variable in the microbiome data: \code{MicrobData}. This argument can take
+directory path. For example, \code{CovData = "C://...//covariatesData.tsv"}.}
 
 \item{linkIDname}{Variable name of the \code{"id"} variable in both \code{MicrobData} and \code{CovData}. The two data sets will be merged by this \code{"id"} variable.}
 
@@ -51,7 +50,7 @@ directory path. For example, \code{CovData = "C:\\...\\covariatesData.tsv"}.}
 
 \item{testMany}{This takes logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, the \code{testCov} will contain all the variables in \code{CovData} provided \code{testCov} is set to be \code{NULL}. The default value is \code{TRUE} which does not do anything if \code{testCov} is not \code{NULL}.}
 
-\item{ctrlMany}{This takes logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, all variables except \code{testCov} are considered as control covariates provided \code{ctrlCov} is set to be \code{NULL}. The default value is \code{TRUE} which does not do anything if \code{ctrlCov} is not \code{NULL}.}
+\item{ctrlMany}{This takes logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, all variables except \code{testCov} are considered as control covariates provided \code{ctrlCov} is set to be \code{NULL}. The default value is \code{FALSE}.}
 
 \item{nRef}{The number of randomly picked reference taxa used in phase 1. Default number is \code{40}.}
 
@@ -59,7 +58,7 @@ directory path. For example, \code{CovData = "C:\\...\\covariatesData.tsv"}.}
 
 \item{nPermu}{The number of permutation used in phase 1. Default number is \code{40}.}
 
-\item{x1permut}{This takes a logical value \code{TRUE} or \code{FALSE}. If true, it will permute the variables in testCov. If false, it will use residual-permutation proposed by Freedman and Lane (1983).}
+\item{x1permut}{This takes a logical value \code{TRUE} or \code{FALSE}. If true, it will permute the variables in testCov. If false, it will use residual-permutation proposed by Freedman and Lane (1983). Default is 'TRUE'.}
 
 \item{refTaxa}{A vector of taxa or OTU or ASV names. These are reference taxa specified by the user to be used in phase 1. If the number of reference taxa is less than 'nRef', the algorithm will randomly pick extra reference taxa to make up 'nRef'. The default is \code{NULL} since the algorithm will pick reference taxa randomly.}
 
@@ -67,7 +66,7 @@ directory path. For example, \code{CovData = "C:\\...\\covariatesData.tsv"}.}
 
 \item{fwerRate}{The family wise error rate for identifying taxa/OTU/ASV associated with \code{testCov} in phase 1. Default is \code{0.25}.}
 
-\item{paraJobs}{If \code{sequentialRun} is \code{FALSE}, this specifies the number of parallel jobs that will be registered to run the algorithm. Default is \code{8}. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs.}
+\item{paraJobs}{If \code{sequentialRun} is \code{FALSE}, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs. Default is \code{NULL}. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.}
 
 \item{bootB}{Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is \code{500}.}
 
@@ -75,9 +74,7 @@ directory path. For example, \code{CovData = "C:\\...\\covariatesData.tsv"}.}
 
 \item{standardize}{This takes a logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is \code{FALSE}.}
 
-\item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting \code{sequentialRun = TRUE} may help, but it will take more time to run. Default is \code{FALSE}.}
-
-\item{allFunc}{all the user-defined function names that will be passed to the parallel computing environment (foreach loop).}
+\item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Default is \code{FALSE}. This argument could be useful for debug.}
 
 \item{refReadsThresh}{The threshold of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is \code{0.2} which means at least 20\% non-zero sequencing reads.}
 
@@ -135,15 +132,19 @@ results <- IFAA(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
                 testCov = c("v1", "v2"),
-                ctrlCov = c("v3"), nRef = 4,
-                nPermu = 4,
+                ctrlCov = c("v3"), nRef = 3,
+                nPermu = 3,
+                paraJobs = 2,
                 fwerRate = 0.25,
                 bootB = 5)
+
 }
+
+
 
 }
 \references{
-Li et al.(2020) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. arXiv:1909.10101v3
+Li et al.(In press) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association
 
 Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
 

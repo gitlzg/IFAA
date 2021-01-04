@@ -14,7 +14,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   }
 
   if(sum(testCov%in%ctrlCov)>0){
-    warning("Variables appeared in both testCov list and ctrlCov list will be treated as testCov.","\n")
+    warning("Variables appeared in both testCov list and ctrlCov list will be treated as testCov.")
   }
 
   # read microbiome data
@@ -36,7 +36,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   missPropMData=sum(is.na(MdataWithId[,linkIDname]))/nrow(MdataWithId)
   if(missPropMData>0.8){
     warning("There are over 80% missing values for the linkId variable in the Microbiome data file.
-             Double check the data format.","\n")
+             Double check the data format.")
   }
 
   # read covariate data
@@ -58,7 +58,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   missPropCovData=sum(is.na(CovarWithId[,linkIDname]))/nrow(CovarWithId)
   if(missPropCovData>0.8){
     warning("There are over 80% missing values for the linkId variable in the covariates data file.
-             Double check the data format.","\n")
+             Double check the data format.")
   }
 
   Covariates1=CovarWithId[,!colnames(CovarWithId)%in%linkIDname,drop=FALSE]
@@ -68,24 +68,23 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
     if(!testMany){
       stop("No covariates are specified for estimating associations of interest.")
     }else{
-      message("Associations are being estimated for all covariates since no covariates are specified for testCov.","\n")
+      message("Associations are being estimated for all covariates since no covariates are specified for testCov.")
       testCov=colnames(Covariates1)
     }
   }
   results$testCov=testCov
-
-  ctrlCov=ctrlCov[!ctrlCov%in%testCov]
 
   xNames=colnames(Covariates1)
   rm(Covariates1)
 
   if(length(ctrlCov)==0 & ctrlMany){
     message("No control covariates are specified,
-          all variables except testCov are considered as control covariates.","\n")
+          all variables except testCov are considered as control covariates.")
     ctrlCov=xNames[!xNames%in%testCov]
   }
-  results$ctrlCov=ctrlCov[!ctrlCov%in%testCov]
-
+  ctrlCov=ctrlCov[!(ctrlCov%in%testCov)] # make sure testCov and ctrlCov mutually exclusive
+  results$ctrlCov=ctrlCov
+    
   # merge data to remove missing
   CovarWithId1=CovarWithId[,c(linkIDname,testCov,ctrlCov)]
 
@@ -100,22 +99,22 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   }
 
   MdataWithId=allRawData[,(colnames(allRawData)%in%colnames(MdataWithId))]
-  Mdata_raw=MdataWithId[,!colnames(MdataWithId)%in%linkIDname,drop=FALSE]
+  Mdata_raw=MdataWithId[,!(colnames(MdataWithId)%in%linkIDname),drop=FALSE]
   rm(allRawData)
 
   # check zero taxa and subjects with zero taxa reads
   numTaxaNoReads=sum(colSums(Mdata_raw)==0)
   if(numTaxaNoReads>0){
     Mdata_raw=Mdata_raw[,!(colSums(Mdata_raw)==0)]
-    message("There are",numTaxaNoReads,"taxa without any sequencing reads and
-        excluded from the analysis","\n")
+    message("There are ",numTaxaNoReads," taxa without any sequencing reads and
+        excluded from the analysis")
   }
   rm(numTaxaNoReads)
 
   numSubNoReads=sum(rowSums(Mdata_raw)==0)
   if(numSubNoReads>0){
-    message("There are",numSubNoReads,"subjects without any sequencing reads and
-        excluded from the analysis","\n")
+    message("There are ",numSubNoReads," subjects without any sequencing reads and
+        excluded from the analysis")
     subKeep=!(rowSums(Mdata_raw)==0)
     Mdata_raw=Mdata_raw[subKeep,]
     MdataWithId=MdataWithId[subKeep,]
@@ -136,15 +135,12 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   results$newMicrobNames=newMicrobNames
   rm(microbName,newMicrobNames)
 
-  xNames=colnames(Covariates)
-  nCov=length(xNames)
-
   if(sum(is.na(Covariates))>0){
-    message("Samples with missing covariate values are removed from the analysis.","\n")
+    message("Samples with missing covariate values are removed from the analysis.")
   }
 
   if(!is.numeric(Covariates[,ctrlCov,drop=FALSE])){
-    warning("There are non-numeric variables in the control covariates","\n")
+    warning("There are non-numeric variables in the control covariates")
     nCtrlCov=length(ctrlCov)
     numCheck=unlist(lapply(seq(nCtrlCov),function(i)is.numeric(Covariates[,ctrlCov[i]])))+0
     for(i in which(numCheck==0)){
@@ -152,31 +148,33 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
     }
   }
 
-  colnames(Covariates)=xNames
+  
+  xNames=colnames(Covariates)
+  nCov=length(xNames)
+  
   binCheck=unlist(lapply(seq(nCov),function(i)dim(table(Covariates[,xNames[i]]))))
 
-  if(length(which(binCheck==2))>0){
+  if((sum(binCheck==2))>0){
+    # reorder variables if there are binary variables. Continuous variables first.
     Covariates=Covariates[,c(xNames[binCheck!=2],xNames[binCheck==2]),drop=FALSE]
-    binaryInd=length(which(binCheck!=2))+1
+    binaryInd=length(which(binCheck!=2))+1 # position of first binary predictor
     results$varNamForBin=xNames[binCheck==2]
-    results$BinVars=length(results$varNamForBin)
+    results$nBinVars=length(results$varNamForBin)
     for(i in results$varNamForBin){
       mini=min(Covariates[,i],na.rm=TRUE)
       maxi=max(Covariates[,i],na.rm=TRUE)
       if(!(mini==0 & maxi==1)){
         Covariates[Covariates[,i]==mini,i]=0
         Covariates[Covariates[,i]==maxi,i]=1
-        message("Binary covariate",i,"is not coded as 0/1 which may generate analysis bias. It has been changed to 0/1. The changed covariates data can be extracted from the result file.","\n")
+        message("Binary covariate",i,"is not coded as 0/1 which may generate analysis bias. It has been changed to 0/1. The changed covariates data can be extracted from the result file.")
       }
     }
-    #cat(length(which(binCheck==2)),"binary covariates are detected.","\n")
   }else{
-    results$BinVars=0
+    results$nBinVars=0
     binaryInd=NULL
     results$varNamForBin=NULL
   }
 
-  # find the position of the first binary predictor and the rest are all binary
   results$binaryInd=binaryInd
   results$xNames=colnames(Covariates)
   xNewNames=paste0("x",seq(length(xNames)))
@@ -195,31 +193,39 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   results$covariatesData=CovarWithId_new
   colnames(results$covariatesData)=c(linkIDname,results$xNames)
   rm(MdataWithId_new,CovarWithId_new)
-  results$data=na.omit(data)
+  results$data=data.matrix(na.omit(data))
   rm(data)
-  message("Data dimensions (after removing missing data if any):","\n")
-  message(dim(results$data)[1],"samples","\n")
-  message(ncol(Mdata),"OTU's or microbial taxa","\n")
+  message("Data dimensions (after removing missing data if any):")
+  message(dim(results$data)[1]," samples")
+  message(ncol(Mdata)," taxa/OTU/ASV")
 
-  if(!MZILN)message(length(results$testCovInOrder),"testCov variables in the analysis","\n")
-  if(MZILN)message(length(results$testCovInOrder),"covariates in the analysis","\n")
+  if(!MZILN)message(length(results$testCovInOrder)," testCov variables in the analysis")
+  if(MZILN)message(length(results$testCovInOrder)," covariates in the analysis")
 
   if(length(results$testCovInOrder)>0){
     if(!MZILN)message("These are the testCov variables:")
     if(MZILN)message("These are the covariates:")
-    message(testCov)
+    testCovPrint=results$testCovInOrder[1]
+    if(length(results$testCovInOrder)>1){
+     for(i in 2:length(results$testCovInOrder)){testCovPrint=paste0(testCovPrint,", ",results$testCovInOrder[i])}
+     }
+    message(testCovPrint)
   }
   rm(testCov)
   if(!MZILN){
-    message(length(results$ctrlCov),"ctrlCov variables in the analysis ","\n")
-    if(length(results$ctrlCov)>0){
+    message(length(ctrlCov)," ctrlCov variables in the analysis ")
+    if(length(ctrlCov)>0){
       message("These are the ctrlCov variables:")
-      message(ctrlCov)
+      ctrlCovPrint=ctrlCov[1]
+      if(length(ctrlCov)>1){
+       for(i in 2:length(ctrlCov)){ctrlCovPrint=paste0(ctrlCovPrint,", ",ctrlCov[i])}
+       }
+      message(ctrlCovPrint)
     }
     rm(ctrlCov)
   }
-  message(results$BinVars,"binary covariates in the analysis","\n")
-  if(results$BinVars>0){
+  message(results$nBinVars," binary covariates in the analysis")
+  if(results$nBinVars>0){
     message("These are the binary covariates:")
     message(results$varNamForBin)
   }

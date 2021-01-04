@@ -17,21 +17,20 @@
 ##' @param MicrobData Microbiome data matrix containing microbiome abundance with each row
 ##' per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to
 ##' correspond to the `"id"` variable in the covariates data: `CovData`. This argument can
-##' also take file directory path. For example, `MicrobData="C:\...\microbiomeData.tsv"`.
+##' take directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 ##' @param CovData Covariates data matrix containing covariates and confounders with each row
 ##' per sample and each column per variable. It should also contain an `"id"` variable to
 ##' correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can
-##' also take file directory path. For example, `CovData="C:\...\covariatesData.tsv"`.
+##' take directory path. For example, `CovData="C://...//covariatesData.tsv"`.
 ##'
 ##'
 ##' @param linkIDname Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
-##' @param allCov All covariates of interest (including confounders) for estimating and testing their associations with microbiome. Default is all covariates in covData are of interest.
+##' @param allCov All covariates of interest (including confounders) for estimating and testing their associations with microbiome. Default is 'NULL' meaning that all covariates in covData are of interest.
 ##' @param refTaxa Reference taxa specified by the user and will be used as the reference taxa.
 ##' @param reguMethod regularization approach used in phase 1 of the algorithm. Default is `"mcp"`. Other methods are under development.
-##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting `sequentialRun = TRUE` may help, but it will take more time to run. Default is `TRUE`.
-##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. Default is `8`. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs.
+##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Default is `TRUE` since there is only 1 reference taxon.
+##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
 ##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
-##' @param allFunc all the user-defined function names that will be passed to the parallel computing environment (foreach loop).
 ##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
 ##' @param bootLassoAlpha The significance level in phase 2. Default is `0.05`.
 ##' @param seed Random seed for reproducibility. Default is `1`.
@@ -53,8 +52,12 @@
 ##'                 CovData = dataC,
 ##'                 linkIDname = "id",
 ##'                 allCov=c("v1","v2","v3"),
-##'                 refTaxa=c("rawCount11"))
+##'                 refTaxa=c("rawCount11"),
+##'                 paraJobs=2)
+##'
 ##' }
+##'
+##'
 ##'
 ##' @references Li et al.(2018) Conditional Regression Based on a Multivariate Zero-Inflated Logistic-Normal Model for Microbiome Relative Abundance Data. Statistics in Biosciences 10(3): 587-608
 ##' @references Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
@@ -76,10 +79,12 @@ MZILN=function(
   bootLassoAlpha=0.05,
   standardize=FALSE,
   sequentialRun=TRUE,
-  allFunc=allUserFunc(),
   seed=1
 ){
+  allFunc=allUserFunc()
+
   results=list()
+
   start.time = proc.time()[3]
   MZILN=TRUE
   runMeta=metaData(MicrobData=MicrobData,CovData=CovData,
@@ -135,7 +140,7 @@ MZILN=function(
   rm(testCovInOrder,ctrlCov,microbName)
 
   totalTimeMins = (proc.time()[3] - start.time)/60
-  message("The entire analysis took",totalTimeMins, "minutes","\n")
+  message("The entire analysis took ",round(totalTimeMins,2), " minutes")
 
   results$totalTimeMins=totalTimeMins
 
