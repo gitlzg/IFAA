@@ -74,8 +74,7 @@
 ##'                 ctrlCov = c("v3"), nRef = 3,
 ##'                 nPermu = 3,
 ##'                 paraJobs = 3,
-##'                 fwerRate = 0.25,
-##'                 bootB = 5)
+##'                 fwerRate = 0.25)
 ##'}
 ##' analysisResults$estByCovList
 ##'
@@ -89,6 +88,7 @@
 ##' @importFrom methods as
 ##' @importFrom foreach `%dopar%` foreach
 ##' @importFrom future availableCores
+##' @importFrom qlcMatrix corSparse
 ##' @importFrom Matrix Diagonal Matrix
 ##' @importFrom HDCI bootLOPR
 ##' @importFrom picasso picasso

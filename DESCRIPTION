@@ -15,8 +15,8 @@ LazyData: true
 RoxygenNote: 7.1.1
 Depends:
   R (>= 3.6.0),
-  qlcMatrix (>= 0.9.7)
 Imports:
+  qlcMatrix (>= 0.9.7),
   mathjaxr (>= 1.0-1),
   methods (>= 3.3.0),
   picasso (>= 1.2.0),
