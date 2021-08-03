@@ -1,3 +1,7 @@
+# IFAA 1.0.2
+
+* Fixed a vector result bug.
+
 # IFAA 1.0.1
 
 

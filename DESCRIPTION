@@ -1,6 +1,6 @@
 Package: IFAA
 Title: Robust Analysis for Absolute Abundance in Microbiome
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: person(given = "Zhigang",
            family = "Li",
            role = c("aut", "cre"),

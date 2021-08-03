@@ -209,8 +209,8 @@ Regulariz=function(
     colnames(estByCovMat)=c("Beta.LPR","LowB95%CI.LPR","UpB95%CI.LPR")
 
     rowsToKeep=which(estByCovMat[,1]!=0)
-    estByCovMat=estByCovMat[rowsToKeep,]
-    
+    estByCovMat=estByCovMat[rowsToKeep, , drop = FALSE]
+
     estByCovList[[testCovInOrder[i]]]=estByCovMat
     rm(estByCovMat)
   }
