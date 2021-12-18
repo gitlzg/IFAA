@@ -1,6 +1,6 @@
 
 metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
-                  testMany=TRUE,ctrlMany=FALSE,MZILN=FALSE){
+                  testMany=TRUE,ctrlMany=FALSE,MZILN=FALSE,taxkeepThresh){
   results=list()
 
   if(length(linkIDname)==0){
@@ -103,19 +103,19 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   rm(allRawData)
 
   # check zero taxa and subjects with zero taxa reads
-  numTaxaNoReads=sum(colSums(Mdata_raw)==0)
+  numTaxaNoReads=sum(colSums(Mdata_raw!=0)<=taxkeepThresh)
   if(numTaxaNoReads>0){
-    Mdata_raw=Mdata_raw[,!(colSums(Mdata_raw)==0)]
-    message("There are ",numTaxaNoReads," taxa without any sequencing reads and
-        excluded from the analysis")
+    Mdata_raw=Mdata_raw[,!(colSums(Mdata_raw!=0)<=taxkeepThresh)]
+    message("There are ",numTaxaNoReads," taxa without any sequencing reads before 
+        data merging, and excluded from the analysis")
   }
   rm(numTaxaNoReads)
 
-  numSubNoReads=sum(rowSums(Mdata_raw)==0)
+  numSubNoReads=sum(rowSums(Mdata_raw!=0)<=1)
   if(numSubNoReads>0){
-    message("There are ",numSubNoReads," subjects without any sequencing reads and
+    message("There are ",numSubNoReads," subjects with zero or one sequencing read and
         excluded from the analysis")
-    subKeep=!(rowSums(Mdata_raw)==0)
+    subKeep=!(rowSums(Mdata_raw!=0)<=1)
     Mdata_raw=Mdata_raw[subKeep,]
     MdataWithId=MdataWithId[subKeep,]
     rm(subKeep)
@@ -125,15 +125,16 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   Mdata=Mdata_raw
   rm(Mdata_raw)
 
-  microbName=colnames(Mdata)
-  newMicrobNames=paste0("microb",seq(length(microbName)))
+  microbName1=colnames(Mdata)
+  microbName=microbName1
+  newMicrobNames1=paste0("microb",seq(length(microbName)))
+  newMicrobNames=newMicrobNames1
   results$Mprefix="microb"
 
   colnames(Mdata)=newMicrobNames
   MdataWithId_new=cbind(MdataWithId[,linkIDname,drop=FALSE],Mdata)
   results$microbName=microbName
   results$newMicrobNames=newMicrobNames
-  rm(microbName,newMicrobNames)
 
   if(sum(is.na(Covariates))>0){
     message("Samples with missing covariate values are removed from the analysis.")
@@ -156,8 +157,9 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
 
   if((sum(binCheck==2))>0){
     # reorder variables if there are binary variables. Continuous variables first.
-    Covariates=Covariates[,c(xNames[binCheck!=2],xNames[binCheck==2]),drop=FALSE]
-    binaryInd=length(which(binCheck!=2))+1 # position of first binary predictor
+    # Covariates=Covariates[,c(xNames[binCheck!=2],xNames[binCheck==2]),drop=FALSE]
+    # binaryInd=length(which(binCheck!=2))+1 # position of first binary predictor
+    binaryInd=which(binCheck==2)[1]
     results$varNamForBin=xNames[binCheck==2]
     results$nBinVars=length(results$varNamForBin)
     for(i in results$varNamForBin){
@@ -166,7 +168,9 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
       if(!(mini==0 & maxi==1)){
         Covariates[Covariates[,i]==mini,i]=0
         Covariates[Covariates[,i]==maxi,i]=1
-        message("Binary covariate",i,"is not coded as 0/1 which may generate analysis bias. It has been changed to 0/1. The changed covariates data can be extracted from the result file.")
+        message("Binary covariate",i,"is not coded as 0/1 which may generate 
+                  analysis bias. It has been changed to 0/1. The changed covariates 
+                  data can be extracted from the result file.")
       }
     }
   }else{
@@ -175,7 +179,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
     results$varNamForBin=NULL
   }
 
-  results$binaryInd=binaryInd
+  results$binaryInd=NULL
   results$xNames=colnames(Covariates)
   xNewNames=paste0("x",seq(length(xNames)))
   colnames(Covariates)=xNewNames
@@ -190,11 +194,35 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   CovarWithId_new=cbind(CovarWithId[,linkIDname,drop=FALSE],Covariates)
 
   data=merge(MdataWithId_new, CovarWithId_new,by=linkIDname,all.x=FALSE,all.y=FALSE)
+  dataOmit=na.omit(data)
+  
   results$covariatesData=CovarWithId_new
   colnames(results$covariatesData)=c(linkIDname,results$xNames)
   rm(MdataWithId_new,CovarWithId_new)
-  results$data=data.matrix(na.omit(data))
-  rm(data)
+  
+  Mdata_omit=dataOmit[,newMicrobNames1]
+  
+  # check taxa with zero or 1 read again after all missing data removed
+  numTaxaNoReads=sum(colSums(Mdata_omit!=0)<=taxkeepThresh)
+  if(numTaxaNoReads==0){results$data=data.matrix(dataOmit)}
+  if(numTaxaNoReads>0){
+    dataOmit_noTaxa=dataOmit[,!(colnames(dataOmit)%in%newMicrobNames1)]
+    microbToRetain=newMicrobNames1[!(colSums(Mdata_omit!=0)<=taxkeepThresh)]
+    message("There are ",numTaxaNoReads," taxa without any sequencing reads after merging 
+        and removing all missing data, and excluded from the analysis")
+    MdataToRetain=Mdata_omit[,microbToRetain]
+    microbName=microbName1[newMicrobNames1%in%microbToRetain]
+    results$microbName=microbName
+    newMicrobNames1=paste0("microb",seq(length(microbName)))
+    newMicrobNames=newMicrobNames1
+    results$newMicrobNames=newMicrobNames
+    colnames(MdataToRetain)=microbToRetain
+    results$data=data.matrix(cbind(dataOmit_noTaxa,MdataToRetain))
+    rm(dataOmit_noTaxa,MdataToRetain,microbToRetain)
+  }
+  rm(numTaxaNoReads,data,microbName,microbName1,newMicrobNames,newMicrobNames1)
+  
+  # output data summary
   message("Data dimensions (after removing missing data if any):")
   message(dim(results$data)[1]," samples")
   message(ncol(Mdata)," taxa/OTU/ASV")

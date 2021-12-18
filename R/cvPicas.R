@@ -45,9 +45,7 @@ cvPicasso=function(
     }
   }
   rm(randomShuf)
-  
-  saveRDS(sampleInd,"sampleInd.rds")
-  
+
   # cross validation
   cvPara=matrix(NA,nrow=nLam,ncol=nfolds)
 

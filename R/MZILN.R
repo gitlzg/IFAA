@@ -26,18 +26,21 @@
 ##'
 ##' @param linkIDname Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
 ##' @param allCov All covariates of interest (including confounders) for estimating and testing their associations with microbiome. Default is 'NULL' meaning that all covariates in covData are of interest.
+##' @param targetTaxa The taxa that should be used as numerator. Default is NULL.
 ##' @param refTaxa Reference taxa specified by the user and will be used as the reference taxa.
-##' @param reguMethod regularization approach used in phase 1 of the algorithm. Default is `"mcp"`. Other methods are under development.
-##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Default is `TRUE` since there is only 1 reference taxon. 
+##' @param adjust_method The adjusting method used for p value adjustment. Same as p.adjust function in R.
+##' @param fdrRate The false discovery rate for identifying taxa/OTU/ASV associated with `allCov`. Default is `0.25`.
+##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Default is `TRUE` since there is only 1 reference taxon.
 ##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
 ##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 ##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
 ##' @param bootLassoAlpha The significance level in phase 2. Default is `0.05`.
+##' @param taxkeepThresh The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis.
 ##' @param seed Random seed for reproducibility. Default is `1`.
 ##' @return A list containing the estimation results.
 ##'
-##' - `analysisResults$estByRefTaxaList`: A list containing estimating results for all reference taxa and all the variables in 'allCov'. See details.
-##'
+##' - `analysisResults$all_cov_sig_list`: A list containing estimating results for all significant taxa.
+##' - `analysisResults$targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is non-empty.
 ##' - `covariatesData`: A dataset containing all covariates used in the analyses.
 ##'
 ##' @examples
@@ -52,10 +55,12 @@
 ##'                 CovData = dataC,
 ##'                 linkIDname = "id",
 ##'                 allCov=c("v1","v2","v3"),
+##'                 targetTaxa = "rawCount6",
 ##'                 refTaxa=c("rawCount11"),
-##'                 paraJobs=3)
+##'                 paraJobs=2)
+##'
 ##' }
-##' analysisResults$estByRefTaxaList
+##'
 ##'
 ##'
 ##' @references Li et al.(2018) Conditional Regression Based on a Multivariate Zero-Inflated Logistic-Normal Model for Microbiome Relative Abundance Data. Statistics in Biosciences 10(3): 587-608
@@ -71,23 +76,27 @@ MZILN=function(
   CovData,
   linkIDname,
   allCov=NULL,
+  targetTaxa=NULL,
   refTaxa,
-  reguMethod=c("mcp"),
+  adjust_method="BY",
+  fdrRate=0.2,
   paraJobs=NULL,
   bootB=500,
   bootLassoAlpha=0.05,
+  taxkeepThresh=0,
   standardize=FALSE,
   sequentialRun=TRUE,
   seed=1
 ){
   allFunc=allUserFunc()
-  
+
   results=list()
-  
+
   start.time = proc.time()[3]
-  MZILN=TRUE
+  # MZILN=TRUE
   runMeta=metaData(MicrobData=MicrobData,CovData=CovData,
-                   linkIDname=linkIDname,testCov=allCov,MZILN=MZILN)
+                   linkIDname=linkIDname,testCov=allCov,
+                   taxkeepThresh=taxkeepThresh)
 
   data=runMeta$data
   results$covariatesData=runMeta$covariatesData
@@ -99,10 +108,20 @@ MZILN=function(
   testCovInNewNam=runMeta$testCovInNewNam
   ctrlCov=runMeta$ctrlCov
   microbName=runMeta$microbName
+  newMicrobNames=runMeta$newMicrobNames
   results$covriateNames=runMeta$xNames
   rm(runMeta)
 
   nRef=length(refTaxa)
+  refTaxa_newNam=newMicrobNames[microbName%in%refTaxa]
+
+  if ((length(targetTaxa)>0)) {
+    if (sum(targetTaxa%in%microbName)!=length(targetTaxa)) {
+      stop("Error: One or more of the target taxa have no sequencing reads or are not in the data set.
+      Double check the names of the target taxa and their
+           sparsity levels.")
+    }
+  }
 
   if(length(refTaxa)>0){
     if(sum(refTaxa%in%microbName)!=length(refTaxa)){
@@ -112,10 +131,12 @@ MZILN=function(
     }
   }
 
-  results$analysisResults=Regulariz_MZILN(data=data,testCovInd=testCovInd,
+  results$analysisResults=Regulariz_MZILN(data=data,nRef=nRef,testCovInd=testCovInd,
                                           testCovInOrder=testCovInOrder,microbName=microbName,
                                           binaryInd=binaryInd,covsPrefix=covsPrefix,Mprefix=Mprefix,
-                                          refTaxa=refTaxa,paraJobs=paraJobs,reguMethod=reguMethod,
+                                          targetTaxa=targetTaxa,
+                                          refTaxa=refTaxa_newNam,adjust_method=adjust_method,
+                                          paraJobs=paraJobs,fdrRate=fdrRate,
                                           bootB=bootB,bootLassoAlpha=bootLassoAlpha,
                                           standardize=standardize,sequentialRun=sequentialRun,
                                           allFunc=allFunc,seed=seed
@@ -142,6 +163,12 @@ MZILN=function(
   message("The entire analysis took ",round(totalTimeMins,2), " minutes")
 
   results$totalTimeMins=totalTimeMins
+
+  if (length(targetTaxa)>0) {
+    print(results$analysisResults$targettaxa_result_list)
+  } else {
+    print(results$analysisResults$all_cov_sig_list)
+  }
 
   return(results)
 }

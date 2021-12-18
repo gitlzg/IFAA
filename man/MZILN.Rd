@@ -9,14 +9,16 @@ MZILN(
   CovData,
   linkIDname,
   allCov = NULL,
+  targetTaxa = NULL,
   refTaxa,
-  reguMethod = c("mcp"),
+  adjust_method = "BY",
+  fdrRate = 0.2,
   paraJobs = NULL,
   bootB = 500,
   bootLassoAlpha = 0.05,
-  standardize = F,
-  sequentialRun = T,
-  allFunc = allUserFunc(),
+  taxkeepThresh = 0,
+  standardize = FALSE,
+  sequentialRun = TRUE,
   seed = 1
 )
 }
@@ -24,51 +26,64 @@ MZILN(
 \item{MicrobData}{Microbiome data matrix containing microbiome abundance with each row
 per sample and each column per taxon/OTU/ASV. It should contain an \code{"id"} variable to
 correspond to the \code{"id"} variable in the covariates data: \code{CovData}. This argument can
-also take file directory path. For example, MicrobData="C:\\\\...\\\\microbiomeData.tsv".}
+take directory path. For example, \code{MicrobData="C://...//microbiomeData.tsv"}.}
 
 \item{CovData}{Covariates data matrix containing covariates and confounders with each row
 per sample and each column per variable. It should also contain an \code{"id"} variable to
 correspond to the \code{"id"} variable in the microbiome data: \code{MicrobData}. This argument can
-also take file directory path. For example, CovData="C:\\\\...\\\\covariatesData.tsv".}
+take directory path. For example, \code{CovData="C://...//covariatesData.tsv"}.}
 
 \item{linkIDname}{Variable name of the \code{"id"} variable in both \code{MicrobData} and \code{CovData}. The two data sets will be merged by this \code{"id"} variable.}
 
-\item{allCov}{All covariates of interest (including confounders) for estimating and testing their associations with microbiome. Default is all covariates in covData are of interest.}
+\item{allCov}{All covariates of interest (including confounders) for estimating and testing their associations with microbiome. Default is 'NULL' meaning that all covariates in covData are of interest.}
+
+\item{targetTaxa}{The taxa that should be used as numerator. Default is NULL.}
 
 \item{refTaxa}{Reference taxa specified by the user and will be used as the reference taxa.}
 
-\item{reguMethod}{regularization approach used in phase 1 of the algorithm. Default is \code{"mcp"}. Other methods are under development.}
+\item{adjust_method}{The adjusting method used for p value adjustment. Same as p.adjust function in R.}
 
-\item{paraJobs}{If \code{sequentialRun} is \code{FALSE}, this specifies the number of parallel jobs that will be registered to run the algorithm. Default is \code{8}. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs.}
+\item{fdrRate}{The false discovery rate for identifying taxa/OTU/ASV associated with \code{allCov}. Default is \code{0.25}.}
+
+\item{paraJobs}{If \code{sequentialRun} is \code{FALSE}, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs. Default is \code{NULL}. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.}
 
 \item{bootB}{Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is \code{500}.}
 
 \item{bootLassoAlpha}{The significance level in phase 2. Default is \code{0.05}.}
 
+\item{taxkeepThresh}{The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis.}
+
 \item{standardize}{This takes a logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is \code{FALSE}.}
 
-\item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Sometimes parallel jobs can not be successfully run for unknown reasons. For example, socket related errors may pop up or some slave cores return simple error instead of numerical results. In those scenarios, setting \code{sequentialRun = TRUE} may help, but it will take more time to run. Default is \code{TRUE}.}
+\item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Default is \code{TRUE} since there is only 1 reference taxon.}
 
 \item{seed}{Random seed for reproducibility. Default is \code{1}.}
 }
 \value{
 A list containing the estimation results.
 \itemize{
-\item \code{analysisResults$estByRefTaxaList}: A list containing estimating results for all reference taxa and all the variables in 'allCov'. See details.
+\item \code{analysisResults$all_cov_sig_list}: A list containing estimating results for all significant taxa.
+\item \code{analysisResults$targettaxa_result_list}: A list containing estimating results for targetTaxa. Only available when targetTaxa is non-empty.
 \item \code{covariatesData}: A dataset containing all covariates used in the analyses.
 }
 }
 \description{
 Make inference on the associations of microbiome with covariates given a user-specified reference taxon/OTU/ASV.
+\loadmathjax
 }
 \details{
 The regression model for \code{MZILN()} can be expressed as follows:
-\deqn{\log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K,}
-where \eqn{\mathcal{Y}_i^k} is the AA of taxa \eqn{k} in subject \eqn{i} in the entire
-ecosystem. \eqn{\mathcal{Y}_i^{K+1}} is the reference taxon (specified by user).
-\eqn{\mathcal{X}_i} is the covariate matrix for all covariates including confounders.
-\eqn{\alpha^k} is the regression coefficients along with their 95\% confidence intervals that will be estimated by the \code{MZILN()} function.
-High-dimensional \eqn{X_i} is handled by regularization.
+\mjdeqn{\log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K}{}
+where
+\itemize{
+\item \mjeqn{\mathcal{Y}_i^k}{} is the AA of taxa \mjeqn{k}{} in subject \mjeqn{i}{} in the entire
+ecosystem.
+\item \mjeqn{\mathcal{Y}_i^{K+1}}{} is the reference taxon (specified by user).
+\item \mjeqn{\mathcal{X}_i}{} is the covariate matrix for all covariates including confounders.
+\item \mjeqn{\alpha^k}{} is the regression coefficients along with their 95\% confidence intervals that will be estimated by the \code{MZILN()} function.
+}
+
+High-dimensional \mjeqn{X_i}{} is handled by regularization.
 }
 \examples{
 data(dataM)
@@ -77,11 +92,18 @@ dataM[1:5, 1:8]
 data(dataC)
 dim(dataC)
 dataC[1:5, ]
+\donttest{
 results <- MZILN(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
                 allCov=c("v1","v2","v3"),
-                refTaxa=c("rawCount11"))
+                targetTaxa = "rawCount6",
+                refTaxa=c("rawCount11"),
+                paraJobs=2)
+
+}
+
+
 
 }
 \references{
