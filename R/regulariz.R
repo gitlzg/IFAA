@@ -45,7 +45,7 @@ Regulariz=function(
   # results$x1permut=x1permut
 
   regul.start.time = proc.time()[3]
-  message("Start Phase 1 association identification")
+  message("Start Phase 1 analysis")
 
   selectRegroup=getScrResu(data=data,testCovInd=testCovInd,
                            testCovInOrder=testCovInOrder,
@@ -136,7 +136,7 @@ Regulariz=function(
 
   MCPExecuTime = (proc.time()[3] - regul.start.time)/60
   results$MCPExecuTime=MCPExecuTime
-  message("Phase 1 Associaiton identification is done and used ", round(MCPExecuTime,2)," minutes")
+  message("Phase 1 analysis is done and used ", round(MCPExecuTime,2)," minutes")
 
   results$finalizedBootRefTaxon=finalIndpRefTax
 
