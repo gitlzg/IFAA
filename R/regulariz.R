@@ -136,7 +136,7 @@ Regulariz=function(
 
   MCPExecuTime = (proc.time()[3] - regul.start.time)/60
   results$MCPExecuTime=MCPExecuTime
-  message("Phase 1 analysis is done and used ", round(MCPExecuTime,2)," minutes")
+  message("Phase 1 analysis used ", round(MCPExecuTime,2)," minutes")
 
   results$finalizedBootRefTaxon=finalIndpRefTax
 
