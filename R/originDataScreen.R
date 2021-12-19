@@ -54,7 +54,7 @@ originDataScreen=function(
   forLoopN=ceiling(nRef/batch)
 
   if(!sequentialRun){
-    message(paraJobs, " parallel jobs are registered for analyzing ", nRef, " reference taxa in Phase 1a")
+    message(paraJobs, " parallel jobs are registered for Phase 1 analysis")
   }
 
   for (jj in 1:forLoopN){
