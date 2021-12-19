@@ -64,6 +64,9 @@ Regulariz=function(
                            binPredInd=binaryInd,
                            adjust_method=adjust_method,
                            seed=seed)
+  
+  message("33 percent of phase 1 analysis has been done")
+  
   nRef_smaller<-max(2,ceiling(nRef/2))
   while_loop_ind<-F
   loop_num<-0
@@ -73,7 +76,7 @@ Regulariz=function(
       break
     }
     if (length(refTaxa)<nRef_smaller) {
-      refTaxa_smaller<-c(refTaxa,head(colnames(selectRegroup$selecCountOverall)[order(selectRegroup$selecCountOverall)],
+      refTaxa_smaller<-c(refTaxa,head(colnames(selectRegroup$selecCountOverall)[order(as.vector(selectRegroup$selecCountOverall))],
                                          n=nRef_smaller-length(refTaxa)))
     } else {
       refTaxa_smaller<-refTaxa
@@ -106,7 +109,7 @@ Regulariz=function(
     while_loop_ind<-identical(fin_ref_1,fin_ref_2) || identical(ref_taxa_1,ref_taxa_2)
   
     if(while_loop_ind==FALSE){
-      message(round(100*loop_num/3,0), " percent of phase 1 analysis has been done")
+      message(round(100*(loop_num+1)/3,0), " percent of phase 1 analysis has been done")
       }
     if(while_loop_ind==TRUE){
       message("100 percent of phase 1 analysis has been done")
