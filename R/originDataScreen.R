@@ -45,7 +45,6 @@ originDataScreen=function(
   nRef=length(refTaxa)
 
   startT1=proc.time()[3]
-  message("start phase 1a")
   if(length(paraJobs)==0){
     availCores=availableCores()
     if(is.numeric(availCores))paraJobs=max(1,availableCores()-2)
@@ -271,15 +270,9 @@ originDataScreen=function(
       if(forLoopN>1)scr1Resu=do.call(c,list(scr1Resu,scr1Resu.j))
       gc()
     }
-
-    if(jj>0 & (jj%%(ceiling(forLoopN/10))==0)){
-      message(round(100*jj/forLoopN,0), " percent of phase 1a analysis has been done")
-    }
   }
   rm(data)
   endT=proc.time()[3]
-
-  message("Phase 1a done and took ",round((endT-startT1)/60,3)," minutes")
 
   selecList=list()
   for(i in 1:nRef){

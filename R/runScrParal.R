@@ -85,8 +85,7 @@ runScrParal=function(
                            seed=seed)
   
   maxMemUsedInMb=sum(gc()[,6])
-  message("maximum memory used after phase 1a: ",maxMemUsedInMb," Mb")
-  
+
   results$countOfSelecForAPred=screen1$countOfSelecForAPred
   results$estOfSelectForAPred<-screen1$estOfSelectForAPred
   yTildLongList=screen1$yTildLongList

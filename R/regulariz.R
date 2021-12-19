@@ -104,6 +104,13 @@ Regulariz=function(
     ref_taxa_2<-selectRegroup$refTaxa
     # cat(fin_ref_2,"\n",ref_taxa_2,"\n")
     while_loop_ind<-identical(fin_ref_1,fin_ref_2) || identical(ref_taxa_1,ref_taxa_2)
+  
+    if(while_loop_ind==FALSE){
+      message(round(100*loop_num/3,0), " percent of phase 1 analysis has been done")
+      }
+    if(while_loop_ind==TRUE){
+      message("100 percent of phase 1 analysis has been done")
+      }
   }
   results$selecCountOverall=selectRegroup$selecCountOverall
   colnames(results$selecCountOverall)<-microbName
