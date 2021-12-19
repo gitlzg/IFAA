@@ -61,7 +61,7 @@ results <- MZILN(MicrobData = dataM,
 ```
 Regression results including confidence intervals can be extracted in the following way:
 ```r
-results$analysisResults$targettaxa_result_list
+results$analysisResults$sig_list_each_mean
 ```
 
 ## References 
