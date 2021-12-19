@@ -18,14 +18,14 @@ runGlmnet=function(
   
   results=list()
   
-  print("start glmnet function")
-  print(paste("nrow of x: ",nrow(x)))
-  print(paste("ncol of x: ",ncol(x)))
+  # print("start glmnet function")
+  # print(paste("nrow of x: ",nrow(x)))
+  # print(paste("ncol of x: ",ncol(x)))
   
   nBeta=ncol(x)
   
   nObsAll=length(y)
-  print(paste("length of y: ",length(y)))
+  # print(paste("length of y: ",length(y)))
   
   # center y if continuous
   # if(family=="gaussian"){y=y-mean(y)}
