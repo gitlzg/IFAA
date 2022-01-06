@@ -39,7 +39,7 @@
 ##' @param seed Random seed for reproducibility. Default is `1`.
 ##' @return A list containing the estimation results.
 ##'
-##' - `analysisResults$all_cov_sig_list`: A list containing estimating results for all significant taxa.
+##' - `analysisResults$full_results`: A list containing estimating results for all significant taxa.
 ##' - `analysisResults$targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is non-empty.
 ##' - `covariatesData`: A dataset containing all covariates used in the analyses.
 ##'
@@ -65,6 +65,7 @@
 ##'
 ##' @references Li et al.(2018) Conditional Regression Based on a Multivariate Zero-Inflated Logistic-Normal Model for Microbiome Relative Abundance Data. Statistics in Biosciences 10(3): 587-608
 ##' @references Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
+##' @references Liu et al.(2020) A bootstrap lasso + partial ridge method to construct confidence intervals for parameters in high-dimensional sparse linear models. Statistica Sinica
 
 ##' @export
 ##' @md

@@ -6,7 +6,7 @@ bootResuHDCI=function(
   data,
   refTaxa,
   originRefTaxNam,
-  maxDimension=434*5*10^4,
+  maxDimension=434*5*10^5,
   bootB,
   bootLassoAlpha,
   binPredInd,
@@ -20,60 +20,60 @@ bootResuHDCI=function(
   standardize,
   seed
 ){
-  
+
   results=list()
   # load data info
   basicInfo=dataInfo(data=data,binPredInd=binPredInd,
                      covsPrefix=covsPrefix,Mprefix=Mprefix)
   taxaNames=basicInfo$taxaNames
   ii=which(basicInfo$taxaNames%in%refTaxa)
-  
+
   nTaxa=basicInfo$nTaxa
   nPredics=basicInfo$nPredics
   rm(basicInfo)
   gc()
-  
+
   nNorm=nTaxa-1
   nAlphaNoInt=nPredics*nNorm
   nAlphaSelec=nPredics*nTaxa
-  
+
   countOfSelec=rep(0,nAlphaSelec)
   resultsByRefTaxon=list()
-  
+
   # inital Lasso OLS estimate
   dataForEst=dataRecovTrans(data=data,ref=refTaxa,
                             Mprefix=Mprefix,covsPrefix=covsPrefix)
-  
+
   x=as(dataForEst$xTildalong,"sparseMatrix")
-  y=as(dataForEst$UtildaLong,"sparseVector")
+  y=dataForEst$UtildaLong
   rm(dataForEst)
-  
+
   xCol=ncol(x)
-  
-  maxSubSamplSiz=floor(maxDimension/xCol)
+
+  maxSubSamplSiz=min(50000,floor(maxDimension/xCol))
   nToSamplFrom=length(y)
   subSamplK=ceiling(nToSamplFrom/maxSubSamplSiz)
   if(subSamplK==1)maxSubSamplSiz=nToSamplFrom
-  
+
   nRuns=(ceiling(subSamplK/3))
-  
+
   # availCores=max(1,(availableCores()-2))
   # if(length(paraJobs)==0)paraJobs=availCores
-  
+
   # message(paraJobs, " parallel jobs are registered for bootstrapping in Phase 2.")
   if (dim(x)[1]>(dim(x)[2])) {
     for(k in 1:nRuns){
       rowToKeep=sample(nToSamplFrom,maxSubSamplSiz)
       xSub=as((x[rowToKeep,]),"sparseMatrix")
-      ySub=as((y[rowToKeep]),"sparseVector")
-      
-      
+      ySub=(y[rowToKeep])
+
+
       lm_res<-lm(as.vector(ySub)~as.matrix(xSub)-1)
-      
-      
-      
+
+
+
       rm(xSub,ySub)
-      
+
       full_name_coef<-names(lm_res$coefficients)
       valid_coef<-summary(lm_res)$coefficients
       bootResu<-matrix(nrow = length(full_name_coef),ncol = 4)
@@ -85,76 +85,76 @@ bootResuHDCI=function(
         bootResu_k=bootResu_k+bootResu
       }
       gc()
-      
+
     }
     rm(x,y)
     gc()
-    
+
     # full_name_coef<-names(lm_res$coefficients)
     # valid_coef<-summary(lm_res)$coefficients
     # bootResu<-matrix(nrow = length(full_name_coef),ncol = 4)
     # rownames(bootResu)<-full_name_coef
     # bootResu[rownames(bootResu)%in%rownames(valid_coef),]<-valid_coef
-    # 
+    #
     fin_ref_taxon_name<-originRefTaxNam
     all_cov_list<-list()
     nTestcov<-length(testCovInOrder)
-    
-    
+
+
     boot_est<-bootResu_k[,1]/nRuns
     # p_value_est<-bootResu_k[,4]/nRuns
     se_est_all<-bootResu_k[,2]/nRuns
-    
-    
+
+
     boot_CI<-confint(lm_res)
-    
-    
+
+
     ref_taxon_name<-originRefTaxNam
     p_value_save_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
     est_save_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
     CI_up_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
     CI_low_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
     se_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
-    
+
     for (ii in 1:nTestcov) {
       se_est<-se_est_all[seq(ii+1,length(full_name_coef),nPredics+1)]
       # p_value_unadj<-p_value_est[seq(ii+1,length(full_name_coef),nPredics+1)]
       boot_est_par<-boot_est[seq(ii+1,length(full_name_coef),nPredics+1)]
-      
+
       p_value_unadj<-(1-pnorm(abs(boot_est_par/se_est)))*2
-      
+
       boot_est_CI_low<-boot_est_par-1.96*se_est
       boot_est_CI_up<-boot_est_par+1.96*se_est
-      
+
       p_value_adj<-p.adjust(p_value_unadj,adjust_method)
       p_value_save_mat[ii,]<-p_value_adj
       est_save_mat[ii,]<-boot_est_par
       CI_low_mat[ii,]<-boot_est_CI_low
       CI_up_mat[ii,]<-boot_est_CI_up
       se_mat[ii,]<-se_est
-      
+
     }
   } else {
     for(k in 1:nRuns){
       rowToKeep=sample(nToSamplFrom,maxSubSamplSiz)
       xSub=as((x[rowToKeep,]),"sparseMatrix")
       ySub=as((y[rowToKeep]),"sparseVector")
-      
-      
+
+
       c3 <- parallel::makeCluster(paraJobs)
       doParallel::registerDoParallel(c3)
-      
+
       if(length(seed)>0){
         set.seed(as.numeric(seed)+10^2)
         parallel::clusterSetRNGStream(cl=c3,(as.numeric(seed)+10^3))
       }
-      
+
       bootResu=bootLOPR(x=as.matrix(xSub),y=as.vector(ySub),B=bootB,nfolds=10,
                         standardize=standardize,parallel.boot=TRUE,
                         ncores.boot=paraJobs,alpha=bootLassoAlpha)
-      
+
       parallel::stopCluster(c3)
-      
+
       rm(xSub,ySub)
       gc()
       if (k==1) {
@@ -167,16 +167,16 @@ bootResuHDCI=function(
     }
     rm(x,y)
     gc()
-    
+
     # results$blasso_est<-penal
     # results$boot_lasso<-boot_lasso
     results$reg_res<-bootResu
-    
-    
+
+
     fin_ref_taxon_name<-originRefTaxNam
     all_cov_list<-list()
     nTestcov<-length(testCovInOrder)
-    
+
     boot_est<-boot_est.k/nRuns
     boot_CI<-boot_CI.k/nRuns
     ref_taxon_name<-originRefTaxNam
@@ -185,14 +185,14 @@ bootResuHDCI=function(
     CI_up_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
     CI_low_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
     se_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
-    
+
     for (ii in 1:nTestcov) {
       se_est<-apply(boot_CI[,seq(ii+1,ncol(boot_CI),nPredics+1)],2,calculate_se)
       p_value_unadj<-numeric(length(se_est))
       boot_est_par<-boot_est[seq(ii+1,ncol(boot_CI),nPredics+1)]
       boot_est_CI_low<-boot_CI[,seq(ii+1,ncol(boot_CI),nPredics+1)][1,]
       boot_est_CI_up<-boot_CI[,seq(ii+1,ncol(boot_CI),nPredics+1)][2,]
-      
+
       for (j in 1:length(boot_est_par)) {
         if (se_est[j]==0) {
           p_value_unadj[j]<-1
@@ -206,31 +206,31 @@ bootResuHDCI=function(
       CI_low_mat[ii,]<-boot_est_CI_low
       CI_up_mat[ii,]<-boot_est_CI_up
       se_mat[ii,]<-se_est
-      
+
     }
   }
-  
-  
+
+
   rownames(p_value_save_mat)<-testCovInOrder
   rownames(est_save_mat)<-testCovInOrder
   rownames(CI_low_mat)<-testCovInOrder
   rownames(CI_up_mat)<-testCovInOrder
   rownames(se_mat)<-testCovInOrder
-  
+
   colname_use<-microbName[microbName!=ref_taxon_name]
   colnames(p_value_save_mat)<-colname_use
   colnames(est_save_mat)<-colname_use
   colnames(CI_low_mat)<-colname_use
   colnames(CI_up_mat)<-colname_use
   colnames(se_mat)<-colname_use
-  
+
   sig_ind<-which(p_value_save_mat<fwerRate,arr.ind = T,useNames = F)
   est_sig<-est_save_mat[sig_ind]
   CI_low_sig<-CI_low_mat[sig_ind]
   CI_up_sig<-CI_up_mat[sig_ind]
   p_adj_sig<-p_value_save_mat[sig_ind]
   se_sig<-se_mat[sig_ind]
-  
+
   cov_sig_index<-sort(unique(sig_ind[,1]))
   sig_list_each<-list()
   if (length(cov_sig_index)>0) {
@@ -252,26 +252,26 @@ bootResuHDCI=function(
       sig_list_each[[testCovInOrder[cov_sig_index[iii]]]]<-cov_sig_mat
     }
   }
-  
+
   all_cov_list$est_save_mat<-est_save_mat
   all_cov_list$p_value_save_mat<-p_value_save_mat
   all_cov_list$CI_low_mat<-CI_low_mat
   all_cov_list$CI_up_mat<-CI_up_mat
   all_cov_list$se_mat<-se_mat
-  
+
   results$sig_list_each<-sig_list_each
   results$all_cov_list<-all_cov_list
-  
-  
-  
-  
-  
+
+
+
+
+
   # results$CIvecLow=CIvecLow/nRuns
   # results$CIvecUp=CIvecUp/nRuns
-  # 
+  #
   # results$finalBetaEst.LPR=finalBetaEst.LPR/nRuns
   # results$CIvecLow.LPR=CIvecLow.LPR/nRuns
   # results$CIvecUp.LPR=CIvecUp.LPR/nRuns
-  
+
   return(results)
 }

@@ -92,7 +92,7 @@ dataRecovTrans=function(
     }
     rm(omegaRoot,logRatiow,Utilda.i)
 
-    results$UtildaLong=as(UtildaLong,"sparseVector")
+    results$UtildaLong=UtildaLong
     rm(UtildaLong)
     return(results)
   }
@@ -113,7 +113,7 @@ dataRecovTrans=function(
     }
   }
   rm(xDataWithInter,xDataTilda.i)
-  
+
   for (j in 1:lengthTwoList){
     i=twoList[j]
     Utilda.i=omegaRoot[[i]]%*%logRatiow[[i]]
@@ -123,9 +123,9 @@ dataRecovTrans=function(
     }
   }
   rm(omegaRoot,logRatiow,Utilda.i)
-  
+
   # return objects
-  results$UtildaLong=as(UtildaLong,"sparseVector")
+  results$UtildaLong=UtildaLong
   rm(UtildaLong)
   results$xTildalong=xTildalong
   rm(xTildalong)

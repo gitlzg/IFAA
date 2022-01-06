@@ -9,7 +9,7 @@ originDataScreen=function(
   paraJobs,
   refTaxa,
   fwerRate,
-  maxDimensionScr=0.8*434*10*10^4,
+  maxDimensionScr=434*5*10^5,
   #maxDimensionScr=10^5,
   standardize,
   sequentialRun,
@@ -45,6 +45,7 @@ originDataScreen=function(
   nRef=length(refTaxa)
 
   startT1=proc.time()[3]
+  # message("start phase 1")
   if(length(paraJobs)==0){
     availCores=availableCores()
     if(is.numeric(availCores))paraJobs=max(1,availableCores()-2)
@@ -54,7 +55,7 @@ originDataScreen=function(
   forLoopN=ceiling(nRef/batch)
 
   if(!sequentialRun){
-    message(paraJobs, " parallel jobs are registered for Phase 1 analysis")
+    message(paraJobs, " parallel jobs are registered for analyzing ", nRef, " reference taxa in Phase 1")
   }
 
   for (jj in 1:forLoopN){
@@ -91,7 +92,7 @@ originDataScreen=function(
                            rm(dataForEst)
                            gc()
 
-                           maxSubSamplSiz=floor(maxDimensionScr/ncol(xTildLongTild.i))
+                           maxSubSamplSiz=min(50000,floor(maxDimensionScr/ncol(xTildLongTild.i)))
                            nToSamplFrom=nrow(xTildLongTild.i)
 
                            if(method=="mcp") {
@@ -103,16 +104,14 @@ originDataScreen=function(
                              for (k in 1:nRuns){
                                rowToKeep=sample(nToSamplFrom,maxSubSamplSiz)
                                x=as((xTildLongTild.i[rowToKeep,]),"sparseMatrix")
-                               y=as(yTildLongTild.i[rowToKeep],"sparseVector")
+                               y=yTildLongTild.i[rowToKeep]
 
                                # Penal.i=runGlmnet(x=x,y=y,
                                #                   nPredics=nPredics,
                                #                   standardize=standardize)
                                if (dim(x)[1]>(3*dim(x)[2])) {
                                  Penal.i=runlinear(x=x,y=y,
-                                                   nPredics=nPredics,
-                                                   fwerRate=fwerRate,
-                                                   adjust_method=adjust_method)
+                                                   nPredics=nPredics)
                                  BetaNoInt.k=as((0+(Penal.i$betaNoInt!=0)),"sparseVector")
                                  EstNoInt.k<-abs(Penal.i$coef_est_noint)
                                } else {
@@ -189,7 +188,7 @@ originDataScreen=function(
                            rm(dataForEst)
                            gc()
 
-                           maxSubSamplSiz=floor(maxDimensionScr/ncol(xTildLongTild.i))
+                           maxSubSamplSiz=min(50000,floor(maxDimensionScr/ncol(xTildLongTild.i)))
                            nToSamplFrom=nrow(xTildLongTild.i)
 
                            if(method=="mcp") {
@@ -202,15 +201,13 @@ originDataScreen=function(
                              for (k in 1:nRuns){
                                rowToKeep=sample(nToSamplFrom,maxSubSamplSiz)
                                x=as((xTildLongTild.i[rowToKeep,]),"sparseMatrix")
-                               y=as((yTildLongTild.i[rowToKeep]),"sparseVector")
+                               y=(yTildLongTild.i[rowToKeep])
                                # Penal.i=runGlmnet(x=x,y=y,
                                #                   nPredics=nPredics,
                                #                   standardize=standardize)
                                if (dim(x)[1]>(3*dim(x)[2])) {
                                  Penal.i=runlinear(x=x,y=y,
-                                                   nPredics=nPredics,
-                                                   fwerRate=fwerRate,
-                                                   adjust_method=adjust_method)
+                                                   nPredics=nPredics)
                                  BetaNoInt.k=as((0+(Penal.i$betaNoInt!=0)),"sparseVector")
                                  EstNoInt.k<-abs(Penal.i$coef_est_noint)
                                } else {
@@ -270,9 +267,15 @@ originDataScreen=function(
       if(forLoopN>1)scr1Resu=do.call(c,list(scr1Resu,scr1Resu.j))
       gc()
     }
+
+    # if(jj>0 & (jj%%(ceiling(forLoopN/10))==0)){
+    #   message(round(100*jj/forLoopN,0), " percent of phase 1 analysis has been done")
+    # }
   }
   rm(data)
   endT=proc.time()[3]
+
+  # message("Phase 1 done and took ",round((endT-startT1)/60,3)," minutes")
 
   selecList=list()
   for(i in 1:nRef){

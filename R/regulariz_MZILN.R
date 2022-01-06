@@ -108,8 +108,16 @@ Regulariz_MZILN=function(
     }
   }
 
-  results$all_cov_list<-all_cov_list
-  results$all_cov_sig_list<-all_cov_sig_list
+  # full_results<-list()
+  # for (j in testCovInOrder) {
+  #   est_res_save_all<-cbind(est_save_mat_mean[j,],se_mat_mean[j,],CI_low_mat_mean[j,],
+  #                           CI_up_mat_mean[j,],p_value_adj_mean[j,])
+  #   colnames(est_res_save_all)<-c("estimate","SE est","CI low","CI up","adj p-value")
+  #   full_results[[j]]<-est_res_save_all
+  # }
+
+  results$full_results<-all_cov_list
+  results$sig_results<-all_cov_sig_list
   results$targettaxa_result_list=tgtaxa_save_list
   results$nSub=nSub
   results$nTaxa=nTaxa

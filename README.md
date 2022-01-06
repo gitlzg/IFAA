@@ -25,14 +25,13 @@ results <- IFAA(MicrobData = dataM,
                 testCov = c("v1", "v2"),
                 ctrlCov = c("v3"),
                 nRef = 3,
-                paraJobs = 2,
-                fdrRate = 0.25)
+                paraJobs = 2)
 ```
 
 
-Once the analysis is done, you can extract the regression coefficients along with 95% confidence intervals using this command:
+Once the analysis is done, you can extract the significant regression coefficients along with 95% confidence intervals using this command:
 ```r
-results$analysisResults$sig_list_each_mean
+results$analysisResults$sig_results
 ```
 
 The function can also take csv or tsv data files directly by reading the file directory paths using the first two arguments:
@@ -59,9 +58,9 @@ results <- MZILN(MicrobData = dataM,
                  refTaxa=c("rawCount11"),
                  paraJobs=2)
 ```
-Regression results including confidence intervals can be extracted in the following way:
+Significant regression results including confidence intervals can be extracted in the following way:
 ```r
-results$analysisResults$sig_list_each_mean
+results$analysisResults$sig_results
 ```
 
 ## References 

@@ -54,7 +54,7 @@ AIcalcu=function(
     taxa.0[[i]]=w[i,taxa.zero]
     if(length(taxa.nonzero)>0){
       last.nonzero=max(taxa.nonzero)
-      logwi=as(as.numeric(log(w[i,taxa.nonzero])),"sparseVector")
+      logwi=as.numeric(log(w[i,taxa.nonzero]))
       l[i]=length(logwi)
       if(l[i]>1){
         logRatiow[[i]]=logwi[1:(l[i]-1)]-logwi[l[i]]

@@ -6,8 +6,8 @@ runlinear=function(
   x,
   y,
   nPredics,
-  fwerRate,
-  adjust_method,
+  fwerRate=0.25,
+  adjust_method="fdr",
   zeroSDCut=0
 ){
 
@@ -46,7 +46,7 @@ runlinear=function(
 
   coef_est<-abs(bootResu[,1])
   coef_est_noint<-coef_est[-seq(1,length(coef_est),by=(nPredics+1))]
-
+  coef_est_noint[is.na(coef_est_noint)]<-max(coef_est_noint,na.rm = T)
 
 
   # return

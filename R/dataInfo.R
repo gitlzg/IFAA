@@ -81,16 +81,22 @@ dataInfo=function(
   if(qualifyRefTax){
     # find the pairs of binary preds and taxa for which the assocaiton is not identifiable
     if(length(binPredInd)>0){
-      allBinPred=predNames[binPredInd:nPredics]
+      allBinPred=predNames[binPredInd]
       nBinPred=length(allBinPred)
 
       taxaBalanceBin=c()
+      bin_nonz_sum<-colSums(qualifyData[,allBinPred,drop=FALSE])
+
+      if (min(bin_nonz_sum,nSubQualif-bin_nonz_sum)<=floor(balanceCut*nSubQualif)) {
+        stop("one of the binary variable is not diverse enough")
+      }
 
       for(i in 1:nTaxa){
         for(j in 1:nBinPred){
           twoColumns.ij=qualifyData[,c(taxaNames[i],allBinPred[j])]
           nNonZero=length(which(twoColumns.ij[,1]>0))
           sumOfBin=sum(twoColumns.ij[(twoColumns.ij[,1]>0),2])
+          cat(sumOfBin," ",nNonZero,"\n")
           rm(twoColumns.ij)
           if(min(sumOfBin,(nNonZero-sumOfBin))>=floor(balanceCut*nSubQualif)){
             taxaBalanceBin=c(taxaBalanceBin,taxaNames[i])
@@ -99,6 +105,7 @@ dataInfo=function(
       }
 
       rm(allBinPred,qualifyData)
+      taxaBalanceBin<-unique(taxaBalanceBin)
 
       # keep balanced taxa
       goodRefTaxaCandi=goodRefTaxaCandi[(goodRefTaxaCandi%in%taxaBalanceBin)]

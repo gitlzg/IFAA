@@ -53,7 +53,8 @@
 ##' @param seed Random seed for reproducibility. Default is `1`.
 ##' @return A list containing the estimation results.
 ##'
-##' - `analysisResults$sig_list_each_mean`: A list containing estimating results for all the variables in `testCov`. See details.
+##' - `analysisResults$sig_results`: A list containing estimating results for all significant taxon for the variables in `testCov`.
+##' - `analysisResults$full_results`: A list containing estimating results for taxon. NA denotes unestimable.
 ##'
 ##' - `covariatesData`: A dataset containing covariates and confounders used in the analyses.
 ##'
@@ -78,9 +79,9 @@
 ##'
 ##'
 ##'
-##' @references Li et al.(In press) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association
+##' @references Li et al.(2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association
 ##' @references Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
-##' @references Freedman and Lane (1983) A non-stochastic interpretation of reported significance levels. Journal of Business & Economic Statistics. 1(4):292-298.
+##' @references Liu et al.(2020) A bootstrap lasso + partial ridge method to construct confidence intervals for parameters in high-dimensional sparse linear models. Statistica Sinica
 ##' @importFrom methods as
 ##' @importFrom foreach `%dopar%` foreach
 ##' @importFrom future availableCores
@@ -88,6 +89,8 @@
 ##' @importFrom HDCI bootLOPR
 ##' @importFrom picasso picasso
 ##' @importFrom qlcMatrix corSparse
+##' @import expm
+##' @import rlecuyer
 ##' @import mathjaxr
 ##' @import glmnet
 ##' @import stats

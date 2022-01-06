@@ -95,7 +95,9 @@ The `IFAA()` function is the main function. The User Inputs are:
 
 The output of `IFAA()` function is a list. The estimation results can extracted as the following: 
 
-- `analysisResults$sig_list_each_mean`: A list containing estimating results for all the variables in `testCov`. See details. 
+- `analysisResults$sig_results`: A list containing estimating results that are statistically significant. 
+
+- `analysisResults$full_results`: A list containing all estimating results. NA denotes unestimable.
 
 The covariates data including `testCov` and `ctrlCov` can be extracted in the output:
 
@@ -138,9 +140,9 @@ results <- IFAA(MicrobData = dataM,
 
 In this example, we are only interested in testing the association with `"v1"` and `"v2"` which is why `testCov=c("v1,"v2")`. The variable `"v3"` is adjusted as a potential confounder in the analyses. For the sake of speed in this hypothetical example, we set small numbers for `nRef=4`, `nPermu=4` and `bootB=5`. These are just for illustration purpose here and are too small for a formal analysis to generate valid results. 
 
-The final analysis results are stored in the list `analysisResults$sig_list_each_mean`: 
+The final analysis results are stored in the list `analysisResults$sig_results`: 
 ```{r,eval=T}
-results$analysisResults$sig_list_each_mean
+results$analysisResults$sig_results
 ```
 The results found the two taxa `"rawCount23"` and `"rawCount32"` associated with `"v2"`. The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\beta^k$ in the model equation. 
 
@@ -194,7 +196,7 @@ The `MZILN()` function is to implement the Multivariate Zero-Inflated Logistic N
 
 The output of `MZILN()` function is a list. The estimation results can extracted as the following: 
 
-- `analysisResults$all_cov_sig_list`: A list containing estimating results for all significant taxa.
+- `analysisResults$full_results`: A list containing estimating results for all significant taxa.
 - `analysisResults$targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is non-empty.
 
 All covariates data can be extracted:
