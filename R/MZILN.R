@@ -39,8 +39,8 @@
 ##' @param seed Random seed for reproducibility. Default is `1`.
 ##' @return A list containing the estimation results.
 ##'
-##' - `analysisResults$full_results`: A list containing estimating results for all significant taxa.
-##' - `analysisResults$targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is non-empty.
+##' - `analysisResults$sig_results`: A list containing estimating results for all significant taxa.
+##' - `analysisResults$targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is given.
 ##' - `covariatesData`: A dataset containing all covariates used in the analyses.
 ##'
 ##' @examples

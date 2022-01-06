@@ -53,8 +53,8 @@
 ##' @param seed Random seed for reproducibility. Default is `1`.
 ##' @return A list containing the estimation results.
 ##'
-##' - `analysisResults$sig_results`: A list containing estimating results for all significant taxon for the variables in `testCov`.
-##' - `analysisResults$full_results`: A list containing estimating results for taxon. NA denotes unestimable.
+##' - `analysisResults$sig_results`: A list containing estimating results that are statistically significant.
+##' - `analysisResults$full_results`: A list containing all estimating results. NA denotes unestimable.
 ##'
 ##' - `covariatesData`: A dataset containing covariates and confounders used in the analyses.
 ##'
