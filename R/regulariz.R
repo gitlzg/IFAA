@@ -187,11 +187,9 @@ Regulariz=function(
 
   results$nRefUsedForEsti=min(nGoodIndpRef,nRefMaxForEsti)
 
-  message("Final Reference Taxa are: ",allRefTaxNam[seq(results$nRefUsedForEsti)])
-
   results$estiList=list()
   for(iii in 1:(results$nRefUsedForEsti)){
-    message("Start estimation for the ", iii,"th final reference taxon: ",allRefTaxNam[iii])
+    message("Start estimation for the ", iii,"th final reference taxon: ")
     time11=proc.time()[3]
     originTaxNam=allRefTaxNam[iii]
     newRefTaxNam=taxaNames[microbName%in%originTaxNam]
@@ -210,7 +208,7 @@ Regulariz=function(
                                                   standardize=standardize,
                                                   seed=seed)
     time12=proc.time()[3]
-    message("Estimation done for the ", iii,"th final reference taxon: ",allRefTaxNam[iii],
+    message("Estimation done for the ", iii,"th final reference taxon: ",
             " and it took ",round((time12-time11)/60,3)," minutes")
   }
 
