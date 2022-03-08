@@ -166,11 +166,5 @@ MZILN=function(
 
   results$totalTimeMins=totalTimeMins
 
-  if (length(targetTaxa)>0) {
-    print(results$analysisResults$targettaxa_result_list)
-  } else {
-    print(results$analysisResults$sig_results)
-  }
-
   return(results)
 }
