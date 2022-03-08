@@ -43,18 +43,18 @@
 ##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
 ##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
 ##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
-##' @param nRefMaxForEsti The maximum number of reference taxa used in phase 2. The default is `1`.
+##' @param nRefMaxForEsti The maximum number of reference taxa used in phase 2. The default is `2`.
 ##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
-##' @param refReadsThresh The threshold of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
-##' @param taxkeepThresh The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis.
-##' @param SDThresh The threshold of standard deviations of sequencing reads for choosing the reference taxon in phase 2. The default is `0.5` which means the standard deviation of sequencing reads should be at least `0.5`.
-##' @param SDquantilThresh Threshold for the quantile of standard deviation for selecting final reference taxon
-##' @param balanceCut The threshold of non-zero sequencing reads in each group of a binary variable for choosing the reference taxon in phase 2. The default number is `0.2` which means at least 20% sequencing reads are non-zero in each group.
-##' @param seed Random seed for reproducibility. Default is `1`.
+##' @param refReadsThresh The threshold of proportion of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
+##' @param taxkeepThresh The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `0` which means taxon with at least `0` sequencing reads will be included into the analysis
+##' @param SDThresh The threshold of standard deviations of sequencing reads for been chosen as the reference taxon in phase 2. The default is `0.05` which means the standard deviation of sequencing reads should be at least `0.05` in order to be chosen as reference taxon.
+##' @param SDquantilThresh The quantile of standard deviation of sequencing reads, above which could be selected as reference taxon. The default is `0`.
+##' @param balanceCut The proportion of non-zero sequencing reads in each group of a binary variable for choosing the reference taxon in phase 2. The default number is `0.2` which means at least 20% sequencing reads are non-zero in each group.
+##' @param seed Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding.
 ##' @return A list containing the estimation results.
 ##'
-##' - `analysisResults$sig_results`: A list containing estimating results that are statistically significant.
-##' - `analysisResults$full_results`: A list containing all estimating results. NA denotes unestimable.
+##' - `sig_results`: A list containing estimating results that are statistically significant.
+##' - `full_results`: A list containing all estimating results. NA denotes unestimable.
 ##'
 ##' - `covariatesData`: A dataset containing covariates and confounders used in the analyses.
 ##'
@@ -87,7 +87,6 @@
 ##' @importFrom future availableCores
 ##' @importFrom Matrix Diagonal Matrix
 ##' @importFrom HDCI bootLOPR
-##' @importFrom picasso picasso
 ##' @importFrom qlcMatrix corSparse
 ##' @import expm
 ##' @import rlecuyer
@@ -112,7 +111,6 @@ IFAA=function(
   nRef=40,
   nRefMaxForEsti=2,
   refTaxa=NULL,
-  # refTaxa_P2=NULL,
   adjust_method="BY",
   fdrRate=0.25,
   paraJobs=NULL,
@@ -156,22 +154,12 @@ IFAA=function(
     }
   }
 
-  # if(length(refTaxa_P2)>0){
-  #   if(sum(refTaxa_P2%in%microbName)!=length(refTaxa_P2)){
-  #     stop("Error: One or more of the specified reference taxa in phase 2 have no sequencing reads
-  #     or are not in the data set. Double check the names of the reference taxa and their
-  #          sparsity levels.")
-  #   }
-  # }
 
   if (nRefMaxForEsti<2) {
     nRefMaxForEsti<-2
     warning("Warning: Needs at least two final reference taxon for estimation.")
   }
 
-  # if (length(refTaxa_P2)>0) {
-  #   nRef=length(refTaxa_P2)
-  # }
 
   if(nRef>(length(microbName))){
     stop("Error: number of random reference taxa can not be larger than the total number
@@ -179,7 +167,6 @@ IFAA=function(
   }
 
   refTaxa_newNam=newMicrobNames[microbName%in%refTaxa]
-  # refTaxa_P2_newNam=newMicrobNames[microbName%in%refTaxa_P2]
 
 
   results$analysisResults=Regulariz(data=data,testCovInd=testCovInd,
@@ -190,7 +177,6 @@ IFAA=function(
                                     binaryInd=binaryInd,
                                     covsPrefix=covsPrefix,Mprefix=Mprefix,
                                     refTaxa=refTaxa_newNam,
-                                    # refTaxa_P2=refTaxa_P2_newNam,
                                     paraJobs=paraJobs,
                                     adjust_method=adjust_method,
                                     fwerRate=fdrRate,
@@ -203,6 +189,9 @@ IFAA=function(
                                     balanceCut=balanceCut,seed=seed
   )
   rm(data)
+
+  results$sig_results<-results$analysisResults$sig_results
+  results$full_results<-results$analysisResults$full_results
 
   results$testCov=testCovInOrder
   results$ctrlCov=ctrlCov

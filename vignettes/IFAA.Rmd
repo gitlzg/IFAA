@@ -81,23 +81,27 @@ The `IFAA()` function is the main function. The User Inputs are:
 
 - `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 
-- `nRefMaxForEsti`: The maximum number of reference taxa used in phase 2. The default is `1`.
+- `nRefMaxForEsti`: The maximum number of reference taxa used in phase 2. The default is `2`.
 
 - `bootB`: Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
 
-- `refReadsThresh`: The threshold of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
+- `refReadsThresh`: The threshold of proportion of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
 
-- `SDThresh`: The threshold of standard deviations of sequencing reads for choosing the reference taxon in phase 2. The default is `0.5` which means the standard deviation of sequencing reads should be at least `0.5`.
+- `taxkeepThresh`: The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `0` which means taxon with at least `0` sequencing reads will be included into the analysis.
 
-- `balanceCut`: The threshold of non-zero sequencing reads in each group of a binary variable for choosing the reference taxon in phase 2. The default number is `0.2` which means at least 20% sequencing reads are non-zero in each group.
+- `SDThresh`: The threshold of standard deviations of sequencing reads for been chosen as the reference taxon in phase 2. The default is `0.05` which means the standard deviation of sequencing reads should be at least `0.05` in order to be chosen as reference taxon.
 
-- `seed`: Random seed for reproducibility. Default is `1`.
+- `SDquantilThresh`: The quantile of standard deviation of sequencing reads, above which could be selected as reference taxon. The default is `0`.
+
+- `balanceCut`: The proportion of non-zero sequencing reads in each group of a binary variable for choosing the reference taxon in phase 2. The default number is `0.2` which means at least 20% sequencing reads are non-zero in each group.
+
+- `seed`: Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding. 
 
 The output of `IFAA()` function is a list. The estimation results can extracted as the following: 
 
-- `analysisResults$sig_results`: A list containing estimating results that are statistically significant. 
+- `sig_results`: A list containing estimating results that are statistically significant. 
 
-- `analysisResults$full_results`: A list containing all estimating results. NA denotes unestimable.
+- `full_results`: A list containing all estimating results. NA denotes unestimable.
 
 The covariates data including `testCov` and `ctrlCov` can be extracted in the output:
 
@@ -140,9 +144,9 @@ results <- IFAA(MicrobData = dataM,
 
 In this example, we are only interested in testing the association with `"v1"` and `"v2"` which is why `testCov=c("v1,"v2")`. The variable `"v3"` is adjusted as a potential confounder in the analyses. For the sake of speed in this hypothetical example, we set small numbers for `nRef=4`, `nPermu=4` and `bootB=5`. These are just for illustration purpose here and are too small for a formal analysis to generate valid results. 
 
-The final analysis results are stored in the list `analysisResults$sig_results`: 
+The final analysis results are stored in the list `sig_results`: 
 ```{r,eval=T}
-results$analysisResults$sig_results
+results$sig_results
 ```
 The results found the two taxa `"rawCount23"` and `"rawCount32"` associated with `"v2"`. The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\beta^k$ in the model equation. 
 
@@ -191,13 +195,14 @@ The `MZILN()` function is to implement the Multivariate Zero-Inflated Logistic N
 - `standardize` This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 - `bootB` Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
 - `bootLassoAlpha` The significance level in phase 2. Default is `0.05`.
-- `taxkeepThresh` The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis.
-- `seed` Random seed for reproducibility. Default is `1`.
+- `taxkeepThresh` The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `0` which means taxon with at least `0` sequencing reads will be included into the analysis.
+
+- `seed` Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding. 
 
 The output of `MZILN()` function is a list. The estimation results can extracted as the following: 
 
-- `analysisResults$full_results`: A list containing estimating results for all significant taxa.
-- `analysisResults$targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is non-empty.
+- `sig_results`: A list containing estimating results for all significant taxa.
+- `targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is non-empty.
 
 All covariates data can be extracted:
 
@@ -239,9 +244,9 @@ In this example, we are only interested in testing the associations with `"v1"`,
 The reference taxa is set to be `"rawCount11"`, and the taxa we are interested in is `"rawCount6"`, so that `refTaxa=c("rawCount11")` and `targetTaxa = "rawCount6"`. 
 
 The final analysis results are stored in the list
-`results$analysisResults$targettaxa_result_list`: 
+`results$targettaxa_result_list`: 
 ```{r,eval=T}
-results$analysisResults$targettaxa_result_list
+results$targettaxa_result_list
 ```
 The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\alpha^k$ in the model equation, and can be interpreted as the associations between the covariates and log-ratio of the significant taxa over the reference taxon. 
 

@@ -8,7 +8,6 @@ Regulariz=function(
   nRef,
   nRefMaxForEsti,
   refTaxa,
-  # refTaxa_P2,
   paraJobs,
   binaryInd,
   covsPrefix,
@@ -45,7 +44,6 @@ Regulariz=function(
   nTaxa=data.info$nTaxa
   rm(data.info)
 
-  # results$x1permut=x1permut
 
   regul.start.time = proc.time()[3]
   message("Start Phase 1 analysis")
@@ -106,7 +104,6 @@ Regulariz=function(
 
     fin_ref_2<-selectRegroup$finalIndpRefTax
     ref_taxa_2<-selectRegroup$refTaxa
-    # cat(fin_ref_2,"\n",ref_taxa_2,"\n")
     while_loop_ind<-identical(fin_ref_1,fin_ref_2) || identical(ref_taxa_1,ref_taxa_2)
 
     if(while_loop_ind==FALSE){
@@ -123,10 +120,11 @@ Regulariz=function(
   results$finalRefTaxonQualified=selectRegroup$refTaxonQualified
   results$goodIndpRefTaxLeastCount=microbName[taxaNames%in%(selectRegroup$goodIndpRefTaxLeastCount)]
   results$goodIndpRefTaxWithCount=selectRegroup$goodIndpRefTaxWithCount
-  names(results$goodIndpRefTaxWithCount)=microbName[taxaNames%in%names(selectRegroup$goodIndpRefTaxWithCount)]
+  names(results$goodIndpRefTaxWithCount)=microbName[sapply(names(selectRegroup$goodIndpRefTaxWithCount),function(x) which(taxaNames%in%x))]
 
   results$goodIndpRefTaxWithEst=selectRegroup$goodIndpRefTaxWithEst
-  names(results$goodIndpRefTaxWithEst)=microbName[taxaNames%in%names(selectRegroup$goodIndpRefTaxWithEst)]
+  names(results$goodIndpRefTaxWithEst)=microbName[sapply(names(selectRegroup$goodIndpRefTaxWithEst),function(x) which(taxaNames%in%x))]
+
 
   results$goodRefTaxaCandi=microbName[taxaNames%in%(selectRegroup$goodRefTaxaCandi)]
   results$randomRefTaxa=microbName[taxaNames%in%(selectRegroup$refTaxa)]
@@ -155,7 +153,6 @@ Regulariz=function(
 
   if(length(binaryInd)>0){
     qualifyData=data[rowSums(data[,taxaNames]>0)>=2,,drop=FALSE]
-    # firstBinPredNam=paste0(covsPrefix,binaryInd)
     allBinPred=paste0(covsPrefix,binaryInd)
     nBinPred=length(allBinPred)
 
@@ -181,7 +178,6 @@ Regulariz=function(
   rm(qualifyData)
   unestimableTaxa=unique(c(unestimableTaxa,taxaNames[TaxaNoReads]))
   results$unEstTaxa=microbName[taxaNames%in%unestimableTaxa]
-  # rm(TaxaNoReads,unestimableTaxa)
 
 
 
@@ -199,7 +195,6 @@ Regulariz=function(
     time11=proc.time()[3]
     originTaxNam=allRefTaxNam[iii]
     newRefTaxNam=taxaNames[microbName%in%originTaxNam]
-    # bootLassoAlpha_bon<- 1-fwerRate^(1/(nTaxa-1))
     bootLassoAlpha_bon<-0.05
     results$estiList[[originTaxNam]]=bootResuHDCI(data=data,
                                                   refTaxa=newRefTaxNam,
@@ -240,9 +235,7 @@ Regulariz=function(
 
   exclu_1<-!colnames(all_cov_list[[1]]$est_save_mat)%in%ref_taxon_name[2]
   exclu_2<-!colnames(all_cov_list[[2]]$est_save_mat)%in%ref_taxon_name[1]
-  # testCovInOrder<-IFAAresul$testCov
 
-  # subset(all_cov_list[[1]]$est_save_mat,select = -exclu_1)
 
   est_save_mat_mean<-(all_cov_list[[1]]$est_save_mat[,exclu_1,drop=FALSE]+all_cov_list[[2]]$est_save_mat[,exclu_2,drop=FALSE])/2
   se_mat_mean<-(all_cov_list[[1]]$se_mat[,exclu_1,drop=FALSE]+all_cov_list[[2]]$se_mat[,exclu_2,drop=FALSE])/2
@@ -299,13 +292,11 @@ Regulariz=function(
 
   results$nTaxa=nTaxa
   results$nPredics=nPredics
-  # return(results)
 
   rm(data)
 
   # return results
-  # results$fwerRate=fwerRate
-  # results$nPermu=nPermu
+
   results$nRef=nRef
   return(results)
 }

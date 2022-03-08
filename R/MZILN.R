@@ -35,12 +35,12 @@
 ##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
 ##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
 ##' @param bootLassoAlpha The significance level in phase 2. Default is `0.05`.
-##' @param taxkeepThresh The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis.
-##' @param seed Random seed for reproducibility. Default is `1`.
+##' @param taxkeepThresh The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `0` which means taxon with at least `0` sequencing reads will be included into the analysis.
+##' @param seed Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding.
 ##' @return A list containing the estimation results.
 ##'
-##' - `analysisResults$sig_results`: A list containing estimating results for all significant taxa.
-##' - `analysisResults$targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is given.
+##' - `sig_results`: A list containing estimating results for all significant taxa.
+##' - `targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is non-empty.
 ##' - `covariatesData`: A dataset containing all covariates used in the analyses.
 ##'
 ##' @examples
@@ -94,7 +94,6 @@ MZILN=function(
   results=list()
 
   start.time = proc.time()[3]
-  # MZILN=TRUE
   runMeta=metaData(MicrobData=MicrobData,CovData=CovData,
                    linkIDname=linkIDname,testCov=allCov,
                    taxkeepThresh=taxkeepThresh)
@@ -144,6 +143,8 @@ MZILN=function(
   )
   rm(data)
 
+  results$sig_results<-results$analysisResults$sig_results
+  results$targettaxa_result_list<-results$analysisResults$targettaxa_result_list
   results$testCov=testCovInOrder
   results$ctrlCov=ctrlCov
   results$microbName=microbName
@@ -168,7 +169,7 @@ MZILN=function(
   if (length(targetTaxa)>0) {
     print(results$analysisResults$targettaxa_result_list)
   } else {
-    print(results$analysisResults$all_cov_sig_list)
+    print(results$analysisResults$sig_results)
   }
 
   return(results)

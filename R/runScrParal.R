@@ -62,9 +62,7 @@ runScrParal=function(
       message("The number of candidate reference taxon is smaller than the number of taxon required in phase 1.
               The number of taxon was set to be ",num_to_be_sample)
     }
-    # if (num_to_be_sample==0) {
-    #   stop("No candidate reference taxon is available. Please try to lower the reference taxon boundary.")
-    # }
+
     refTaxa_extra=sample(taxon_to_be_sample,num_to_be_sample)
     refTaxa=c(refTaxa,refTaxa_extra)
     results$refTaxa=refTaxa
@@ -99,17 +97,12 @@ runScrParal=function(
                            seed=seed)
 
   maxMemUsedInMb=sum(gc()[,6])
-  # message("maximum memory used after phase 1a: ",maxMemUsedInMb," Mb")
 
   results$countOfSelecForAPred=screen1$countOfSelecForAPred
   results$estOfSelectForAPred<-screen1$estOfSelectForAPred
-  yTildLongList=screen1$yTildLongList
   results$testCovCountMat=screen1$testCovCountMat
   results$testEstMat<-screen1$testEstMat
-  # Alist=screen1$Alist
-  # Wlist=screen1$Wlist
-  # twoList=screen1$twoList
-  # lengthTwoList=screen1$lengthTwoList
+
 
 
 

@@ -96,7 +96,6 @@ dataInfo=function(
           twoColumns.ij=qualifyData[,c(taxaNames[i],allBinPred[j])]
           nNonZero=length(which(twoColumns.ij[,1]>0))
           sumOfBin=sum(twoColumns.ij[(twoColumns.ij[,1]>0),2])
-          cat(sumOfBin," ",nNonZero,"\n")
           rm(twoColumns.ij)
           if(min(sumOfBin,(nNonZero-sumOfBin))>=floor(balanceCut*nSubQualif)){
             taxaBalanceBin=c(taxaBalanceBin,taxaNames[i])

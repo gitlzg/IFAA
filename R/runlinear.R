@@ -13,21 +13,12 @@ runlinear=function(
 
   results=list()
 
-  # print("start glmnet function")
-  # print(paste("nrow of x: ",nrow(x)))
-  # print(paste("ncol of x: ",ncol(x)))
-
   nBeta=ncol(x)
 
   nObsAll=length(y)
   print(paste("length of y: ",length(y)))
 
-  # sdX=apply(x,2,sd)
-  # xWithNearZeroSd=which(sdX<=zeroSDCut)
-  # if(length(xWithNearZeroSd)>0){
-  #   x=x[,-xWithNearZeroSd,drop=FALSE]
-  # }
-  # rm(sdX)
+
 
   lm_res<-lm(as.vector(y)~as.matrix(x)-1)
 
@@ -54,10 +45,7 @@ runlinear=function(
   results$betaInt=p_value_est
   results$coef_est_noint=coef_est_noint
 
-  # rm(beta)
-  # results$SSE=cvm
-  # rm(cvm)
+
   return(results)
 }
 
-# runGlmnet(x=x,y=y,nPredics)

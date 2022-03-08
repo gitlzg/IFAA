@@ -13,22 +13,15 @@ runGlmnet=function(
   standardize=FALSE,
   intercept=TRUE,
   zeroSDCut=0
-  #zeroSDCut=10^(-40)
 ){
 
   results=list()
 
-  # print("start glmnet function")
-  # print(paste("nrow of x: ",nrow(x)))
-  # print(paste("ncol of x: ",ncol(x)))
 
   nBeta=ncol(x)
 
   nObsAll=length(y)
-  # print(paste("length of y: ",length(y)))
 
-  # center y if continuous
-  # if(family=="gaussian"){y=y-mean(y)}
 
   # remove near constant x columns
   sdX=apply(x,2,sd)
@@ -40,13 +33,10 @@ runGlmnet=function(
 
   # calculate lambda max
   if(family=="gaussian"){lamMax=max(abs(Matrix::colSums(x*y)))/nObsAll}
-  #lamVec=seq(lamMax,(lamMax*lambda.min.ratio),length=nLam)
   lamVec=seq(lamMax,0,length=(nLam+1))[1:nLam]
 
-  # print("Start cross validatoin with glmnet")
   cvStartTime= proc.time()[3]
 
-  #set.seed(123)
 
     cvStartTimei = proc.time()[3]
 
@@ -54,7 +44,6 @@ runGlmnet=function(
                       family=family,intercept=intercept,standardize=standardize)
 
     cvExeTimei= (proc.time()[3] - cvStartTimei)/60
-    # print(paste("The cross validation with glmnet is done and took",cvExeTimei,"minutes"))
 
     lamOpi=as.numeric(cvResul$lambda.min)
     cvm=as.vector(cvResul$cvm)*nObsAll
@@ -63,14 +52,10 @@ runGlmnet=function(
     rm(cvResul)
 
   cvAllTime= (proc.time()[3] - cvStartTime)/60
-  # print(paste("Cross validation with glmnet is done and took", cvAllTime, "minutes"))
 
-  results$lamList=lamVec
   rm(lamVec)
-  results$lambda=lamOpi
-  rm(lamOpi)
 
-  finalLassoRun=glmnet(x=x,y=as.vector(y),lambda=results$lambda,family=family,
+  finalLassoRun=glmnet(x=x,y=as.vector(y),lambda=lamOpi,family=family,
                        intercept=intercept,standardize=standardize)
   rm(x,y)
 
@@ -84,21 +69,15 @@ runGlmnet=function(
     beta=betaTrans$finalBeta
     rm(betaTrans)
 
-    # print("beta should be set to 0:")
-    # print(xWithNearZeroSd)
     rm(xWithNearZeroSd)
     } else {
      beta=finalLassoRunBeta
      }
   rm(finalLassoRun)
 
-  # return
   results$betaNoInt=beta[-seq(1,length(beta),by=(nPredics+1))]
-  results$betaInt=beta
   rm(beta)
-  results$SSE=cvm
   rm(cvm)
   return(results)
 }
 
-# runGlmnet(x=x,y=y,nPredics)

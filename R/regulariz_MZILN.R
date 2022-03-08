@@ -37,7 +37,6 @@ Regulariz_MZILN=function(
   rm(data.info)
 
   refTaxa_reOrder=microbName[taxaNames%in%refTaxa]
-  # newRefTaxNam=taxaNames[microbName%in%originTaxNam]
 
 
   betaMatList=list()
@@ -67,13 +66,8 @@ Regulariz_MZILN=function(
     message("Estimation done for the ", iii,"th reference taxon: ",refTaxa_reOrder[iii],
             " and it took ",round((time12-time11)/60,2)," minutes")
 
-    # estiResults=results$estiList[[refTaxa_reOrder[iii]]]
 
-    # betaMatList[[iii]]=as(matrix(estiResults$finalBetaEst.LPR,nrow=nPredics),"sparseMatrix")
-    # CILowMatList[[iii]]=as(matrix(estiResults$CIvecLow.LPR,nrow=nPredics),"sparseMatrix")
-    # CIUpMatList[[iii]]=as(matrix(estiResults$CIvecUp.LPR,nrow=nPredics),"sparseMatrix")
   }
-  # rm(estiResults)
 
   fin_ref_taxon_name<-names(results$estiList)
   all_cov_sig_list<-list()
@@ -102,19 +96,11 @@ Regulariz_MZILN=function(
         ref_each_save_list[[rownames(est_to_keep)[j]]]<-res_show_mat
       }
       tgtaxa_save_list[[fin_ref_taxon_name[i]]]<-ref_each_save_list
-      # for (j in 1:length(targetTaxa)) {
-      #
-      # }
+
     }
   }
 
-  # full_results<-list()
-  # for (j in testCovInOrder) {
-  #   est_res_save_all<-cbind(est_save_mat_mean[j,],se_mat_mean[j,],CI_low_mat_mean[j,],
-  #                           CI_up_mat_mean[j,],p_value_adj_mean[j,])
-  #   colnames(est_res_save_all)<-c("estimate","SE est","CI low","CI up","adj p-value")
-  #   full_results[[j]]<-est_res_save_all
-  # }
+
 
   results$full_results<-all_cov_list
   results$sig_results<-all_cov_sig_list

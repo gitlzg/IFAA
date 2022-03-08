@@ -42,7 +42,6 @@ dataRecovTrans=function(
       dim=L[i]-1
       a=(1+(dim-2)/2)/(1/2*(1+(dim-1)/2))
       b=-1/(1+(dim-1)/2)
-      #omega[[i]]=1/2*((a-b)*Diagonal(dim)+b*matrix(1,nrow=dim,ncol=dim))
 
       # calculate the square root of omega assuming it is exchangeable
       aStar=dim^2/((dim-1)^2)
