@@ -27,7 +27,7 @@ RdMacros: mathjaxr
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2022-03-08 01:27:41 UTC; quranwu
+Packaged: 2022-03-09 03:15:42 UTC; quranwu
 Author: Quran Wu [aut],
   Zhigang Li [aut, cre]
 Maintainer: Zhigang Li <zhigang.li@ufl.edu>
