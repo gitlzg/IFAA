@@ -55,7 +55,7 @@ results <- MZILN(MicrobData = dataM,
                  refTaxa=c("rawCount11"),
                  allCov=c("v1","v2","v3"))
 ```
-Significant regression results including confidence intervals can be extracted in the following way:
+Regression results including confidence intervals for the targeted ratios can be extracted in the following way:
 ```r
 results$targettaxa_result_list
 ```
