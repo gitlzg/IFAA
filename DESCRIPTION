@@ -19,7 +19,7 @@ URL: https://github.com/gitlzg/IFAA,
 LazyData: true
 RoxygenNote: 7.1.2
 Depends: R (>= 3.6.0),
-Imports: mathjaxr (>= 1.0-1), expm (>= 0.999-3), foreach (>= 1.4.3), 
+Imports: mathjaxr (>= 1.0-1), qlcMatrix (>= 0.9.7), expm (>= 0.999-3), foreach (>= 1.4.3), 
          rlecuyer (>= 0.3-3), Matrix (>= 1.4-0), HDCI (>= 1.0-2), 
          parallel (>= 3.3.0), doParallel (>= 1.0.11), future (>= 1.12.0), 
          glmnet, stats
