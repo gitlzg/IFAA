@@ -11,7 +11,6 @@ runScrParal=function(
   nRef,
   paraJobs,
   refTaxa,
-  fwerRate,
   maxDimensionScr=0.8*434*10*10^4,
   standardize,
   sequentialRun,
@@ -86,7 +85,7 @@ runScrParal=function(
   gc(reset=TRUE)
 
   screen1=originDataScreen(data=data,testCovInd=testCovInd,
-                           nRef=nRef,refTaxa=refTaxa,fwerRate=fwerRate,
+                           nRef=nRef,refTaxa=refTaxa,
                            paraJobs=paraJobs,
                            allFunc=allFunc,Mprefix=Mprefix,
                            covsPrefix=covsPrefix,

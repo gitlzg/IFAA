@@ -8,7 +8,6 @@ originDataScreen=function(
   nRef,
   paraJobs,
   refTaxa,
-  fwerRate,
   maxDimensionScr=434*5*10^5,
   standardize,
   sequentialRun,

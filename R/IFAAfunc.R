@@ -1,7 +1,8 @@
 ##' Robust association identification and inference for absolute abundance in microbiome analyses
 ##'
-##' Make inference on the association of covariates of microbiome
+##' Make inference on the association of microbiome with covariates
 ##'
+##' Most of the time, users just need to feed the first five inputs to the function: `MicrobData`, `CovData`, `linkIDname`, `testCov` and `ctrlCov`. All other inputs can just take their default values. 
 ##' To model the association, the following equation is used:
 ##'
 ##' \loadmathjax
@@ -18,8 +19,7 @@
 ##' \mjeqn{Y_i^k=C_i\mathcal{Y}^k_i}{}, where \mjeqn{C_i}{} is an unknown number between 0
 ##' and 1 that denote the observed proportion.
 ##'
-##' The IFAA method can handle this challenge by
-##' identifying and employing reference taxa. The `IFAA()` will estimate the parameter
+##' The IFAA method can successfully addressed this challenge. The `IFAA()` will estimate the parameter
 ##' \mjeqn{\beta^k}{} and their 95% confidence intervals. High-dimensional \mjeqn{X_i}{} is handled by
 ##' regularization.
 ##'
@@ -37,19 +37,19 @@
 ##' @param testMany This takes logical value `TRUE` or `FALSE`. If `TRUE`, the `testCov` will contain all the variables in `CovData` provided `testCov` is set to be `NULL`. The default value is `TRUE` which does not do anything if `testCov` is not `NULL`.
 ##' @param ctrlMany This takes logical value `TRUE` or `FALSE`. If `TRUE`, all variables except `testCov` are considered as control covariates provided `ctrlCov` is set to be `NULL`. The default value is `FALSE`.
 ##' @param nRef The number of randomly picked reference taxa used in phase 1. Default number is `40`.
+##' @param nRefMaxForEsti The maximum number of final reference taxa used in phase 2. The default is `2`.
 ##' @param refTaxa A vector of taxa or OTU or ASV names. These are reference taxa specified by the user to be used in phase 1. If the number of reference taxa is less than 'nRef', the algorithm will randomly pick extra reference taxa to make up 'nRef'. The default is `NULL` since the algorithm will pick reference taxa randomly.
-##' @param adjust_method The adjusting method used for p value adjustment. Same as p.adjust function in R.
-##' @param fdrRate The false discovery rate for identifying taxa/OTU/ASV associated with `testCov`. Default is `0.25`.
-##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
-##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
+##' @param adjust_method The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
+##' @param fdrRate The false discovery rate for identifying taxa/OTU/ASV associated with `testCov`. Default is `0.15`.
+##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. 
+##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates in phase 2 for the high dimensional regression. The default is `500`.
 ##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
-##' @param nRefMaxForEsti The maximum number of reference taxa used in phase 2. The default is `2`.
-##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
+##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
 ##' @param refReadsThresh The threshold of proportion of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
 ##' @param taxkeepThresh The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `0` which means taxon with at least `0` sequencing reads will be included into the analysis
 ##' @param SDThresh The threshold of standard deviations of sequencing reads for been chosen as the reference taxon in phase 2. The default is `0.05` which means the standard deviation of sequencing reads should be at least `0.05` in order to be chosen as reference taxon.
-##' @param SDquantilThresh The quantile of standard deviation of sequencing reads, above which could be selected as reference taxon. The default is `0`.
-##' @param balanceCut The proportion of non-zero sequencing reads in each group of a binary variable for choosing the reference taxon in phase 2. The default number is `0.2` which means at least 20% sequencing reads are non-zero in each group.
+##' @param SDquantilThresh The threshold of the quantile of standard deviation of sequencing reads, above which could be selected as reference taxon. The default is `0`.
+##' @param balanceCut The threshold of the proportion of non-zero sequencing reads in each group of a binary variable for choosing the final reference taxa in phase 2. The default number is `0.2` which means at least 20% non-zero sequencing reads in each group are needed to be eligible for being chosen as a final reference taxon.
 ##' @param seed Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding.
 ##' @return A list containing the estimation results.
 ##'
@@ -70,10 +70,8 @@
 ##'                 CovData = dataC,
 ##'                 linkIDname = "id",
 ##'                 testCov = c("v1", "v2"),
-##'                 ctrlCov = c("v3"), nRef = 3,
-##'                 paraJobs = 2,
-##'                 fdrRate = 0.25,
-##'                 bootB = 5)
+##'                 ctrlCov = c("v3"), 
+##'                 fdrRate = 0.15)
 ##'
 ##'}
 ##'
@@ -112,13 +110,13 @@ IFAA=function(
   nRefMaxForEsti=2,
   refTaxa=NULL,
   adjust_method="BY",
-  fdrRate=0.25,
+  fdrRate=0.15,
   paraJobs=NULL,
   bootB=500,
   standardize=FALSE,
   sequentialRun=FALSE,
   refReadsThresh=0.2,
-  taxkeepThresh=0,
+  taxkeepThresh=1,
   SDThresh=0.05,
   SDquantilThresh=0,
   balanceCut=0.2,

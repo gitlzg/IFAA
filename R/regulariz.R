@@ -52,7 +52,7 @@ Regulariz=function(
                            testCovInOrder=testCovInOrder,
                            testCovInNewNam=testCovInNewNam,nRef=nRef,
                            paraJobs=paraJobs,
-                           refTaxa=refTaxa,fwerRate=fwerRate,
+                           refTaxa=refTaxa,
                            standardize=standardize,
                            sequentialRun=sequentialRun,
                            allFunc=allFunc,
@@ -87,7 +87,7 @@ Regulariz=function(
                              testCovInOrder=testCovInOrder,
                              testCovInNewNam=testCovInNewNam,nRef=nRef_smaller,
                              paraJobs=paraJobs,
-                             refTaxa=refTaxa_smaller,fwerRate=fwerRate,
+                             refTaxa=refTaxa_smaller,
                              standardize=standardize,
                              sequentialRun=sequentialRun,
                              allFunc=allFunc,
@@ -189,11 +189,11 @@ Regulariz=function(
 
   results$estiList=list()
   for(iii in 1:(results$nRefUsedForEsti)){
-    message("Start estimation for the ", iii,"th final reference taxon: ")
+    message("Start estimation for the ", iii,"th final reference taxon")
     time11=proc.time()[3]
     originTaxNam=allRefTaxNam[iii]
     newRefTaxNam=taxaNames[microbName%in%originTaxNam]
-    bootLassoAlpha_bon<-0.05
+    bootLassoAlpha_bon<-fwerRate
     results$estiList[[originTaxNam]]=bootResuHDCI(data=data,
                                                   refTaxa=newRefTaxNam,
                                                   originRefTaxNam=originTaxNam,
@@ -208,8 +208,7 @@ Regulariz=function(
                                                   standardize=standardize,
                                                   seed=seed)
     time12=proc.time()[3]
-    message("Estimation done for the ", iii,"th final reference taxon: ",
-            " and it took ",round((time12-time11)/60,3)," minutes")
+    message("Estimation done for the ", iii,"th final reference taxon and it took ",round((time12-time11)/60,3)," minutes")
   }
 
   endT=proc.time()[3]

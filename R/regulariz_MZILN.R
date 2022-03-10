@@ -13,7 +13,6 @@ Regulariz_MZILN=function(
   Mprefix,
   fdrRate,
   bootB,
-  bootLassoAlpha,
   standardize,
   sequentialRun,
   allFunc=allFunc,
@@ -47,7 +46,7 @@ Regulariz_MZILN=function(
     time11=proc.time()[3]
     originTaxNam=refTaxa_reOrder[iii]
     newRefTaxNam<-refTaxa[iii]
-    bootLassoAlpha_bon<-0.05
+    bootLassoAlpha_bon<-fdrRate
     results$estiList[[originTaxNam]]=bootResuHDCI(data=data,
                                                   refTaxa=newRefTaxNam,
                                                   originRefTaxNam=originTaxNam,
