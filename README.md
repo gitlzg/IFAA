@@ -22,10 +22,8 @@ data(dataC)
 results <- IFAA(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
-                testCov = c("v1", "v2"),
-                ctrlCov = c("v3"),
-                nRef = 3,
-                paraJobs = 2)
+                testCov = c("v1"),
+                ctrlCov = c("v2","v3"))
 ```
 
 
@@ -53,14 +51,13 @@ Use sample datasets to run `MZILN()` function.
 results <- MZILN(MicrobData = dataM,
                 CovData = dataC,
                  linkIDname = "id",
-                 allCov=c("v1","v2","v3"),
-                 targetTaxa = "rawCount6",
+                 targetTaxa = "rawCount18",
                  refTaxa=c("rawCount11"),
-                 paraJobs=2)
+                 allCov=c("v1","v2","v3"))
 ```
 Significant regression results including confidence intervals can be extracted in the following way:
 ```r
-results$sig_results
+results$targettaxa_result_list
 ```
 
 ## References 
