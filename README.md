@@ -2,7 +2,7 @@
 
 ## Overview
 
-IFAA is a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. 
+IFAA is a robust approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. 
 
 ## Installation
 ```r
@@ -13,7 +13,7 @@ devtools::install_github("gitlzg/IFAA")
 
 Use sample datasets to run `IFAA()` function.
 ```r
-# Detailed instructions on the package are provided in the manual and vignette
+# Detailed instructions on the package are provided in the vignettes and manual
 library(IFAA)
  
 data(dataM)
