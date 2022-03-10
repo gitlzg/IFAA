@@ -1,6 +1,7 @@
 ---
 title: "IFAA"
 output: rmarkdown::html_vignette
+#output: pdf_document
 vignette: >
   %\VignetteIndexEntry{IFAA}
   %\VignetteEngine{knitr::rmarkdown}
@@ -16,7 +17,7 @@ knitr::opts_chunk$set(
 library(IFAA)
 ```
 
-IFAA is a novel approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. It can be also directly applied to relative abundance (RA) data to make inference on AA because the ratio of two RA is equal ratio of their AA. This algorithm can estimate and test the associations of interest while adjusting for potential confounders. High-dimensional covariates are handled with regularization. The estimates of this method have easy interpretation like a typical regression analysis. This algorithm can find optimal reference taxa/OTU/ASV and control FDR by permutation.
+IFAA is a robust approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. It can be also directly applied to relative abundance (RA) data to make inference on AA because the ratio of two RA is equal ratio of their AA. This algorithm can estimate and test the associations of interest while adjusting for potential confounders. High-dimensional covariates are handled with regularization. The estimates of this method have easy interpretation like a typical regression analysis. This algorithm can find optimal reference taxa/OTU/ASV and control FDR by permutation. The IFAA package also offers the 'MZILN' function for estimating and testing associations of abundance ratios with covariates.
 
 To model the association, the following equation is used: 
 $$
@@ -34,7 +35,7 @@ where
 
 - $\beta^k$ is the regression coefficients that will be estimated and tested with the `IFAA()` function.
 
-The challenge in microbiome analysis is that we can not oberve $\mathcal{Y}_i^k$. What is observed is its small proportion: $Y_i^k=C_i\mathcal{Y}^k_i$ where $C_i$ is an unknown number between 0 and 1 that denote the observed proportion. The IFAA method can handle this challenge by identifying and employing reference taxa.
+The challenge in microbiome analysis is that we can not oberve $\mathcal{Y}_i^k$. What is observed is its small proportion: $Y_i^k=C_i\mathcal{Y}^k_i$ where $C_i$ is an unknown number between 0 and 1 that denote the observed proportion. The IFAA method successfuly addressed this challenge.
 
 ## Package installation 
 
@@ -51,15 +52,15 @@ require(devtools)
 devtools::install_github("gitlzg/IFAA")
 ```
 
-## Input and Output for IFAA() function
+## Input for IFAA() function
 
-The `IFAA()` function is the main function. The User Inputs are: 
+Most of the time, users just need to feed the first five inputs to the function: `MicrobData`, `CovData`, `linkIDname`, `testCov` and `ctrlCov`. All other inputs can just take their default values. Below are all the inputs of the functions
 
-- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
+- `MicrobData`: Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to be linked with the id variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, `CovData="C://...//covariatesData.tsv"`.
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an id variable to be linked with the id variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, `CovData="C://...//covariatesData.tsv"`.
 
-- `linkIDname`: Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
+- `linkIDname`: The common variable name of the id variable in both `MicrobData` and `CovData`. The two data sets will be merged by this id variable.
 
 - `testCov`: Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is `NULL` which means all covariates are `testCov`.
 
@@ -70,34 +71,30 @@ The `IFAA()` function is the main function. The User Inputs are:
 - `ctrlMany`: This takes logical value `TRUE` or `FALSE`. If `TRUE`, all variables except `testCov` are considered as control covariates provided `ctrlCov` is set to be `NULL`. The default value is `FALSE`.
 
 - `nRef`: The number of randomly picked reference taxa used in phase 1. Default number is `40`. 
-
-- `refTaxa`: A vector of taxa names. These are reference taxa specified by the user to be used in phase 1. If the number of reference taxa is less than 'nRef', the algorithm will randomly pick extra reference taxa to make up 'nRef'. The default is `NULL` since the algorithm will pick reference taxa randomly. 
-
-- `fdrRate`: The false discovery rate for identifying taxa/OTU/ASV associated with `testCov` in phase 1. Default is `0.25`.
-
-- `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
-
-- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4 gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
-
+- `nRefMaxForEsti`: The maximum number of final reference taxa used in phase 2. The default is `2`.
+- `refTaxa`: A vector of taxa names. These are reference taxa specified by the user to be used in phase 1 if the user believe these taxa are indepenent of the covariates. If the number of reference taxa is less than 'nRef', the algorithm will randomly pick extra reference taxa to make up 'nRef'. The default is `NULL` since the algorithm will pick reference taxa randomly. 
+- `adjust_method` The adjusting method used for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
+- `fdrRate`: The false discovery rate for identifying taxa/OTU/ASV associated with `testCov`. Default is `0.15`.
+- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. 
+- `bootB`: Number of bootstrap samples for obtaining confidence interval of estimates in phase 2 for the high dimensional regression. The default is `500`.
 - `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
+- `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
+- `refReadsThresh`: The threshold of proportion of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
+- `taxkeepThresh`: The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `1` which means taxon with at least `1` sequencing reads will be included into the analysis.
+- `SDThresh`: The threshold of standard deviations of sequencing reads for been chosen as the reference taxon in phase 2. The default is `0.05` which means the standard deviation of sequencing reads should be at least `0.05` in order to be chosen as reference taxon.
+- `SDquantilThresh`: The threshold of the quantile of standard deviation of sequencing reads, above which could be selected as reference taxon. The default is `0`.
+- `balanceCut`: The threshold of the proportion of non-zero sequencing reads in each group of a binary variable for choosing the final reference taxa in phase 2. The default number is `0.2` which means at least 20% non-zero sequencing reads in each group are needed to be eligible for being chosen as a final reference taxon.
+- `seed`: Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding. 
 
-- `nRefMaxForEsti`: The maximum number of reference taxa used in phase 2. The default is `1`.
+## Output for IFAA() function
 
-- `bootB`: Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
+The estimation results are saved in the following lists: 
 
-- `refReadsThresh`: The threshold of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
+- `sig_results`: A list containing estimating results that are statistically significant. 
 
-- `SDThresh`: The threshold of standard deviations of sequencing reads for choosing the reference taxon in phase 2. The default is `0.5` which means the standard deviation of sequencing reads should be at least `0.5`.
+- `full_results`: A list containing all estimating results. NA denotes unestimable.
 
-- `balanceCut`: The threshold of non-zero sequencing reads in each group of a binary variable for choosing the reference taxon in phase 2. The default number is `0.2` which means at least 20% sequencing reads are non-zero in each group.
-
-- `seed`: Random seed for reproducibility. Default is `1`.
-
-The output of `IFAA()` function is a list. The estimation results can extracted as the following: 
-
-- `analysisResults$sig_list_each_mean`: A list containing estimating results for all the variables in `testCov`. See details. 
-
-The covariates data including `testCov` and `ctrlCov` can be extracted in the output:
+The covariates data used in the analyses including `testCov` and `ctrlCov` is saved in the following object:
 
 - `covariatesData`: A dataset containing covariates and confounders used in the analyses
 
@@ -114,49 +111,44 @@ dataM[1:5, 1:8]
 
 data(dataC)
 dim(dataC)
-dataC[1:5, ]
+dataC[1:3, ]
 ```
-Both the microbiome data `dataM` and the covariates data `dataC` contain 20 samples (i.e., 20 rows). 
+Both the microbiome data `dataM` and the covariates data `dataC` contain 40 samples (i.e., 40 rows). 
 
 - `dataM` contains 60 taxa with absolute abundances and these are gut microbiome.  
 
-- `dataC` contains 5 covariates. 
+- `dataC` contains 3 covariates. 
 
-Next we analyze the data to test the association between microbiome and the two variables `"v1"` and `"v2"` while adjusting for the variable `"v3"`.
+Next we analyze the data to test the association between microbiome and the variable `"v1"` while adjusting for the variables (potential confounders) `"v2"` and `"v3"`.
 
 ```{r, eval=T}
 results <- IFAA(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
-                testCov = c("v1", "v2"),
-                ctrlCov = c("v3"),
-                nRef = 3,
-                paraJobs = 2,
-                fdrRate = 0.25)
+                testCov = c("v1"),
+                ctrlCov = c("v2","v3"),
+                fdrRate = 0.15)
 ```
 
 
-In this example, we are only interested in testing the association with `"v1"` and `"v2"` which is why `testCov=c("v1,"v2")`. The variable `"v3"` is adjusted as a potential confounder in the analyses. For the sake of speed in this hypothetical example, we set small numbers for `nRef=4`, `nPermu=4` and `bootB=5`. These are just for illustration purpose here and are too small for a formal analysis to generate valid results. 
-
-The final analysis results are stored in the list `analysisResults$sig_list_each_mean`: 
+In this example, we are only interested in testing the associations with `"v1"` which is why `testCov=c("v1")`. The variables `"v2" and "v3"` are adjusted as potential confounders in the analyses. The final analysis results are saved in the list `sig_results`: 
 ```{r,eval=T}
-results$analysisResults$sig_list_each_mean
+results$sig_results
 ```
-The results found the two taxa `"rawCount23"` and `"rawCount32"` associated with `"v2"`. The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\beta^k$ in the model equation. 
+The results found three taxa `"rawCount18"`, `"rawCount36"`, `"rawCount41"` associated with `"v1"` while adjusting for `"v2" and "v3"`. The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\beta^k$ in the model equation. 
 
 The interpretation is that 
 
-- Every unit increase in `"v2"` is associated with approximately 7.9% increase in the log of absolute abundance of `"rawCount23"` and approximately 8.1% increase in the log of absolute abundance of `"rawCount33"` in the entire gut ecosystem. 
+- Every unit increase in `"v1"` is associated with approximately 2.5% increase in the absolute abundance of `"rawCount18"`, approximately 2.6% increase in the absolute abundance of `"rawCount36"`, and approximately 3.0% increase in the absolute abundance of `"rawCount41"` in the entire gut ecosystem. 
 
-- There were no taxa associated with `"v1"` in the analysis. 
 
-All the analyzed covariates including `testCov` and `ctrlCov` are stored in the object: `covariatesData`: 
+All the analyzed covariates including `testCov` and `ctrlCov` can be extracted using the object `covariatesData`. The covariates data of the first 10 subjects can extracted as follows:
 
 ```{r,eval=T}
-results$covariatesData
+results$covariatesData[1:10,]
 ```
-
-The IFAA package also implement the Multivariate Zero-Inflated Logistic Normal (MZILN) regression model for analyzing microbiome data. The regression model can be expressed as follows: 
+## MZILN() function
+The IFAA package can also implement the Multivariate Zero-Inflated Logistic Normal (MZILN) regression model for estimating and testing the association of abundance ratios with covariates. The `MZILN()` function estimates and tests the associations of  user-specified abundance ratios with covariates. When the denominator taxon of the ratio is independent of the covariates, 'MZILN()' should generate similar results as 'IFAA()'. The regression model of 'MZILN()' can be expressed as follows: 
 $$
 \log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K,
 $$
@@ -170,36 +162,39 @@ where
 
 - $\alpha^k$ is the regression coefficients that will be estimated and tested. 
 
-## Input and Output for MZILN() function
+## Input for MZILN() function
 
-The `MZILN()` function is to implement the Multivariate Zero-Inflated Logistic Normal model. It estimates and tests the associations given a user-specified reference taxon/OTU/ASV, whereas the 'IFAA()' does not require any user-specified reference taxa. If the user-specified taxon is independent of the covariates, 'MZILN()' should generate similar results as 'IFAA()'. The User Inputs for 'MZILN()' are: 
+Most of the time, users just feed the first six inputs to the function: `MicrobData`, `CovData`,  `linkIDname`, `targetTaxa`, `refTaxa` and `allCov`. All other inputs can just take their default values. All the inputs for 'MZILN()' are: 
 
-- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
+- `MicrobData`: Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to be linked with the id variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, CovData="C://...//covariatesData.tsv".
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an id variable to be linked with the id variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, CovData="C://...//covariatesData.tsv".
 
-- `linkIDname` Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
-- `allCov` All covariates of interest (including confounders) for estimating and testing their associations with microbiome. Default is 'NULL' meaning that all covariates in covData are of interest.
-- `targetTaxa` The taxa that should be used as numerator. Default is NULL.
-- `refTaxa` Reference taxa specified by the user and will be used as the reference taxa.
-- `adjust_method` The adjusting method used for p value adjustment. Same as p.adjust function in R.
-- `fdrRate` The false discovery rate for identifying taxa/OTU/ASV associated with `allCov`. Default is `0.25`.
-- `sequentialRun` This takes a logical value `TRUE` or `FALSE`. Default is `TRUE` since there is only 1 reference taxon.
-- `paraJobs` If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. It is safe to have 4gb memory per job. It may be needed to reduce the number of jobs if memory is limited.
-- `standardize` This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
-- `bootB` Number of bootstrap samples for obtaining confidence interval of estimates in phase 2. The default is `500`.
-- `bootLassoAlpha` The significance level in phase 2. Default is `0.05`.
-- `taxkeepThresh` The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis.
-- `seed` Random seed for reproducibility. Default is `1`.
+- `linkIDname` The common variable name of the id variable in both `MicrobData` and `CovData`. The two data sets will be merged by this id variable.
 
-The output of `MZILN()` function is a list. The estimation results can extracted as the following: 
+- `targetTaxa` The numerator taxa names specified by users for the targeted ratios. Default is NULL in which case all taxa are numerator taxa (except the taxa in the argument 'refTaxa').
+- `refTaxa` Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names. 
+- `allCov` All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.
+- `adjust_method` The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
+- `fdrRate` The false discovery rate for identifying ratios associated with `allCov`. Default is `0.15`.
+- `paraJobs` If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. 
+- `bootB` Number of bootstrap samples for obtaining confidence interval of estimates for the high dimensional regression. The default is `500`.
+- `taxkeepThresh` The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `1` which means taxon with at least `1` sequencing reads will be included into the analysis.
+- `standardize` This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in the analysis will be standardized. Default is `FALSE`.
+- `sequentialRun` This takes a logical value `TRUE` or `FALSE`. Default is `TRUE`. It can be set to be "FALSE" to increase speed if there are multiple taxa in the argument 'refTaxa'.
+- `seed` Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding. 
 
-- `analysisResults$all_cov_sig_list`: A list containing estimating results for all significant taxa.
-- `analysisResults$targettaxa_result_list`: A list containing estimating results for targetTaxa. Only available when targetTaxa is non-empty.
+## Output for MZILN() function
 
-All covariates data can be extracted:
+The estimation results are saved in the following lists: 
 
-- `covariatesData`: A dataset containing covariates and confounders used in the analyses
+- `targettaxa_result_list`: A list containing estimating results for targeted ratios. Only available when targetTaxa is non-empty.
+- `sig_results`: A list containing estimating results for all significant ratios
+
+
+All covariates data used in the analysis is saved in the following object:
+
+- `covariatesData`: A dataset containing all covariates used in the analyses
 
 
 ## Examples
@@ -212,45 +207,50 @@ dataM[1:5, 1:8]
 
 data(dataC)
 dim(dataC)
-dataC[1:5, ]
+dataC[1:3, ]
 ```
-Both the microbiome data `dataM` and the covariates data `dataC` contain 20 samples (i.e., 20 rows). 
+Both the microbiome data `dataM` and the covariates data `dataC` contain 40 samples (i.e., 40 rows). 
 
 - `dataM` contains 60 taxa with absolute abundances and these are gut microbiome.  
 
-- `dataC` contains 5 covariates. 
+- `dataC` contains 3 covariates. 
 
-Next we analyze the data to test the association between microbiome and all the three variables `"v1"`, `"v2"` and `"v3"`.
+Next we analyze the data to test the associations between the ratio "rawCount18/rawCount11" and all the three variables `"v1"`, `"v2"` and `"v3"` in a multivariate model where all `"v1"`, `"v2"` and `"v3"` are independent variables simultaneously.
 
 ```{r, eval=T}
 results <- MZILN(MicrobData = dataM,
                 CovData = dataC,
                  linkIDname = "id",
-                 allCov=c("v1","v2","v3"),
-                 targetTaxa = "rawCount6",
+                 targetTaxa = "rawCount18",
                  refTaxa=c("rawCount11"),
-                 paraJobs=2)
+                 allCov=c("v1","v2","v3"),
+                 fdrRate=0.15)
 ```
 
-
-In this example, we are only interested in testing the associations with `"v1"`, `"v2"` and `"v3"` which is why `allCov=c("v1,"v2","v3")`. 
-The reference taxa is set to be `"rawCount11"`, and the taxa we are interested in is `"rawCount6"`, so that `refTaxa=c("rawCount11")` and `targetTaxa = "rawCount6"`. 
-
-The final analysis results are stored in the list
-`results$analysisResults$targettaxa_result_list`: 
+The final analysis results are saved in the list
+`targettaxa_result_list`: 
 ```{r,eval=T}
-results$analysisResults$targettaxa_result_list
+results$targettaxa_result_list
 ```
-The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\alpha^k$ in the model equation, and can be interpreted as the associations between the covariates and log-ratio of the significant taxa over the reference taxon. 
+The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\alpha^k$ in the model equation, and can be interpreted as the associations between the covariates and log-ratio of `"rawCount18"` over '"rawCount11"'. 
 
-The interpretation is that 
+The interpretation for the results is that 
 
-- Every unit increase in `"v1"` is associated with approximately 21.3% increase in the abundance ratio of `"rawCount6"` over `"rawCount11"`;every unit increase in `"v2"` is associated with approximately 2.0% increase in the abundance ratio of `"rawCount6"` over `"rawCount11"`;every unit increase in `"v3"` is associated with approximately 0.3% decrease in the abundance ratio of `"rawCount6"` over `"rawCount11"`.
+- Every unit increase in `"v1"` is associated with approximately 2.3% increase in the abundance ratio of `"rawCount18"` over `"rawCount11"`  (while controlling for `"v2"` and `"v3"`); Every unit increase in `"v2"` is associated with approximately 0.26% increase in the abundance ratio of `"rawCount18"` over `"rawCount11"` (while controlling for `"v1"` and `"v3"`), but not statistically significant; Every unit increase in `"v3"` is associated with approximately -0.63% decrease in the abundance ratio of `"rawCount18"` over `"rawCount11"` (while controlling for `"v1"` and `"v2"`), but not statistically significant.
 
 
-All the analyzed covariates are stored in the object: `covariatesData`: 
+We can also extract all the ratios (with `"rawCount11"` being the denominator taxon) that are  significantly associated with any of the covariates as follows:
+```{r,eval=T}
+results$sig_results
+```
+The interpretation for the results is that 
+
+- Every unit increase in `"v1"` is associated with approximately 2.3% increase in the abundance ratio of `"rawCount18"` over `"rawCount11"` (while controlling for `"v2"` and `"v3"`), and it is statistically significant; Every unit increase in `"v1"` is also  associated with approximately 3.0% increase in the abundance ratio of `"rawCount36"` over `"rawCount11"` (while controlling for `"v2"` and `"v3"`), and it is statistically significant; Every unit increase in `"v1"` is also associated with approximately 2.6% decrease in the abundance ratio of `"rawCount41"` over `"rawCount11"` (while controlling for `"v2"` and `"v3"`), and it is statistically significant.
+
+
+All covariates used in the analysis can be extracted using the object `covariatesData`. The covariates data of the first 10 subjects are extracted as follows: 
 
 ```{r,eval=T}
-results$covariatesData
+results$covariatesData[1:10,]
 ```
 

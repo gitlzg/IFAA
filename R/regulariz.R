@@ -193,11 +193,10 @@ Regulariz=function(
     time11=proc.time()[3]
     originTaxNam=allRefTaxNam[iii]
     newRefTaxNam=taxaNames[microbName%in%originTaxNam]
-    bootLassoAlpha_bon<-fwerRate
     results$estiList[[originTaxNam]]=bootResuHDCI(data=data,
                                                   refTaxa=newRefTaxNam,
                                                   originRefTaxNam=originTaxNam,
-                                                  bootB=bootB,bootLassoAlpha=bootLassoAlpha_bon,
+                                                  bootB=bootB,
                                                   binPredInd=binaryInd,covsPrefix=covsPrefix,
                                                   Mprefix=Mprefix,
                                                   testCovInOrder=testCovInOrder,

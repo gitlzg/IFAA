@@ -8,7 +8,7 @@ bootResuHDCI=function(
   originRefTaxNam,
   maxDimension=434*5*10^5,
   bootB,
-  bootLassoAlpha,
+  bootLassoAlpha=0.05,
   binPredInd,
   covsPrefix,
   Mprefix,
@@ -175,6 +175,11 @@ bootResuHDCI=function(
     CI_low_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
     se_mat<-matrix(nrow = nTestcov,ncol = (nTaxa-1))
 
+    calculate_se<-function(x) {
+      se_est<-abs(x[2]-x[1])/(2*qnorm(1-bootLassoAlpha/2))
+      return(se_est)
+      }
+    
     for (ii in 1:nTestcov) {
       se_est<-apply(boot_CI[,seq(ii+1,ncol(boot_CI),nPredics+1)],2,calculate_se)
       p_value_unadj<-numeric(length(se_est))
@@ -250,12 +255,6 @@ bootResuHDCI=function(
 
   results$sig_list_each<-sig_list_each
   results$all_cov_list<-all_cov_list
-
-
-
-
-
-
 
   return(results)
 }
