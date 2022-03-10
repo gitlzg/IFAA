@@ -62,7 +62,7 @@ Regulariz_MZILN=function(
                                                   seed=seed)
 
     time12=proc.time()[3]
-    message("Estimation done for the ", iii,"th reference taxon: ",refTaxa_reOrder[iii],
+    message("Estimation done for the ", iii,"th denominator taxon: ",refTaxa_reOrder[iii],
             " and it took ",round((time12-time11)/60,2)," minutes")
 
 

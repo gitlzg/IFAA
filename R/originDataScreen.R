@@ -18,7 +18,6 @@ originDataScreen=function(
   adjust_method,
   seed){
 
-  method<-"mcp"
   results=list()
 
   # load data info
@@ -89,7 +88,6 @@ originDataScreen=function(
                            maxSubSamplSiz=min(50000,floor(maxDimensionScr/ncol(xTildLongTild.i)))
                            nToSamplFrom=nrow(xTildLongTild.i)
 
-                           if(method=="mcp") {
                              subSamplK=ceiling(nToSamplFrom/maxSubSamplSiz)
                              if(subSamplK==1)maxSubSamplSiz=nToSamplFrom
 
@@ -128,8 +126,6 @@ originDataScreen=function(
                              gc()
                              BetaNoInt.i=BetaNoInt.i/nRuns
                              EstNoInt.i=EstNoInt.i/nRuns
-
-                           }
 
                            selection.i=as(rep(0,nAlphaSelec),"sparseVector")
                            coef.i<-rep(0,nAlphaSelec)
@@ -180,8 +176,6 @@ originDataScreen=function(
                            maxSubSamplSiz=min(50000,floor(maxDimensionScr/ncol(xTildLongTild.i)))
                            nToSamplFrom=nrow(xTildLongTild.i)
 
-                           if(method=="mcp") {
-
                              subSamplK=ceiling(nToSamplFrom/maxSubSamplSiz)
                              if(subSamplK==1)maxSubSamplSiz=nToSamplFrom
 
@@ -221,7 +215,6 @@ originDataScreen=function(
                              gc()
                              BetaNoInt.i=BetaNoInt.i/nRuns
                              EstNoInt.i=EstNoInt.i/nRuns
-                           }
 
                            selection.i=as(rep(0,nAlphaSelec),"sparseVector")
                            coef.i<-rep(0,nAlphaSelec)
