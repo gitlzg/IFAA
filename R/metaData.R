@@ -33,6 +33,10 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   if(length(colnames(MdataWithId))!=ncol(MdataWithId))
     stop("Microbiome data lack variable names.")
 
+  MdataWithoutId=MdataWithId[,!(colnames(MdataWithId)%in%linkIDname),drop=FALSE]
+  if(!all(MdataWithoutId>=0)) stop("Microbiome data contains negative values.")
+  rm(MdataWithoutId)
+  
   missPropMData=sum(is.na(MdataWithId[,linkIDname]))/nrow(MdataWithId)
   if(missPropMData>0.8){
     warning("There are over 80% missing values for the linkId variable in the Microbiome data file.

@@ -15,17 +15,17 @@
 ##'
 ##' High-dimensional \mjeqn{X_i}{} is handled by regularization.
 ##'
-##' @param MicrobData Microbiome data matrix containing microbiome abundance with each row
-##' per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to
-##' correspond to the `"id"` variable in the covariates data: `CovData`. This argument can
+##' @param MicrobData Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row
+##' per sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to
+##' be linked with the id variable in the covariates data: `CovData`. This argument can
 ##' take directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 ##' @param CovData Covariates data matrix containing covariates and confounders with each row
-##' per sample and each column per variable. It should also contain an `"id"` variable to
-##' correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can
+##' per sample and each column per variable. It should also contain an id variable to
+##' be linked with the id variable in the microbiome data: `MicrobData`. This argument can
 ##' take directory path. For example, `CovData="C://...//covariatesData.tsv"`.
 ##'
 ##'
-##' @param linkIDname Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
+##' @param linkIDname The common variable name of the id variable in both `MicrobData` and `CovData`. The two data sets will be merged by this id variable.
 ##' @param targetTaxa The numerator taxa names specified by users for the targeted ratios. Default is NULL in which case all taxa are numerator taxa (except the taxa in the argument 'refTaxa').
 ##' @param refTaxa Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names.
 ##' @param allCov All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.

@@ -22,17 +22,17 @@ MZILN(
 )
 }
 \arguments{
-\item{MicrobData}{Microbiome data matrix containing microbiome abundance with each row
-per sample and each column per taxon/OTU/ASV. It should contain an \code{"id"} variable to
-correspond to the \code{"id"} variable in the covariates data: \code{CovData}. This argument can
+\item{MicrobData}{Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row
+per sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to
+be linked with the id variable in the covariates data: \code{CovData}. This argument can
 take directory path. For example, \code{MicrobData="C://...//microbiomeData.tsv"}.}
 
 \item{CovData}{Covariates data matrix containing covariates and confounders with each row
-per sample and each column per variable. It should also contain an \code{"id"} variable to
-correspond to the \code{"id"} variable in the microbiome data: \code{MicrobData}. This argument can
+per sample and each column per variable. It should also contain an id variable to
+be linked with the id variable in the microbiome data: \code{MicrobData}. This argument can
 take directory path. For example, \code{CovData="C://...//covariatesData.tsv"}.}
 
-\item{linkIDname}{Variable name of the \code{"id"} variable in both \code{MicrobData} and \code{CovData}. The two data sets will be merged by this \code{"id"} variable.}
+\item{linkIDname}{The common variable name of the id variable in both \code{MicrobData} and \code{CovData}. The two data sets will be merged by this id variable.}
 
 \item{targetTaxa}{The numerator taxa names specified by users for the targeted ratios. Default is NULL in which case all taxa are numerator taxa (except the taxa in the argument 'refTaxa').}
 

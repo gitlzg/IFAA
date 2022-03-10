@@ -23,15 +23,15 @@
 ##' \mjeqn{\beta^k}{} and their 95% confidence intervals. High-dimensional \mjeqn{X_i}{} is handled by
 ##' regularization.
 ##'
-##' @param MicrobData Microbiome data matrix containing microbiome abundance with each row per
-##' sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond
-##' to the `"id"` variable in the covariates data: `CovData`. This argument can take
+##' @param MicrobData Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per
+##' sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to be linked with
+##' the id variable in the covariates data: `CovData`. This argument can take
 ##' directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 ##' @param CovData Covariates data matrix containing covariates and confounders with each row
-##' per sample and each column per variable. It should also contain an `"id"` variable to
-##' correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can take
+##' per sample and each column per variable. It should also contain an id variable to
+##' be linked with the id variable in the microbiome data: `MicrobData`. This argument can take
 ##' directory path. For example, `CovData = "C://...//covariatesData.tsv"`.
-##' @param linkIDname Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
+##' @param linkIDname The common variable name of the id variable in both `MicrobData` and `CovData`. The two data sets will be merged by this id variable.
 ##' @param testCov Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is `NULL` which means all covariates are `testCov`.
 ##' @param ctrlCov Potential confounders that will be adjusted in the model. It corresponds to $W_i$ in the equation. Default is `NULL` which means all covariates except those in `testCov` are adjusted as confounders.
 ##' @param testMany This takes logical value `TRUE` or `FALSE`. If `TRUE`, the `testCov` will contain all the variables in `CovData` provided `testCov` is set to be `NULL`. The default value is `TRUE` which does not do anything if `testCov` is not `NULL`.

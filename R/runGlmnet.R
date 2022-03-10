@@ -12,7 +12,7 @@ runGlmnet=function(
   nLam=100,
   standardize=FALSE,
   intercept=TRUE,
-  zeroSDCut=0
+  zeroSDCut=10^(-20)
 ){
 
   results=list()

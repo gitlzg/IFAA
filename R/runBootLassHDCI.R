@@ -5,7 +5,7 @@ runBootLassoHDCI=function(
   y,
   nfolds=10,
   lambdaOPT=NULL,
-  zeroSDCut=0,
+  zeroSDCut=10^(-20),
   correCut=0.996,
   standardize,
   paraJobs,

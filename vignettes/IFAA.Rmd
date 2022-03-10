@@ -56,11 +56,11 @@ devtools::install_github("gitlzg/IFAA")
 
 Most of the time, users just need to feed the first five inputs to the function: `MicrobData`, `CovData`, `linkIDname`, `testCov` and `ctrlCov`. All other inputs can just take their default values. Below are all the inputs of the functions
 
-- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
+- `MicrobData`: Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to be linked with the id variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, `CovData="C://...//covariatesData.tsv"`.
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an id variable to be linked with the id variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, `CovData="C://...//covariatesData.tsv"`.
 
-- `linkIDname`: Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
+- `linkIDname`: The common variable name of the id variable in both `MicrobData` and `CovData`. The two data sets will be merged by this id variable.
 
 - `testCov`: Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is `NULL` which means all covariates are `testCov`.
 
@@ -166,11 +166,11 @@ where
 
 Most of the time, users just feed the first six inputs to the function: `MicrobData`, `CovData`,  `linkIDname`, `targetTaxa`, `refTaxa` and `allCov`. All other inputs can just take their default values. All the inputs for 'MZILN()' are: 
 
-- `MicrobData`: Microbiome data matrix containing microbiome abundance with each row per sample and each column per taxon/OTU/ASV. It should contain an `"id"` variable to correspond to the `"id"` variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
+- `MicrobData`: Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to be linked with the id variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an `"id"` variable to correspond to the `"id"` variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, CovData="C://...//covariatesData.tsv".
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an id variable to be linked with the id variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, CovData="C://...//covariatesData.tsv".
 
-- `linkIDname` Variable name of the `"id"` variable in both `MicrobData` and `CovData`. The two data sets will be merged by this `"id"` variable.
+- `linkIDname` The common variable name of the id variable in both `MicrobData` and `CovData`. The two data sets will be merged by this id variable.
 
 - `targetTaxa` The numerator taxa names specified by users for the targeted ratios. Default is NULL in which case all taxa are numerator taxa (except the taxa in the argument 'refTaxa').
 - `refTaxa` Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names. 

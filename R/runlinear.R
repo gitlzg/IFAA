@@ -7,8 +7,7 @@ runlinear=function(
   y,
   nPredics,
   fwerRate=0.25,
-  adjust_method="fdr",
-  zeroSDCut=0
+  adjust_method="fdr"
 ){
 
   results=list()
