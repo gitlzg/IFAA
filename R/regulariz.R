@@ -10,11 +10,11 @@ Regulariz=function(
   refTaxa,
   paraJobs,
   binaryInd,
+  binaryInd_test,
   covsPrefix,
   Mprefix,
   fwerRate,
   bootB,
-  standardize,
   sequentialRun,
   allFunc=allFunc,
   refReadsThresh,
@@ -31,9 +31,6 @@ Regulariz=function(
 
   dataSparsCheck(data=data,Mprefix=Mprefix)
 
-  # load abundance data info
-  binCheck<-unlist(lapply(seq(length(testCovInNewNam)),function(i)dim(table(data[,testCovInNewNam[i]]))))
-  binaryInd<-which(binCheck==2)
 
   data.info=dataInfo(data=data,Mprefix=Mprefix,
                      covsPrefix=covsPrefix,
@@ -53,7 +50,6 @@ Regulariz=function(
                            testCovInNewNam=testCovInNewNam,nRef=nRef,
                            paraJobs=paraJobs,
                            refTaxa=refTaxa,
-                           standardize=standardize,
                            sequentialRun=sequentialRun,
                            allFunc=allFunc,
                            refReadsThresh=refReadsThresh,
@@ -70,16 +66,14 @@ Regulariz=function(
   loop_num<-0
   message("33 percent of phase 1 analysis has been done")
   while (while_loop_ind==FALSE) {
-    loop_num<-loop_num+1
     if (loop_num>=2) {
       break
     }
-    if (length(refTaxa)<nRef_smaller) {
-      refTaxa_smaller<-c(refTaxa,head(names(selectRegroup$goodIndpRefTaxWithCount),
-                                      n=nRef_smaller-length(refTaxa)))
-    } else {
-      refTaxa_smaller<-refTaxa
-    }
+    loop_num<-loop_num+1
+
+    refTaxa_smaller<-head(names(selectRegroup$goodIndpRefTaxWithCount),
+                                    n=nRef_smaller)
+
 
     fin_ref_1<-selectRegroup$finalIndpRefTax
     ref_taxa_1<-selectRegroup$refTaxa
@@ -88,7 +82,6 @@ Regulariz=function(
                              testCovInNewNam=testCovInNewNam,nRef=nRef_smaller,
                              paraJobs=paraJobs,
                              refTaxa=refTaxa_smaller,
-                             standardize=standardize,
                              sequentialRun=sequentialRun,
                              allFunc=allFunc,
                              refReadsThresh=refReadsThresh,
@@ -145,20 +138,18 @@ Regulariz=function(
   startT=proc.time()[3]
   message("Start Phase 2 parameter estimation")
 
-  unestimableTaxa=c()
   qualifyData=data
 
-  binCheck<-unlist(lapply(seq(length(testCovInNewNam)),function(i)dim(table(data[,testCovInNewNam[i]]))))
-  binaryInd<-which(binCheck==2)
 
-  if(length(binaryInd)>0){
+  if(length(binaryInd_test)>0){
     qualifyData=data[rowSums(data[,taxaNames]>0)>=2,,drop=FALSE]
-    allBinPred=paste0(covsPrefix,binaryInd)
+    allBinPred=paste0(covsPrefix,binaryInd_test)
     nBinPred=length(allBinPred)
 
     # find the pairs of binary preds and taxa for which the assocaiton is not identifiable
     AllTaxaNamesNoRefTax=taxaNames[!microbName%in%(results$finalizedBootRefTaxon)]
     unbalanceTaxa=c()
+    unbalancePred<-c()
     for(i in AllTaxaNamesNoRefTax){
       for(j in allBinPred){
         twoColumns.ij=qualifyData[,c(i,j)]
@@ -166,18 +157,26 @@ Regulariz=function(
         sumOfBin=sum(twoColumns.ij[(twoColumns.ij[,1]>0),2])
         if(sumOfBin%in%c(0,1,(nNonZero-1),nNonZero)){
           unbalanceTaxa=c(unbalanceTaxa,i)
+          unbalancePred<-c(unbalancePred,j)
         }
       }
     }
-    unestimableTaxa=unique(unbalanceTaxa)
-    rm(allBinPred,unbalanceTaxa)
+    if (length(unbalanceTaxa)>0) {
+      unbalanceTaxa_ori_name<-microbName[sapply(unbalanceTaxa,function(x) which(taxaNames%in%x))]
+      unbalancePred_ori_name<-testCovInOrder[sapply(unbalancePred,function(x) which(testCovInNewNam%in%x))]
+    } else {
+      unbalanceTaxa_ori_name<-NULL
+      unbalancePred_ori_name<-NULL
+    }
+    # unestimableTaxa=unique(unbalanceTaxa)
+    rm(allBinPred)
+  } else {
+    unbalanceTaxa_ori_name<-NULL
+    unbalancePred_ori_name<-NULL
   }
 
   # check zero taxa and subjects with zero taxa reads
-  TaxaNoReads=which(Matrix::colSums(qualifyData[,taxaNames])==0)
-  rm(qualifyData)
-  unestimableTaxa=unique(c(unestimableTaxa,taxaNames[TaxaNoReads]))
-  results$unEstTaxa=microbName[taxaNames%in%unestimableTaxa]
+
 
 
 
@@ -199,12 +198,13 @@ Regulariz=function(
                                                   bootB=bootB,
                                                   binPredInd=binaryInd,covsPrefix=covsPrefix,
                                                   Mprefix=Mprefix,
+                                                  unbalanceTaxa_ori_name=unbalanceTaxa_ori_name,
+                                                  unbalancePred_ori_name=unbalancePred_ori_name,
                                                   testCovInOrder=testCovInOrder,
                                                   adjust_method=adjust_method,
                                                   microbName=microbName,
                                                   fwerRate=fwerRate,
                                                   paraJobs=paraJobs,
-                                                  standardize=standardize,
                                                   seed=seed)
     time12=proc.time()[3]
     message("Estimation done for the ", iii,"th final reference taxon and it took ",round((time12-time11)/60,3)," minutes")
@@ -237,12 +237,8 @@ Regulariz=function(
   se_mat_mean<-(all_cov_list[[1]]$se_mat[,exclu_1,drop=FALSE]+all_cov_list[[2]]$se_mat[,exclu_2,drop=FALSE])/2
   CI_low_mat_mean<-(all_cov_list[[1]]$CI_low_mat[,exclu_1,drop=FALSE]+all_cov_list[[2]]$CI_low_mat[,exclu_2,drop=FALSE])/2
   CI_up_mat_mean<-(all_cov_list[[1]]$CI_up_mat[,exclu_1,drop=FALSE]+all_cov_list[[2]]$CI_up_mat[,exclu_2,drop=FALSE])/2
-  if (length(binaryInd)>0) {
-    est_save_mat_mean[binaryInd,results$unEstTaxa]<-NA
-    CI_low_mat_mean[binaryInd,results$unEstTaxa]<-NA
-    CI_up_mat_mean[binaryInd,results$unEstTaxa]<-NA
-    se_mat_mean[binaryInd,results$unEstTaxa]<-NA
-  }
+
+
   p_value_unadj_mean<-t(apply(est_save_mat_mean/se_mat_mean,1,function(x) (1-pnorm(abs(x)))*2))
   p_value_adj_mean<-t(apply(p_value_unadj_mean,1,function(x) p.adjust(x,method = adjust_method)))
   colname_use<-colnames(est_save_mat_mean)

@@ -7,7 +7,6 @@ runBootLassoHDCI=function(
   lambdaOPT=NULL,
   zeroSDCut=10^(-20),
   correCut=0.996,
-  standardize,
   paraJobs,
   bootB,
   bootLassoAlpha,
@@ -52,7 +51,7 @@ runBootLassoHDCI=function(
   }
 
   bootResu=bootLOPR(x=as.matrix(x),y=as.vector(y),B=bootB,nfolds=nfolds,
-                    standardize=standardize,parallel.boot=TRUE,
+                    standardize=FALSE,parallel.boot=TRUE,
                     ncores.boot=paraJobs,alpha=bootLassoAlpha)
   parallel::stopCluster(c3)
 

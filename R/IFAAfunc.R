@@ -2,7 +2,7 @@
 ##'
 ##' Make inference on the association of microbiome with covariates
 ##'
-##' Most of the time, users just need to feed the first five inputs to the function: `MicrobData`, `CovData`, `linkIDname`, `testCov` and `ctrlCov`. All other inputs can just take their default values. 
+##' Most of the time, users just need to feed the first five inputs to the function: `MicrobData`, `CovData`, `linkIDname`, `testCov` and `ctrlCov`. All other inputs can just take their default values.
 ##' To model the association, the following equation is used:
 ##'
 ##' \loadmathjax
@@ -28,7 +28,8 @@
 ##' the id variable in the covariates data: `CovData`. This argument can take
 ##' directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 ##' @param CovData Covariates data matrix containing covariates and confounders with each row
-##' per sample and each column per variable. It should also contain an id variable to
+##' per sample and each column per variable. Any categorical variable should be converted into dummy variables in this data matrix unless it can be treated as a continuous variable.
+##' It should also contain an id variable to
 ##' be linked with the id variable in the microbiome data: `MicrobData`. This argument can take
 ##' directory path. For example, `CovData = "C://...//covariatesData.tsv"`.
 ##' @param linkIDname The common variable name of the id variable in both `MicrobData` and `CovData`. The two data sets will be merged by this id variable.
@@ -41,12 +42,12 @@
 ##' @param refTaxa A vector of taxa or OTU or ASV names. These are reference taxa specified by the user to be used in phase 1. If the number of reference taxa is less than 'nRef', the algorithm will randomly pick extra reference taxa to make up 'nRef'. The default is `NULL` since the algorithm will pick reference taxa randomly.
 ##' @param adjust_method The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
 ##' @param fdrRate The false discovery rate for identifying taxa/OTU/ASV associated with `testCov`. Default is `0.15`.
-##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. 
+##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`.
 ##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates in phase 2 for the high dimensional regression. The default is `500`.
-##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
+##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, the design matrix for X will be standardized in the analyses and the results. Default is `FALSE`.
 ##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
 ##' @param refReadsThresh The threshold of proportion of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
-##' @param taxkeepThresh The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `0` which means taxon with at least `0` sequencing reads will be included into the analysis
+##' @param taxDropThresh The threshold of number of non-zero sequencing reads for each taxon to be dropped from the analysis. The default is `0` which means taxon without any sequencing reads will be dropped from the analysis.
 ##' @param SDThresh The threshold of standard deviations of sequencing reads for been chosen as the reference taxon in phase 2. The default is `0.05` which means the standard deviation of sequencing reads should be at least `0.05` in order to be chosen as reference taxon.
 ##' @param SDquantilThresh The threshold of the quantile of standard deviation of sequencing reads, above which could be selected as reference taxon. The default is `0`.
 ##' @param balanceCut The threshold of the proportion of non-zero sequencing reads in each group of a binary variable for choosing the final reference taxa in phase 2. The default number is `0.2` which means at least 20% non-zero sequencing reads in each group are needed to be eligible for being chosen as a final reference taxon.
@@ -70,7 +71,7 @@
 ##'                 CovData = dataC,
 ##'                 linkIDname = "id",
 ##'                 testCov = c("v1", "v2"),
-##'                 ctrlCov = c("v3"), 
+##'                 ctrlCov = c("v3"),
 ##'                 fdrRate = 0.15)
 ##'
 ##'}
@@ -80,14 +81,13 @@
 ##' @references Li et al.(2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association
 ##' @references Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
 ##' @references Liu et al.(2020) A bootstrap lasso + partial ridge method to construct confidence intervals for parameters in high-dimensional sparse linear models. Statistica Sinica
-##' @importFrom methods as
 ##' @importFrom foreach `%dopar%` foreach
+##' @importFrom methods as
 ##' @importFrom future availableCores
 ##' @importFrom Matrix Diagonal Matrix
 ##' @importFrom HDCI bootLOPR
 ##' @importFrom qlcMatrix corSparse
 ##' @import expm
-##' @import rlecuyer
 ##' @import mathjaxr
 ##' @import glmnet
 ##' @import stats
@@ -116,7 +116,7 @@ IFAA=function(
   standardize=FALSE,
   sequentialRun=FALSE,
   refReadsThresh=0.2,
-  taxkeepThresh=1,
+  taxDropThresh=0,
   SDThresh=0.05,
   SDquantilThresh=0,
   balanceCut=0.2,
@@ -129,7 +129,8 @@ IFAA=function(
   runMeta=metaData(MicrobData=MicrobData,CovData=CovData,
                    linkIDname=linkIDname,testCov=testCov,
                    ctrlCov=ctrlCov,testMany=testMany,
-                   ctrlMany=ctrlMany,taxkeepThresh=taxkeepThresh)
+                   ctrlMany=ctrlMany,taxDropThresh=taxDropThresh,
+                   standardize=standardize)
   data=runMeta$data
   results$covariatesData=runMeta$covariatesData
   binaryInd=runMeta$binaryInd
@@ -142,6 +143,10 @@ IFAA=function(
   microbName=runMeta$microbName
   newMicrobNames=runMeta$newMicrobNames
   results$covriateNames=runMeta$xNames
+
+  binaryInd_test <- testCovInd[testCovInd %in% binaryInd]
+
+
   rm(runMeta)
 
   if(length(refTaxa)>0){
@@ -173,13 +178,13 @@ IFAA=function(
                                     microbName=microbName,nRef=nRef,
                                     nRefMaxForEsti=nRefMaxForEsti,
                                     binaryInd=binaryInd,
+                                    binaryInd_test=binaryInd_test,
                                     covsPrefix=covsPrefix,Mprefix=Mprefix,
                                     refTaxa=refTaxa_newNam,
                                     paraJobs=paraJobs,
                                     adjust_method=adjust_method,
                                     fwerRate=fdrRate,
                                     bootB=bootB,
-                                    standardize=standardize,
                                     sequentialRun=sequentialRun,
                                     allFunc=allFunc,refReadsThresh=refReadsThresh,
                                     SDThresh=SDThresh,

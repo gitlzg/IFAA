@@ -20,7 +20,8 @@
 ##' be linked with the id variable in the covariates data: `CovData`. This argument can
 ##' take directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 ##' @param CovData Covariates data matrix containing covariates and confounders with each row
-##' per sample and each column per variable. It should also contain an id variable to
+##' per sample and each column per variable. Any categorical variable should be converted into dummy variables in this data matrix unless it can be treated as a continuous variable.
+##' It should also contain an id variable to
 ##' be linked with the id variable in the microbiome data: `MicrobData`. This argument can
 ##' take directory path. For example, `CovData="C://...//covariatesData.tsv"`.
 ##'
@@ -33,8 +34,8 @@
 ##' @param fdrRate The false discovery rate for identifying taxa/OTU/ASV associated with `allCov`. Default is `0.15`.
 ##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`.
 ##' @param bootB Number of bootstrap samples for obtaining confidence interval of estimates for the high dimensional regression. The default is `500`.
-##' @param taxkeepThresh The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `1` which means taxon with at least `1` sequencing reads will be included into the analysis.
-##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in the analyses will be standardized. Default is `FALSE`.
+##' @param taxDropThresh The threshold of number of non-zero sequencing reads for each taxon to be dropped from the analysis. The default is `0` which means taxon without any sequencing reads will be dropped from the analysis.
+##' @param standardize This takes a logical value `TRUE` or `FALSE`. If `TRUE`, the design matrix for X will be standardized in the analyses and the results. Default is `FALSE`.
 ##' @param sequentialRun This takes a logical value `TRUE` or `FALSE`. Default is `TRUE`. It can be set to be "FALSE" to increase speed if there are multiple taxa in the argument 'refTaxa'.
 ##' @param seed Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding.
 ##' @return A list containing the estimation results.
@@ -83,7 +84,7 @@ MZILN=function(
   fdrRate=0.15,
   paraJobs=NULL,
   bootB=500,
-  taxkeepThresh=1,
+  taxDropThresh=0,
   standardize=FALSE,
   sequentialRun=TRUE,
   seed=1
@@ -95,7 +96,7 @@ MZILN=function(
   start.time = proc.time()[3]
   runMeta=metaData(MicrobData=MicrobData,CovData=CovData,
                    linkIDname=linkIDname,testCov=allCov,
-                   taxkeepThresh=taxkeepThresh)
+                   taxDropThresh=taxDropThresh,standardize=standardize)
 
   data=runMeta$data
   results$covariatesData=runMeta$covariatesData
@@ -110,6 +111,8 @@ MZILN=function(
   newMicrobNames=runMeta$newMicrobNames
   results$covriateNames=runMeta$xNames
   rm(runMeta)
+
+  binaryInd_test <- testCovInd[testCovInd %in% binaryInd]
 
   nRef=length(refTaxa)
   refTaxa_newNam=newMicrobNames[microbName%in%refTaxa]
@@ -131,13 +134,16 @@ MZILN=function(
   }
 
   results$analysisResults=Regulariz_MZILN(data=data,nRef=nRef,testCovInd=testCovInd,
-                                          testCovInOrder=testCovInOrder,microbName=microbName,
-                                          binaryInd=binaryInd,covsPrefix=covsPrefix,Mprefix=Mprefix,
+                                          testCovInOrder=testCovInOrder,testCovInNewNam=testCovInNewNam,
+                                          microbName=microbName,
+                                          binaryInd=binaryInd,
+                                          binaryInd_test=binaryInd_test,
+                                          covsPrefix=covsPrefix,Mprefix=Mprefix,
                                           targetTaxa=targetTaxa,
                                           refTaxa=refTaxa_newNam,adjust_method=adjust_method,
                                           paraJobs=paraJobs,fdrRate=fdrRate,
                                           bootB=bootB,
-                                          standardize=standardize,sequentialRun=sequentialRun,
+                                          sequentialRun=sequentialRun,
                                           allFunc=allFunc,seed=seed
   )
   rm(data)

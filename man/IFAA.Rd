@@ -22,7 +22,7 @@ IFAA(
   standardize = FALSE,
   sequentialRun = FALSE,
   refReadsThresh = 0.2,
-  taxkeepThresh = 1,
+  taxDropThresh = 0,
   SDThresh = 0.05,
   SDquantilThresh = 0,
   balanceCut = 0.2,
@@ -36,7 +36,8 @@ the id variable in the covariates data: \code{CovData}. This argument can take
 directory path. For example, \code{MicrobData="C://...//microbiomeData.tsv"}.}
 
 \item{CovData}{Covariates data matrix containing covariates and confounders with each row
-per sample and each column per variable. It should also contain an id variable to
+per sample and each column per variable. Any categorical variable should be converted into dummy variables in this data matrix unless it can be treated as a continuous variable.
+It should also contain an id variable to
 be linked with the id variable in the microbiome data: \code{MicrobData}. This argument can take
 directory path. For example, \code{CovData = "C://...//covariatesData.tsv"}.}
 
@@ -64,13 +65,13 @@ directory path. For example, \code{CovData = "C://...//covariatesData.tsv"}.}
 
 \item{bootB}{Number of bootstrap samples for obtaining confidence interval of estimates in phase 2 for the high dimensional regression. The default is \code{500}.}
 
-\item{standardize}{This takes a logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is \code{FALSE}.}
+\item{standardize}{This takes a logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, the design matrix for X will be standardized in the analyses and the results. Default is \code{FALSE}.}
 
 \item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Default is \code{FALSE}. This argument could be useful for debug.}
 
 \item{refReadsThresh}{The threshold of proportion of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is \code{0.2} which means at least 20\% non-zero sequencing reads.}
 
-\item{taxkeepThresh}{The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is \code{0} which means taxon with at least \code{0} sequencing reads will be included into the analysis}
+\item{taxDropThresh}{The threshold of number of non-zero sequencing reads for each taxon to be dropped from the analysis. The default is \code{0} which means taxon without any sequencing reads will be dropped from the analysis.}
 
 \item{SDThresh}{The threshold of standard deviations of sequencing reads for been chosen as the reference taxon in phase 2. The default is \code{0.05} which means the standard deviation of sequencing reads should be at least \code{0.05} in order to be chosen as reference taxon.}
 
@@ -127,7 +128,7 @@ results <- IFAA(MicrobData = dataM,
                 CovData = dataC,
                 linkIDname = "id",
                 testCov = c("v1", "v2"),
-                ctrlCov = c("v3"), 
+                ctrlCov = c("v3"),
                 fdrRate = 0.15)
 
 }

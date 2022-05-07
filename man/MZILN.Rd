@@ -15,7 +15,7 @@ MZILN(
   fdrRate = 0.15,
   paraJobs = NULL,
   bootB = 500,
-  taxkeepThresh = 1,
+  taxDropThresh = 0,
   standardize = FALSE,
   sequentialRun = TRUE,
   seed = 1
@@ -28,7 +28,8 @@ be linked with the id variable in the covariates data: \code{CovData}. This argu
 take directory path. For example, \code{MicrobData="C://...//microbiomeData.tsv"}.}
 
 \item{CovData}{Covariates data matrix containing covariates and confounders with each row
-per sample and each column per variable. It should also contain an id variable to
+per sample and each column per variable. Any categorical variable should be converted into dummy variables in this data matrix unless it can be treated as a continuous variable.
+It should also contain an id variable to
 be linked with the id variable in the microbiome data: \code{MicrobData}. This argument can
 take directory path. For example, \code{CovData="C://...//covariatesData.tsv"}.}
 
@@ -48,9 +49,9 @@ take directory path. For example, \code{CovData="C://...//covariatesData.tsv"}.}
 
 \item{bootB}{Number of bootstrap samples for obtaining confidence interval of estimates for the high dimensional regression. The default is \code{500}.}
 
-\item{taxkeepThresh}{The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is \code{1} which means taxon with at least \code{1} sequencing reads will be included into the analysis.}
+\item{taxDropThresh}{The threshold of number of non-zero sequencing reads for each taxon to be dropped from the analysis. The default is \code{0} which means taxon without any sequencing reads will be dropped from the analysis.}
 
-\item{standardize}{This takes a logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, all design matrix X in the analyses will be standardized. Default is \code{FALSE}.}
+\item{standardize}{This takes a logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, the design matrix for X will be standardized in the analyses and the results. Default is \code{FALSE}.}
 
 \item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Default is \code{TRUE}. It can be set to be "FALSE" to increase speed if there are multiple taxa in the argument 'refTaxa'.}
 

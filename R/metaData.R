@@ -1,6 +1,6 @@
 
 metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
-                  testMany=TRUE,ctrlMany=FALSE,MZILN=FALSE,taxkeepThresh){
+                  testMany=TRUE,ctrlMany=FALSE,MZILN=FALSE,taxDropThresh,standardize){
   results=list()
 
   if(length(linkIDname)==0){
@@ -36,7 +36,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   MdataWithoutId=MdataWithId[,!(colnames(MdataWithId)%in%linkIDname),drop=FALSE]
   if(!all(MdataWithoutId>=0)) stop("Microbiome data contains negative values.")
   rm(MdataWithoutId)
-  
+
   missPropMData=sum(is.na(MdataWithId[,linkIDname]))/nrow(MdataWithId)
   if(missPropMData>0.8){
     warning("There are over 80% missing values for the linkId variable in the Microbiome data file.
@@ -107,9 +107,9 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   rm(allRawData)
 
   # check zero taxa and subjects with zero taxa reads
-  numTaxaNoReads=sum(colSums(Mdata_raw!=0)<=taxkeepThresh)
+  numTaxaNoReads=sum(colSums(Mdata_raw!=0)<=taxDropThresh)
   if(numTaxaNoReads>0){
-    Mdata_raw=Mdata_raw[,!(colSums(Mdata_raw!=0)<=taxkeepThresh)]
+    Mdata_raw=Mdata_raw[,!(colSums(Mdata_raw!=0)<=taxDropThresh)]
     message("There are ",numTaxaNoReads," taxa without any sequencing reads before
         data merging, and excluded from the analysis")
   }
@@ -161,7 +161,7 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
 
   if((sum(binCheck==2))>0){
 
-    binaryInd=which(binCheck==2)[1]
+    binaryInd=which(binCheck==2)
     results$varNamForBin=xNames[binCheck==2]
     results$nBinVars=length(results$varNamForBin)
     for(i in results$varNamForBin){
@@ -181,8 +181,13 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
     results$varNamForBin=NULL
   }
 
-  results$binaryInd=NULL
+  results$binaryInd=binaryInd
   results$xNames=colnames(Covariates)
+  if (standardize) {
+    Covariates[,-binaryInd]<-Covariates[,-binaryInd] %*%
+      diag(1/apply(Covariates[,-binaryInd],2,function(x) sd(x,na.rm = TRUE)))
+  }
+
   xNewNames=paste0("x",seq(length(xNames)))
   colnames(Covariates)=xNewNames
   results$covsPrefix="x"
@@ -205,11 +210,11 @@ metaData=function(MicrobData,CovData,linkIDname,testCov=NULL,ctrlCov=NULL,
   Mdata_omit=dataOmit[,newMicrobNames1]
 
   # check taxa with zero or 1 read again after all missing data removed
-  numTaxaNoReads=sum(colSums(Mdata_omit!=0)<=taxkeepThresh)
+  numTaxaNoReads=sum(colSums(Mdata_omit!=0)<=taxDropThresh)
   if(numTaxaNoReads==0){results$data=data.matrix(dataOmit)}
   if(numTaxaNoReads>0){
     dataOmit_noTaxa=dataOmit[,!(colnames(dataOmit)%in%newMicrobNames1)]
-    microbToRetain=newMicrobNames1[!(colSums(Mdata_omit!=0)<=taxkeepThresh)]
+    microbToRetain=newMicrobNames1[!(colSums(Mdata_omit!=0)<=taxDropThresh)]
     message("There are ",numTaxaNoReads," taxa without any sequencing reads after merging
         and removing all missing data, and excluded from the analysis")
     MdataToRetain=Mdata_omit[,microbToRetain]

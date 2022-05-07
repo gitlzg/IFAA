@@ -17,9 +17,9 @@ knitr::opts_chunk$set(
 library(IFAA)
 ```
 
-IFAA is a robust approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. It can be also directly applied to relative abundance (RA) data to make inference on AA because the ratio of two RA is equal ratio of their AA. This algorithm can estimate and test the associations of interest while adjusting for potential confounders. High-dimensional covariates are handled with regularization. The estimates of this method have easy interpretation like a typical regression analysis. This algorithm can find optimal reference taxa/OTU/ASV and control FDR by permutation. The IFAA package also offers the 'MZILN' function for estimating and testing associations of abundance ratios with covariates.
+IFAA is a robust approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. It can be also directly applied to relative abundance (RA) data to make inference on AA because the ratio of two RA is equal ratio of their AA. This algorithm can estimate and test the associations of interest while adjusting for potential confounders. High-dimensional covariates are handled with regularization. The estimates of this method have easy interpretation like a typical regression analysis. High-dimensional covariates are handled with regularization and it is implemented by parallel computing. False discovery rate is automatically controlled by this approach. Zeros do not need to be imputed by a positive value for the analysis. The IFAA package also offers the 'MZILN' function for estimating and testing associations of abundance ratios with covariates.
 
-To model the association, the following equation is used: 
+The following mixed effect model is used for the association: 
 $$
 \log(\mathcal{Y}_i^k)|\mathcal{Y}_i^k>0=\beta^{0k}+X_i^T\beta^k+W_i^T\gamma^k+Z_i^Tb_i+\epsilon_i^k,\hspace{0.2cm}k=1,...,K+1,
 $$
@@ -27,11 +27,13 @@ where
 
 - $\mathcal{Y}_i^k$ is the AA of taxa $k$ in subject $i$ in the entire ecosystem. 
 
-- $X_i$ is the covariate matrix.
+- $X_i$ is the covariate of interest
 
-- $W_i$ is the confounder matrix.
+- $W_i$ is the confounder.
 
 - $Z_i$ is the design matrix for random effects. 
+
+- $\epsilon_i^k$ is the random error. 
 
 - $\beta^k$ is the regression coefficients that will be estimated and tested with the `IFAA()` function.
 
@@ -56,9 +58,9 @@ devtools::install_github("gitlzg/IFAA")
 
 Most of the time, users just need to feed the first five inputs to the function: `MicrobData`, `CovData`, `linkIDname`, `testCov` and `ctrlCov`. All other inputs can just take their default values. Below are all the inputs of the functions
 
-- `MicrobData`: Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to be linked with the id variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
+- `MicrobData`: Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per sample and each column per taxon/OTU/ASV (or any other unit). The data matrix can have zero-valued data points. It should also contain an id variable to be linked with the id variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an id variable to be linked with the id variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, `CovData="C://...//covariatesData.tsv"`.
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. Any categorical variable should be converted into dummy variables in this data matrix unless it can be treated as a continuous variable. It should also contain an id variable to be linked with the id variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, `CovData="C://...//covariatesData.tsv"`.
 
 - `linkIDname`: The common variable name of the id variable in both `MicrobData` and `CovData`. The two data sets will be merged by this id variable.
 
@@ -77,10 +79,10 @@ Most of the time, users just need to feed the first five inputs to the function:
 - `fdrRate`: The false discovery rate for identifying taxa/OTU/ASV associated with `testCov`. Default is `0.15`.
 - `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. 
 - `bootB`: Number of bootstrap samples for obtaining confidence interval of estimates in phase 2 for the high dimensional regression. The default is `500`.
-- `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in phase 1 and phase 2 will be standardized in the analyses. Default is `FALSE`.
+- `standardize` This takes a logical value `TRUE` or `FALSE`. If `TRUE`, the design matrix for X will be standardized in the analyses and the results. Default is `FALSE`.
 - `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
 - `refReadsThresh`: The threshold of proportion of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
-- `taxkeepThresh`: The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `1` which means taxon with at least `1` sequencing reads will be included into the analysis.
+- `taxDropThresh`: The threshold of number of non-zero sequencing reads for each taxon to be dropped from the analysis. The default is `0` which means taxon without any sequencing reads will be dropped from the analysis.
 - `SDThresh`: The threshold of standard deviations of sequencing reads for been chosen as the reference taxon in phase 2. The default is `0.05` which means the standard deviation of sequencing reads should be at least `0.05` in order to be chosen as reference taxon.
 - `SDquantilThresh`: The threshold of the quantile of standard deviation of sequencing reads, above which could be selected as reference taxon. The default is `0`.
 - `balanceCut`: The threshold of the proportion of non-zero sequencing reads in each group of a binary variable for choosing the final reference taxa in phase 2. The default number is `0.2` which means at least 20% non-zero sequencing reads in each group are needed to be eligible for being chosen as a final reference taxon.
@@ -166,9 +168,9 @@ where
 
 Most of the time, users just feed the first six inputs to the function: `MicrobData`, `CovData`,  `linkIDname`, `targetTaxa`, `refTaxa` and `allCov`. All other inputs can just take their default values. All the inputs for 'MZILN()' are: 
 
-- `MicrobData`: Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to be linked with the id variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
+- `MicrobData`: Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per sample and each column per taxon/OTU/ASV (or any other unit). The data matrix can have zero-valued data points. It should also contain an id variable to be linked with the id variable in the covariates data: `CovData`. This argument can also take file directory path. For example, `MicrobData="C://...//microbiomeData.tsv"`.
 
-- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. It should also contain an id variable to be linked with the id variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, CovData="C://...//covariatesData.tsv".
+- `CovData`: Covariates data matrix containing covariates and confounders with each row per sample and each column per variable. Any categorical variable should be converted into dummy variables in this data matrix unless it can be treated as a continuous variable. It should also contain an id variable to be linked with the id variable in the microbiome data: `MicrobData`. This argument can also take file directory path. For example, CovData="C://...//covariatesData.tsv".
 
 - `linkIDname` The common variable name of the id variable in both `MicrobData` and `CovData`. The two data sets will be merged by this id variable.
 
@@ -179,8 +181,8 @@ Most of the time, users just feed the first six inputs to the function: `MicrobD
 - `fdrRate` The false discovery rate for identifying ratios associated with `allCov`. Default is `0.15`.
 - `paraJobs` If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. 
 - `bootB` Number of bootstrap samples for obtaining confidence interval of estimates for the high dimensional regression. The default is `500`.
-- `taxkeepThresh` The threshold of number of non-zero sequencing reads for each taxon to be included into the analysis. The default is `1` which means taxon with at least `1` sequencing reads will be included into the analysis.
-- `standardize` This takes a logical value `TRUE` or `FALSE`. If `TRUE`, all design matrix X in the analysis will be standardized. Default is `FALSE`.
+- `taxDropThresh`: The threshold of number of non-zero sequencing reads for each taxon to be dropped from the analysis. The default is `0` which means taxon without any sequencing reads will be dropped from the analysis.
+- `standardize` This takes a logical value `TRUE` or `FALSE`. If `TRUE`, the design matrix for X will be standardized in the analyses and the results. Default is `FALSE`.
 - `sequentialRun` This takes a logical value `TRUE` or `FALSE`. Default is `TRUE`. It can be set to be "FALSE" to increase speed if there are multiple taxa in the argument 'refTaxa'.
 - `seed` Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding. 
 

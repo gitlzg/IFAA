@@ -15,7 +15,6 @@ runlinear=function(
   nBeta=ncol(x)
 
   nObsAll=length(y)
-  print(paste("length of y: ",length(y)))
 
 
 
@@ -36,7 +35,7 @@ runlinear=function(
 
   coef_est<-abs(bootResu[,1])
   coef_est_noint<-coef_est[-seq(1,length(coef_est),by=(nPredics+1))]
-  coef_est_noint[is.na(coef_est_noint)]<-max(coef_est_noint,na.rm = T)
+  coef_est_noint[is.na(coef_est_noint)]<-max(coef_est_noint,na.rm = TRUE)
 
 
   # return

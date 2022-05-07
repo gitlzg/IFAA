@@ -12,12 +12,13 @@ bootResuHDCI=function(
   binPredInd,
   covsPrefix,
   Mprefix,
+  unbalanceTaxa_ori_name,
+  unbalancePred_ori_name,
   testCovInOrder,
   adjust_method,
   microbName,
   fwerRate,
   paraJobs,
-  standardize,
   seed
 ){
 
@@ -140,7 +141,6 @@ bootResuHDCI=function(
       }
 
       bootResu=runBootLassoHDCI(x=as.matrix(xSub),y=as.vector(ySub),bootB=bootB,
-                        standardize=standardize,
                         paraJobs=paraJobs,bootLassoAlpha=bootLassoAlpha,seed=seed)
 
       parallel::stopCluster(c3)
@@ -179,7 +179,7 @@ bootResuHDCI=function(
       se_est<-abs(x[2]-x[1])/(2*qnorm(1-bootLassoAlpha/2))
       return(se_est)
       }
-    
+
     for (ii in 1:nTestcov) {
       se_est<-apply(boot_CI[,seq(ii+1,ncol(boot_CI),nPredics+1)],2,calculate_se)
       p_value_unadj<-numeric(length(se_est))
@@ -218,7 +218,15 @@ bootResuHDCI=function(
   colnames(CI_up_mat)<-colname_use
   colnames(se_mat)<-colname_use
 
-  sig_ind<-which(p_value_save_mat<fwerRate,arr.ind = T,useNames = F)
+  if (length(unbalanceTaxa_ori_name)>0) {
+    est_save_mat[cbind(unbalancePred_ori_name,unbalanceTaxa_ori_name)]<-NA
+    CI_low_mat[cbind(unbalancePred_ori_name,unbalanceTaxa_ori_name)]<-NA
+    CI_up_mat[cbind(unbalancePred_ori_name,unbalanceTaxa_ori_name)]<-NA
+    se_mat[cbind(unbalancePred_ori_name,unbalanceTaxa_ori_name)]<-NA
+    p_value_save_mat[cbind(unbalancePred_ori_name,unbalanceTaxa_ori_name)]<-NA
+  }
+
+  sig_ind<-which(p_value_save_mat<fwerRate,arr.ind = TRUE,useNames = FALSE)
   est_sig<-est_save_mat[sig_ind]
   CI_low_sig<-CI_low_mat[sig_ind]
   CI_up_sig<-CI_up_mat[sig_ind]

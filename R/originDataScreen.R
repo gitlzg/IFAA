@@ -9,7 +9,6 @@ originDataScreen=function(
   paraJobs,
   refTaxa,
   maxDimensionScr=434*5*10^5,
-  standardize,
   sequentialRun,
   allFunc,
   Mprefix,
@@ -71,7 +70,7 @@ originDataScreen=function(
     #start parallel computing
     if(forLoopN>1 & jj<forLoopN){
       scr1Resu.j=foreach(i=((jj-1)*batch+1):(jj*batch),
-                         .multicombine=T,
+                         .multicombine=TRUE,
                          .packages=c("glmnet","Matrix"),
                          .errorhandling="pass") %dopar% {
 
@@ -106,8 +105,7 @@ originDataScreen=function(
                                  EstNoInt.k<-abs(Penal.i$coef_est_noint)
                                } else {
                                  Penal.i=runGlmnet(x=x,y=y,
-                                                   nPredics=nPredics,
-                                                   standardize=standardize)
+                                                   nPredics=nPredics)
                                  BetaNoInt.k=as((0+(Penal.i$betaNoInt!=0)),"sparseVector")
                                  EstNoInt.k<-abs(Penal.i$betaNoInt)
                                }
@@ -154,12 +152,12 @@ originDataScreen=function(
       parallel::stopCluster(cl)
       gc()
       if(jj==1)scr1Resu=scr1Resu.j
-      if(jj>1)scr1Resu=do.call(c,list(scr1Resu,scr1Resu.j))
+      if(jj>1)scr1Resu=do.call(base::c,list(scr1Resu,scr1Resu.j))
     }
 
     if(jj==forLoopN){
       scr1Resu.j=foreach(i=((forLoopN-1)*batch+1):nRef,
-                         .multicombine=T,
+                         .multicombine=TRUE,
                          .packages=c("glmnet","Matrix"),
                          .errorhandling="pass") %dopar% {
 
@@ -193,8 +191,7 @@ originDataScreen=function(
                                  EstNoInt.k<-abs(Penal.i$coef_est_noint)
                                } else {
                                  Penal.i=runGlmnet(x=x,y=y,
-                                                   nPredics=nPredics,
-                                                   standardize=standardize)
+                                                   nPredics=nPredics)
                                  BetaNoInt.k=as((0+(Penal.i$betaNoInt!=0)),"sparseVector")
                                  EstNoInt.k<-abs(Penal.i$betaNoInt)
                                }
@@ -242,7 +239,7 @@ originDataScreen=function(
                          }
       parallel::stopCluster(cl)
       if(forLoopN==1)scr1Resu=scr1Resu.j
-      if(forLoopN>1)scr1Resu=do.call(c,list(scr1Resu,scr1Resu.j))
+      if(forLoopN>1)scr1Resu=do.call(base::c,list(scr1Resu,scr1Resu.j))
       gc()
     }
 

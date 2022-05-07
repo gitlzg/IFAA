@@ -12,7 +12,6 @@ runScrParal=function(
   paraJobs,
   refTaxa,
   maxDimensionScr=0.8*434*10*10^4,
-  standardize,
   sequentialRun,
   allFunc=allFunc,
   refReadsThresh,
@@ -28,7 +27,7 @@ runScrParal=function(
   results=list()
 
   # load data info
-  basicInfo=dataInfo(data=data,qualifyRefTax=T,
+  basicInfo=dataInfo(data=data,qualifyRefTax=TRUE,
                      refReadsThresh=refReadsThresh,
                      SDThresh=SDThresh,SDquantilThresh=SDquantilThresh,
                      balanceCut=balanceCut,Mprefix=Mprefix,
@@ -64,20 +63,18 @@ runScrParal=function(
 
     refTaxa_extra=sample(taxon_to_be_sample,num_to_be_sample)
     refTaxa=c(refTaxa,refTaxa_extra)
-    results$refTaxa=refTaxa
     if (length(refTaxa)==0) {
         stop("No candidate reference taxon is available. Please try to lower the reference taxon boundary.")
     }
-  }
-
-
-  if(length(refTaxa)>=nRef){
+  } else if(length(refTaxa)>nRef){
     if(length(seed)>0){
       set.seed(as.numeric(seed))
     }
     refTaxa=sample(refTaxa,nRef)
-    results$refTaxa=refTaxa
   }
+
+  results$refTaxa=refTaxa
+
 
   #
   ## run original data screen
@@ -90,7 +87,6 @@ runScrParal=function(
                            allFunc=allFunc,Mprefix=Mprefix,
                            covsPrefix=covsPrefix,
                            binPredInd=binPredInd,
-                           standardize=standardize,
                            sequentialRun=sequentialRun,
                            adjust_method=adjust_method,
                            seed=seed)
