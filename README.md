@@ -8,6 +8,7 @@ IFAA is a robust approach to make inference on the association of covariates wit
 ```r
 # install from GitHub:
 devtools::install_github("gitlzg/IFAA")
+
 # or from CRAN
 install.packages("IFAA", repos = "http://cran.us.r-project.org")
 ```
