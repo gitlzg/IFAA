@@ -46,9 +46,10 @@ AIcalcu = function(data,
     if(length(binPredInd)==0) {
       xData=scale(xData)
       } else{
-       xData[,-binPredInd,drop=FALSE]=scale(xData[,-binPredInd,drop=FALSE],center=FALSE)
+       xData[,-binPredInd]=scale(xData[,-binPredInd],center=FALSE)
        }
      }
+  
   rm(data, predNames)
   
   # transform data using log-ratio, creat Ai and Li

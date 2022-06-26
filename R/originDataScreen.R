@@ -75,12 +75,14 @@ originDataScreen = function(data,
   }
   
   #start parallel computing
+  
   scr1Resu = foreach(
     i = seq_len(nRef),
     .multicombine = TRUE,
     .packages = c("glmnet", "Matrix"),
     .errorhandling = "pass"
   ) %dopar% {
+    
     ii = which(taxaNames == refTaxa[i])
     dataForEst = dataRecovTrans(
       data = data,
@@ -179,7 +181,7 @@ originDataScreen = function(data,
   }
   
   rm(scr1Resu)
-  
+
   selecList <- lapply(selecList, as, "sparseMatrix")
   estList <- lapply(estList, as.matrix)
   scr1ResuSelec = do.call(cbind, selecList)
