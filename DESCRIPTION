@@ -1,6 +1,6 @@
 Package: IFAA
 Title: Robust Inference for Absolute Abundance in Microbiome Analysis
-Version: 1.0.6
+Version: 0.99.3
 Authors@R: c(person(given = "Quran",
            family = "Wu",
            role = c("aut"),
@@ -8,28 +8,28 @@ Authors@R: c(person(given = "Quran",
            person(given = "Zhigang",
            family = "Li",
            role = c("aut", "cre"),
-           email = "zhigang.li@ufl.edu")
+           email = "lzg2151@gmail.com")
            )
-Description: IFAA is a robust approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. It can be also directly applied to relative abundance (RA) data to make inference on AA because the ratio of two RA is equal ratio of their AA. This algorithm can estimate and test the associations of interest while adjusting for potential confounders. High-dimensional covariates are handled with regularization. The estimates of this method have easy interpretation like a typical regression analysis. High-dimensional covariates are handled with regularization and it is implemented by parallel computing. False discovery rate is automatically controlled by this approach. Zeros do not need to be imputed by a positive value for the analysis. The IFAA package also offers the 'MZILN' function for estimating and testing associations of abundance ratios with covariates.
-License: GNU General Public License version 2
+Description: This package offers a robust approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. It can be also directly applied to relative abundance (RA) data to make inference on AA because the ratio of two RA is equal ratio of their AA. This algorithm can estimate and test the associations of interest while adjusting for potential confounders. High-dimensional covariates are handled with regularization. The estimates of this method have easy interpretation like a typical regression analysis. High-dimensional covariates are handled with regularization and it is implemented by parallel computing. False discovery rate is automatically controlled by this approach. Zeros do not need to be imputed by a positive value for the analysis. The IFAA package also offers the 'MZILN' function for estimating and testing associations of abundance ratios with covariates.
+License: GPL-2
 Encoding: UTF-8
 URL: https://github.com/gitlzg/IFAA,
         https://arxiv.org/abs/1909.10101v3,
         https://link.springer.com/article/10.1007/s12561-018-9219-2
-LazyData: true
-RoxygenNote: 7.1.2
-Depends: R (>= 3.6.0),
+LazyData: FALSE
+RoxygenNote: 7.2.0
+Depends: R (>= 4.1.0),
 Imports: qlcMatrix (>= 0.9.7), methods (>= 3.3.0), mathjaxr (>= 1.0-1),
         expm (>= 0.999-3), foreach (>= 1.4.3), Matrix (>= 1.4-0), HDCI
         (>= 1.0-2), parallel (>= 3.3.0), doParallel (>= 1.0.11), future
-        (>= 1.12.0), glmnet, stats
+        (>= 1.12.0), glmnet, stats, utils, SummarizedExperiment,
+        stringr, S4Vectors
+biocViews: Software, Technology, Sequencing, Microbiome
 RdMacros: mathjaxr
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2022-04-13 02:34:51 UTC; 16037
+Packaged: 2022-06-26 02:57:26 UTC; quranwu
 Author: Quran Wu [aut],
   Zhigang Li [aut, cre]
-Maintainer: Zhigang Li <zhigang.li@ufl.edu>
-Repository: CRAN
-Date/Publication: 2022-04-13 07:42:29 UTC
+Maintainer: Zhigang Li <lzg2151@gmail.com>
