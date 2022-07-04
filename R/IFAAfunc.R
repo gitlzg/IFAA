@@ -320,7 +320,7 @@ IFAA = function(experiment_dat,
   }
   
   if (length(sampleID)>0) {
-    covariatesData <- merge(CovData[,c(sampleID,linkIDname)],covariatesData,all=FALSE)
+    covariatesData <- merge(CovData[,c(sampleID,linkIDname)],covariatesData,by=linkIDname,all=FALSE)
   } 
   covariatesData <- covariatesData[,!colnames(covariatesData) %in% c(linkIDname)]
   
