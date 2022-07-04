@@ -1,20 +1,22 @@
 ## Overview
 
-IFAA is a robust approach to make inference on the association of covariates with the absolute abundance (AA) of microbiome in an ecosystem. 
+IFAA offers a robust approach to make inference on the associations of covariates 
+with the absolute abundance (AA) of microbiome in an ecosystem, and the associations of covariates with the abundance ratios of microbiome taxa/OTU/ASV (or other units). 
 
 ## Installation
 ```r
-# or from CRAN
+# Install from CRAN
 install.packages("IFAA", repos = "http://cran.us.r-project.org")
 
-# install from GitHub:
+# Or from GitHub:
 devtools::install_github("gitlzg/IFAA")
 ```
 ## Usage
 
 Use example datasets to run `IFAA()` function.
 ```r
-# Detailed instructions on the package are provided in the vignettes and manual
+# Detailed instructions on the package are 
+# provided in the vignettes and manual
 library(IFAA)
 library(SummarizedExperiment)
 
@@ -30,7 +32,8 @@ dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
 
 # Create SummarizedExperiment object for inputs
-test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), 
+                         colData=dataC_sub)
 
 # run IFAA
 results <- IFAA(experiment_dat = test_dat,
@@ -60,10 +63,12 @@ results <- MZILN(experiment_dat = test_dat,
 ```
 Regression results including confidence intervals for the targeted ratios can be extracted in the following way:
 ```r
-# to extract the results for all ratios with rawCount11 as the denominator:
+# to extract the results for all ratios with rawCount11 
+# as the denominator:
  summary_res<-results$full_results
  
-# to extract results for the ratio of a specific taxon (e.g., rawCount45) over rawCount11:
+# to extract results for the ratio of a specific taxon (e.g., 
+# rawCount45) over rawCount11:
  target_ratio=summary_res[summary_res$taxon=="rawCount45",]
  
 # to extract all ratios having significant associations:
