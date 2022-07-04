@@ -30,15 +30,15 @@ IFAA(
 )
 }
 \arguments{
-\item{experiment_dat}{A SummarizedExperiment object containing countData and colData. The countData contains microbiome absolute abundance or relative abundance with each column per
-sample and each row per taxon/OTU/ASV (or any other unit). The colData contains covariates and confounders with each row
-per sample and each column per variable. Note that the variables in colData has to be numeric or binary.}
+\item{experiment_dat}{A SummarizedExperiment object containing microbiome data and covarites (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance
+with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covarites data contains covariates and confounders with each row per sample and each
+column per variable. The covarites data has to be numeric or binary.}
 
 \item{testCov}{Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is \code{NULL} which means all covariates are \code{testCov}.}
 
 \item{ctrlCov}{Potential confounders that will be adjusted in the model. It corresponds to $W_i$ in the equation. Default is \code{NULL} which means all covariates except those in \code{testCov} are adjusted as confounders.}
 
-\item{sampleID}{Name of the ID variable. Could be set to NULL.}
+\item{sampleID}{Name of the sample ID variable in the data. This is not required. Default is NULL.}
 
 \item{testMany}{This takes logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, the \code{testCov} will contain all the variables in \code{CovData} provided \code{testCov} is set to be \code{NULL}. The default value is \code{TRUE} which does not do anything if \code{testCov} is not \code{NULL}.}
 
@@ -77,17 +77,22 @@ per sample and each column per variable. Note that the variables in colData has 
 \item{seed}{Random seed for reproducibility. Default is \code{1}. It can be set to be NULL to remove seeding.}
 }
 \value{
-A list containing 3 elements
+A list containing 2 elements
 \itemize{
-\item {\code{full_result_mean}: The main result from IFAA. A dataset for mean results from two reference taxon with each row representing each taxon, columns as "taxon", "cov", "estimate",
-"SE.est", "CI.low", "CI.up", "adj.p.value", and "sig_ind", describing the taxon name, covariate name, parameter estimates, standard error estimates, lower bound and upper bound of the 95\% confidence interval, adjusted p value, and the indicator showing whether the effect of corresponding taxon is significant, respectively.
+\item {\code{full_results}: The main results for IFAA containing the estimation and testing results for all associations between all taxa and all test covariates in \code{testCov}. It is a dataframe with each row
+representing an association, and eight columns named as "taxon", "cov", "estimate", "SE.est", "CI.low", "CI.up", "adj.p.value", and "sig_ind". The columns correspond to taxon name, covariate name, association estimates,
+standard error estimates, lower bound and upper bound of the 95\% confidence interval, adjusted p value, and the indicator showing whether the association is significant after multiple testing adjustment.
 }
 \item {\code{metadata}: The metadata is a list.
 \itemize{
-\item {\code{covariatesData} A dataset containing covariates and confounders used in the analyses.}
-\item {\code{final_ref_taxon} shows the final 2 reference taxon used for analysis}
-\item {\code{ref_taxon_count} and \code{ref_taxon_est} shows the count and estimates for reference taxon.
-It shows how the final reference taxon were selected (i.e. reference taxon were choose to be the taxon with smallest count and absolute value of estimates.)}
+\item {\code{covariatesData}: A dataset containing covariates and confounders used in the analyses.}
+\item {\code{final_ref_taxon}: The final 2 reference taxon used for analysis.}
+\item {\code{ref_taxon_count}: The counts of selection for the associations of all taxa with test covariates in Phase 1.}
+\item {\code{totalTimeMins}: The average magnitude estimates for the associations of all taxa with test covariates in Phase 1.}
+\item {\code{ref_taxon_est}: Total time used for the entire analysis.}
+\item {\code{seed}: The seed used for the analysis for reproducibility.}
+\item {\code{fdrRate}: FDR rate used for the analysis.}
+\item {\code{adjust_method}: Multiple testing adjust method used for the analysis.}
 }
 }
 }
@@ -96,7 +101,7 @@ It shows how the final reference taxon were selected (i.e. reference taxon were 
 Make inference on the association of microbiome with covariates
 }
 \details{
-Most of the time, users just need to feed the first five inputs to the function: \code{MicrobData}, \code{CovData}, \code{linkIDname}, \code{testCov} and \code{ctrlCov}. All other inputs can just take their default values.
+Most of the time, users just need to feed the first three inputs to the function: \code{experiment_dat}, \code{testCov} and \code{ctrlCov}. All other inputs can just take their default values.
 To model the association, the following equation is used:
 
 \loadmathjax
@@ -122,29 +127,43 @@ regularization.
 \examples{
 library(IFAA)
 library(SummarizedExperiment)
+
+## load the example microbiome data. This could be relative abundance or absolute 
+## abundance data. If you have a csv or tsv file for the microbiome data, you 
+## can use read.csv() function or read.table() function in R to read the 
+## data file into R.
 data(dataM)
 dim(dataM)
 dataM[1:5, 1:8]
+
+## load the example covariates data. If you have a csv or tsv file for the 
+## covariates data, you can use read.csv() function or read.table() function 
+## in R to read the data file into R.
 data(dataC)
 dim(dataC)
 dataC[1:5, ]
-## Merge two dataset by id first, to avoid unmatching observations. 
+
+## Merge microbiome data and covariate data by id, to avoid unmatching observations. 
 data_merged<-merge(dataM,dataC,by="id",all=FALSE)
-## Seperate count data and covariate data, drop id variable
+
+## Seperate microbiome data and covariate data, drop id variable from microbiome data
 dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)\%in\%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
+
 ## Create SummarizedExperiment object for inputs 
 test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+
+## run IFAA function
 results <- IFAA(experiment_dat = test_dat,
                 testCov = c("v1", "v2"),
                 ctrlCov = c("v3"),
-                sampleID = "id",
-                fdrRate = 0.15)
+                sampleID = c("id"),
+                fdrRate = 0.05)
 
 ## to extract all results:
 summary_res<-results$full_results
 ## to extract significant results:
-sig_taxa=subset(summary_res,sig_ind==TRUE)
+sig_results=subset(summary_res,sig_ind==TRUE)
 
 
 

@@ -280,12 +280,12 @@ Regulariz = function(data,
       rearrage_res_list[[j]] <- est_res_save_all
     }
     
-    unorder_long <- do.call("rbind", rearrage_res_list)
+    unorder_long <- DoCall("rbind", rearrage_res_list)
     all_cov_list_sep[[fin_ref_taxon_name[i]]] <-
       data.frame(unorder_long[stringr::str_order(unorder_long[, c("taxon")], decreasing = FALSE, numeric = T), ], row.names = NULL)
   }
   
-  all_cov_list_sep <- do.call("rbind", all_cov_list_sep)
+  all_cov_list_sep <- DoCall("rbind", all_cov_list_sep)
   rownames(all_cov_list_sep) <- NULL
   all_cov_list_sep$sig_ind <- all_cov_list_sep$adj.p.value < fwerRate
   results$all_cov_list_sep <- DataFrame(all_cov_list_sep)
@@ -364,7 +364,7 @@ Regulariz = function(data,
     
     
   }
-  full_results <- do.call("rbind", full_results)
+  full_results <- DoCall("rbind", full_results)
   rownames(full_results) <- NULL
   full_results <-
     full_results[stringr::str_order(full_results$taxon, decreasing = FALSE, numeric = T), ]

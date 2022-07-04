@@ -70,13 +70,10 @@ bootResuHDCI = function(data,
   if (dim(x)[1] > (dim(x)[2])) {
     for (k in seq_len(nRuns)) {
       rowToKeep = sample(nToSamplFrom, maxSubSamplSiz)
-      xSub = as((x[rowToKeep,]), "sparseMatrix")
-      ySub = (y[rowToKeep])
-      
+      xSub = x[rowToKeep,]
+      ySub = y[rowToKeep]
       
       lm_res <- speedglm::speedlm(as.vector(ySub) ~ as.matrix(xSub) - 1)
-      
-      
       
       rm(xSub, ySub)
       

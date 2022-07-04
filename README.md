@@ -21,10 +21,10 @@ library(SummarizedExperiment)
 data(dataM)
 data(dataC)
  
-# merge data 
+# merge microbiome and covariates data 
 data_merged<-merge(dataM,dataC,by="id",all=FALSE)
 
-# Seperate count data and covariate data, drop id variable
+# Seperate microbiome data and covariate data, drop id variable
 dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 
 dataC_sub<-data_merged[,colnames(dataC)]

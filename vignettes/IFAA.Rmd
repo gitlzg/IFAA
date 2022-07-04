@@ -1,7 +1,7 @@
 ---
 title: "IFAA"
 output: rmarkdown::html_vignette
-#output: pdf_document
+# output: pdf_document
 vignette: >
   %\VignetteIndexEntry{IFAA}
   %\VignetteEngine{knitr::rmarkdown}
@@ -56,14 +56,13 @@ devtools::install_github("gitlzg/IFAA")
 
 Most of the time, users just need to feed the first three inputs to the function: `experiment_dat`, `testCov` and `ctrlCov`. All other inputs can just take their default values. Below are all the inputs of the functions
 
-- `experiment_dat`: A SummarizedExperiment object containing countData and colData. The countData contains microbiome absolute abundance or relative abundance with each column per
-sample and each row per taxon/OTU/ASV (or any other unit). The colData contains covariates and confounders with each row per sample and each column per variable. Note that the variables in colData has to be numeric or binary.
+- `experiment_dat`: A SummarizedExperiment object containing microbiome data and covarites (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covarites data contains covariates and confounders with each row per sample and each column per variable. The covarites data has to be numeric or binary.
 
 - `testCov`: Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is `NULL` which means all covariates are `testCov`.
 
 - `ctrlCov`: Potential confounders that will be adjusted in the model. It corresponds to $W_i$ in the equation. Default is `NULL` which means all covariates except those in `testCov` are adjusted as confounders.
 
-- `sampleID`: Name of the ID variable. Could be set to NULL. 
+- `sampleID`: Name of the sample ID variable in the data. This is not required. Default is NULL. 
 
 - `testMany`: This takes logical value `TRUE` or `FALSE`. If `TRUE`, the `testCov` will contain all the variables in `CovData` provided `testCov` is set to be `NULL`. The default value is `TRUE` which does not do anything if `testCov` is not `NULL`.
 
@@ -72,11 +71,11 @@ sample and each row per taxon/OTU/ASV (or any other unit). The colData contains 
 - `nRef`: The number of randomly picked reference taxa used in phase 1. Default number is `40`. 
 - `nRefMaxForEsti`: The maximum number of final reference taxa used in phase 2. The default is `2`.
 - `refTaxa`: A vector of taxa names. These are reference taxa specified by the user to be used in phase 1 if the user believe these taxa are indepenent of the covariates. If the number of reference taxa is less than 'nRef', the algorithm will randomly pick extra reference taxa to make up 'nRef'. The default is `NULL` since the algorithm will pick reference taxa randomly. 
-- `adjust_method` The adjusting method used for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
+- `adjust_method`: The adjusting method used for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
 - `fdrRate`: The false discovery rate for identifying taxa/OTU/ASV associated with `testCov`. Default is `0.15`.
 - `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. 
 - `bootB`: Number of bootstrap samples for obtaining confidence interval of estimates in phase 2 for the high dimensional regression. The default is `500`.
-- `standardize` This takes a logical value `TRUE` or `FALSE`. If `TRUE`, the design matrix for X will be standardized in the analyses and the results. Default is `FALSE`.
+- `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, the design matrix for X will be standardized in the analyses and the results. Default is `FALSE`.
 - `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Default is `FALSE`. This argument could be useful for debug.
 - `refReadsThresh`: The threshold of proportion of non-zero sequencing reads for choosing the reference taxon in phase 2. The default is `0.2` which means at least 20% non-zero sequencing reads.
 - `taxDropThresh`: The threshold of number of non-zero sequencing reads for each taxon to be dropped from the analysis. The default is `0` which means taxon without any sequencing reads will be dropped from the analysis.
@@ -87,51 +86,61 @@ sample and each row per taxon/OTU/ASV (or any other unit). The colData contains 
 
 ## Output for IFAA() function
 
- A list containing 3 elements
+ A list containing 2 elements
 
- - `full_results`: The main result from IFAA. A dataset for mean results from two reference taxon with each row representing each taxon, columns as "taxon", "cov", "estimate",
- "SE.est", "CI.low", "CI.up", "adj.p.value", and "sig_ind", describing the taxon name, covariate name, parameter estimates, standard error estimates, lower bound and upper bound of the 95% confidence interval, adjusted p value, and the indicator showing whether the effect of corresponding taxon is significant, respectively.
+ - `full_results`: The main results for IFAA containing the estimation and testing results for all associations between all taxa and all test covariates in `testCov`. It is a dataframe with each row representing an association, and eight columns named as "taxon", "cov", "estimate", "SE.est", "CI.low", "CI.up", "adj.p.value", and "sig_ind". The columns correspond to taxon name, covariate name, association estimates, standard error estimates, lower bound and upper bound of the 95% confidence interval, adjusted p value, and the indicator showing whether the association is significant after multiple testing adjustment.
 
- - `metadata`: The metadata is a list. `final_ref_taxon` shows the final 2 reference taxon used for analysis, `ref_taxon_count` and `ref_taxon_est` shows how the final reference taxon were selected, and the other elements show the total time used in minutes, random seed used, the p-value cutoff used, and p-value adjustment method used.
+ - `metadata`: The metadata is a list containing the following items:
+  `covariatesData`: A dataset containing covariates and confounders used in the analyses.
+ `final_ref_taxon`: The final 2 reference taxa used for analysis.
+ `ref_taxon_count`: The counts of selection for the associations of all taxa with test covariates in Phase 1.
+  `ref_taxon_est`: The average magnitude estimates for the associations of all taxa with test covariates in Phase 1.
+ `totalTimeMins`: Total time used for the entire analysis.
+ `seed`: The seed used for the analysis for reproducibility.
+ `fdrRate`: FDR rate used for the analysis.
+ `adjust_method`: Multiple testing adjust method used for the analysis.
 
 
- \item {`metadata`: The metadata is a list. 
- \itemize{
- \item {`covariatesData` A dataset containing covariates and confounders used in the analyses.}
- \item {`final_ref_taxon` shows the final 2 reference taxon used for analysis}
- \item {`ref_taxon_count` and `ref_taxon_est` shows the count and estimates for reference taxon. 
- It shows how the final reference taxon were selected (i.e. reference taxon were choose to be the taxon with smallest count and absolute value of estimates.)}
- }
- }
-
-## Examples
+## Example
 
 The example datasets `dataM` and `dataC` are included in the package. The input should be a SummarizedExperiment object, which could be constructed as: 
 ```{r}
 library(IFAA)
-library(SummarizedExperiment)
+suppressMessages(library(SummarizedExperiment))
 
+## load the example microbiome data. This could be relative abundance or 
+## absolute abundance data. If you have a csv or tsv file for the microbiome data, 
+## you can use read.csv() function or read.table() function in R to read the 
+## data file into R.
 data(dataM)
 dim(dataM)
 dataM[1:5, 1:8]
 
+## load the example covariates data. If you have a csv or tsv file for the 
+## covariates data, you can use read.csv() function or read.table() function 
+## in R to read the data file into R.
 data(dataC)
 dim(dataC)
 dataC[1:3, ]
-
-data_merged<-merge(dataM,dataC,by="id",all=FALSE)
-## Seperate count data and covariate data, drop id variable
-dataM_sub<-data_merged[,colnames(dataM)[-1]]
-dataC_sub<-data_merged[,colnames(dataC)]
-## Create SummarizedExperiment object for inputs
-test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
-
 ```
+
 Both the microbiome data `dataM` and the covariates data `dataC` contain 40 samples (i.e., 40 rows). 
 
 - `dataM` contains 60 taxa with absolute abundances and these are gut microbiome.  
 
 - `dataC` contains 3 covariates. 
+
+```{r}
+## Merge the microbiome data and covariate data by id to avoid unmatching observations. 
+data_merged<-merge(dataM,dataC,by="id",all=FALSE)
+
+## Seperate microbiome data and covariate data, drop id variable from microbiome data
+dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
+dataC_sub<-data_merged[,colnames(dataC)]
+ 
+## Create a SummarizedExperiment object for inputs 
+test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+```
 
 Next we analyze the data to test the association between microbiome and the variable `"v1"` while adjusting for the variables (potential confounders) `"v2"` and `"v3"`.
 
@@ -139,21 +148,22 @@ Next we analyze the data to test the association between microbiome and the vari
 results <- IFAA(experiment_dat = test_dat,
                 testCov = c("v1"),
                 ctrlCov = c("v2","v3"),
-                sampleID = "id",
-                fdrRate = 0.15)
+                sampleID = c("id"),
+                fdrRate = 0.05)
 ```
 
 
-In this example, we are only interested in testing the associations with `"v1"` which is why `testCov=c("v1")`. The variables `"v2" and "v3"` are adjusted as potential confounders in the analyses. The final analysis results are saved in the list `sig_results`: 
+In this example, we are only interested in testing the associations with `"v1"` which is why `testCov=c("v1")`. The variables `"v2" and "v3"` are adjusted as potential confounders in the analyses. The final analysis results are saved in the list `full_result` and the significant results can be extracted as follows: 
 ```{r,eval=T}
 summary_res<-results$full_result
-subset(summary_res,sig_ind==T)
+sig_results<-subset(summary_res,sig_ind==T)
+sig_results
 ```
 The results found three taxa `"rawCount18"`, `"rawCount36"`, `"rawCount41"` associated with `"v1"` while adjusting for `"v2" and "v3"`. The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\beta^k$ in the model equation. 
 
 The interpretation is that 
 
-- Every unit increase in `"v1"` is associated with approximately 2.5% increase in the absolute abundance of `"rawCount18"`, approximately 2.9% increase in the absolute abundance of `"rawCount36"`, and approximately 3.1% increase in the absolute abundance of `"rawCount41"` in the entire gut ecosystem. 
+- Every unit increase in `"v1"` is associated with approximately 2.5% increase in the absolute abundance of `"rawCount18"`, approximately 2.9% increase in the absolute abundance of `"rawCount36"`, and approximately 3.0% increase in the absolute abundance of `"rawCount41"` in the entire gut ecosystem. 
 
 
 ## MZILN() function
@@ -173,76 +183,93 @@ where
 
 ## Input for MZILN() function
 
-Most of the time, users just feed the first four inputs to the function: `experiment_dat`, `targetTaxa`, `refTaxa` and `allCov`. All other inputs can just take their default values. All the inputs for 'MZILN()' are: 
+Most of the time, users just feed the first three inputs to the function: `experiment_dat`,  `refTaxa` and `allCov`. All other inputs can just take their default values. All the inputs for 'MZILN()' are: 
 
-- `experiment_dat`: A SummarizedExperiment object containing countData and colData. The countData contains microbiome absolute abundance or relative abundance with each column per
-sample and each row per taxon/OTU/ASV (or any other unit). The colData contains covariates and confounders with each row per sample and each column per variable. Note that the variables in colData has to be numeric or binary.
+- `experiment_dat`: A SummarizedExperiment object containing microbiome data and covarites (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covarites data contains covariates and confounders with each row per sample and each column per variable. The covarites data has to be numeric or binary.
 
-- `targetTaxa` The numerator taxa names specified by users for the targeted ratios. Default is NULL in which case all taxa are numerator taxa (except the taxa in the argument 'refTaxa').
-- `refTaxa` Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names. 
-- `allCov` All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.
+- `refTaxa`: Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names. 
+- `allCov`: All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.
 
-- `sampleID` Name of the ID variable. Could be set to NULL. 
+- `sampleID`: Name of the sample ID variable in the data. This is not required. Default is NULL.
 
-- `adjust_method` The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
+- `adjust_method`: The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
 - `fdrRate` The false discovery rate for identifying ratios associated with `allCov`. Default is `0.15`.
-- `paraJobs` If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. 
-- `bootB` Number of bootstrap samples for obtaining confidence interval of estimates for the high dimensional regression. The default is `500`.
+- `paraJobs`: If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`. 
+- `bootB`: Number of bootstrap samples for obtaining confidence interval of estimates for the high dimensional regression. The default is `500`.
 - `taxDropThresh`: The threshold of number of non-zero sequencing reads for each taxon to be dropped from the analysis. The default is `0` which means taxon without any sequencing reads will be dropped from the analysis.
-- `standardize` This takes a logical value `TRUE` or `FALSE`. If `TRUE`, the design matrix for X will be standardized in the analyses and the results. Default is `FALSE`.
-- `sequentialRun` This takes a logical value `TRUE` or `FALSE`. Default is `TRUE`. It can be set to be "FALSE" to increase speed if there are multiple taxa in the argument 'refTaxa'.
-- `seed` Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding. 
+- `standardize`: This takes a logical value `TRUE` or `FALSE`. If `TRUE`, the design matrix for X will be standardized in the analyses and the results. Default is `FALSE`.
+- `sequentialRun`: This takes a logical value `TRUE` or `FALSE`. Default is `TRUE`. It can be set to be "FALSE" to increase speed if there are multiple taxa in the argument 'refTaxa'.
+- `seed`: Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding. 
 
 ## Output for MZILN() function
 
 A list with two elements:
 
- - `full_results`: A dataset with each row representing each taxon, columns as "ref_tax", "taxon", "cov", "estimate",
- "SE.est", "CI.low", "CI.up", "adj.p.value", and "sig_ind", describing the reference taxon used, taxon name, covariate name, parameter estimates, standard error estimates, lower bound and upper bound of the 95% confidence interval, adjusted p value, and the indicator showing whether the effect of corresponding taxon is significant, respectively.
+ - `full_results`: The main results for MZILN containing the estimation and testing results for all associations between all taxa ratios with refTaxan being the denominator and all covariates in `allCov`. It is a dataframe with each row representing an association, and ten columns named as "ref_tax", "taxon", "cov", "estimate", "SE.est", "CI.low", "CI.up", "adj.p.value", "unadj.p.value" and "sig_ind". The columns correspond to the denominator taxon, numerator taxon, covariate name, association estimates, standard error estimates, lower bound and upper bound of the 95% confidence interval, adjusted p value, and the indicator showing whether the association is significant after multiple testing adjustment.
 
- - `metadata`: The metadata is a list showing total time used in minutes, random seed used, the p-value cutoff used, and p-value adjustment method used.
-
+ - `metadata`: The metadata is a list containing total time used in minutes, random seed used, FDR rate, and multiple testing adjustment method used.
 
 
 ## Examples
 
 We use the same example data The example dataset as that for illustrating the IFAA function. `dataM` and `dataC` are included in the package. They could be accessed by: 
 ```{r}
+## load the example microbiome data. This could be relative abundance or 
+## absolute abundance data. If you have a csv or tsv file for the microbiome data, 
+## you can use read.csv() function or read.table() function in R to read the 
+## data file into R.
 data(dataM)
 dim(dataM)
 dataM[1:5, 1:8]
 
+## load the example covariates data. If you have a csv or tsv file for the 
+## covariates data, you can use read.csv() function or read.table() function 
+## in R to read the data file into R.
 data(dataC)
 dim(dataC)
 dataC[1:3, ]
-
-data_merged<-merge(dataM,dataC,by="id",all=FALSE)
-## Seperate count data and covariate data, drop id variable
-dataM_sub<-data_merged[,colnames(dataM)[-1]]
-dataC_sub<-data_merged[,colnames(dataC)]
-## Create SummarizedExperiment object for inputs
-test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
-
 ```
+
 Both the microbiome data `dataM` and the covariates data `dataC` contain 40 samples (i.e., 40 rows). 
 
 - `dataM` contains 60 taxa with absolute abundances and these are gut microbiome.  
 
 - `dataC` contains 3 covariates. 
 
+```{r}
+## load the example microbiome data. This could be relative abundance or 
+## absolute abundance data. If you have a csv or tsv file for the microbiome data, 
+## you can use read.csv() function or read.table() function in R to read the 
+## data file into R.
+data_merged<-merge(dataM,dataC,by="id",all=FALSE)
+
+## load the covariates data. If you have a csv or tsv file for the covariates data, 
+## you can use read.csv() function or read.table() function in R to read 
+## the data file into R.
+dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
+dataC_sub<-data_merged[,colnames(dataC)]
+ 
+## Create a SummarizedExperiment object for inputs 
+test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+```
+
 Next we analyze the data to test the associations between the ratio "rawCount18/rawCount11" and all the three variables `"v1"`, `"v2"` and `"v3"` in a multivariate model where all `"v1"`, `"v2"` and `"v3"` are independent variables simultaneously.
 
 ```{r, eval=T}
 results <- MZILN(experiment_dat=test_dat,
                  refTaxa=c("rawCount11"),
-                 sampleID = "id",
                  allCov=c("v1","v2","v3"),
-                 fdrRate=0.15)
+                 sampleID = c("id"),
+                 fdrRate=0.05)
 ```
 
-The final analysis results are saved in the list
-```{r,eval=T}
+The full final analysis results can be extracted as follows:
+```{r}
 summary_res<-results$full_results
+```
+
+The results for the log-ratio of "rawCount18" over "rawCount11" can extracted as follows:
+```{r}
 summary_res[summary_res$taxon=="rawCount18",,drop=FALSE]
 ```
 The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\alpha^k$ in the model equation, and can be interpreted as the associations between the covariates and log-ratio of `"rawCount18"` over '"rawCount11"'. 
@@ -262,7 +289,7 @@ The interpretation for the results is that
 
 
 Session Info
-```{r,eval=T}
+```{r}
 sessionInfo()
 ```
 

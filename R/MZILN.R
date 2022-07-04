@@ -3,7 +3,7 @@
 ##' For estimating and testing the associations of abundance ratios with covariates.
 ##' \loadmathjax
 ##'
-##' Most of the time, users just need to feed the first six inputs to the function: `MicrobData`, `CovData`,  `linkIDname`, `refTaxa` and `allCov`. All other inputs can just take their default values.
+##' Most of the time, users just need to feed the first three inputs to the function: `experiment_dat`, `refTaxa` and `allCov`. All other inputs can just take their default values.
 ##' The regression model for `MZILN()` can be expressed as follows:
 ##' \mjdeqn{\log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K}{}
 ##' where
@@ -16,9 +16,9 @@
 ##' High-dimensional \mjeqn{X_i}{} is handled by regularization.
 ##'
 ##'
-##' @param experiment_dat A SummarizedExperiment object containing countData and colData. The countData contains microbiome absolute abundance or relative abundance with each column per
-##' sample and each row per taxon/OTU/ASV (or any other unit). The colData contains covariates and confounders with each row
-##' per sample and each column per variable. Note that the variables in colData has to be numeric or binary.
+##' @param experiment_dat A SummarizedExperiment object containing microbiome data and covarites (see example on how to create a SummarizedExperiment object). The microbiome data can be 
+##' absolute abundance or relative abundance with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. 
+##' The covarites data contains covariates and confounders with each row per sample and each column per variable. The covarites data has to be numeric or binary.
 ##' @param refTaxa Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names.
 ##' @param allCov All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.
 ##' @param sampleID Name of the ID variable. Could be set to NULL. 
@@ -33,33 +33,45 @@
 ##' @param seed Random seed for reproducibility. Default is `1`. It can be set to be NULL to remove seeding.
 ##' @return A list with two elements. 
 ##'
-##' - `full_results`: A dataset with each row representing each taxon, columns as "ref_tax", "taxon", "cov", "estimate",
-##' "SE.est", "CI.low", "CI.up", "adj.p.value", and "sig_ind", describing the reference taxon used, taxon name, covariate name, parameter estimates, standard error estimates, lower bound and upper bound of the 95% confidence interval, adjusted p value, and the indicator showing whether the effect of corresponding taxon is significant, respectively.
+##' - `full_results`: The main results for MZILN containing the estimation and testing results for all associations between all taxa ratios with refTaxan being the denominator and all covariates in `allCov`. It is a dataframe with each row representing an association, and ten columns named as "ref_tax", "taxon", "cov", "estimate", "SE.est", "CI.low", "CI.up", "adj.p.value", "unadj.p.value", and "sig_ind". The columns correspond to the denominator taxon, numerator taxon, covariate name, association estimates, standard error estimates, lower bound and upper bound of the 95% confidence interval, adjusted p value, and the indicator showing whether the association is significant after multiple testing adjustment.
 ##'
-##' - `metadata`: The metadata is a list showing covariates and confounders used for analysis, total time used in minutes, random seed used, the p-value cutoff used, and p-value adjustment method used.
+##' - `metadata`: The metadata is a list containing total time used in minutes, random seed used, FDR rate, and multiple testing adjustment method used.
 ##'
 ##' @examples
 ##' library(IFAA)
 ##' library(SummarizedExperiment)
+##' 
+##' ## load the example microbiome data. This could be relative abundance or absolute 
+##' ## abundance data. If you have a csv or tsv file for the microbiome data, you 
+##' ## can use read.csv() function or read.table() function in R to read the 
+##' ## data file into R.
 ##' data(dataM)
 ##' dim(dataM)
 ##' dataM[1:5, 1:8]
+##' 
+##' ## load the example covariates data. If you have a csv or tsv file for the 
+##' ## covariates data, you can use read.csv() function or read.table() function 
+##' ## in R to read the data file into R.
 ##' data(dataC)
 ##' dim(dataC)
 ##' dataC[1:5, ]
-##' ## Merge two dataset by id first, to avoid unmatching observations. 
+##' 
+##' ## Merge microbiome data and covariate data by id, to avoid unmatching observations. 
 ##' data_merged<-merge(dataM,dataC,by="id",all=FALSE)
-##' ## Seperate count data and covariate data, drop id variable
+##' 
+##' ## Seperate microbiome data and covariate data, drop id variable from the microbiome data
 ##' dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 ##' dataC_sub<-data_merged[,colnames(dataC)]
+##' 
 ##' ## Create SummarizedExperiment object for inputs 
 ##' test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+##' 
 ##' ### Run MZILN function
 ##' results <- MZILN(experiment_dat = test_dat,
 ##'                 refTaxa=c("rawCount11"),
 ##'                 allCov=c("v1","v2","v3"),
-##'                 sampleID="id",
-##'                 fdrRate=0.15)
+##'                 sampleID=c("id"),
+##'                 fdrRate=0.05)
 ##' ## to extract the results for all ratios with rawCount11 as the denominator:
 ##' summary_res<-results$full_results
 ##' ## to extract results for the ratio of a specific taxon (e.g., rawCount45) over rawCount11:

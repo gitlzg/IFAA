@@ -124,9 +124,13 @@ originDataScreen = function(data,
       rm(x, y)
       gc()
       
-      lasso_beta <-as.vector(as.matrix(lasso.est$beta)[,ncol(lasso.est$beta)])
-
+      betaMat=as.matrix(lasso.est$beta)
       rm(lasso.est)
+      gc()
+      
+      lasso_beta <-betaMat[,ncol(betaMat)]
+      rm(betaMat)
+      gc()
       
       betaNoInt = lasso_beta[-seq(1, length(lasso_beta), by = (nPredics + 1))]
       rm(lasso_beta)
@@ -196,9 +200,6 @@ originDataScreen = function(data,
   
   rm(scr1Resu)
 
-  # selecList <- lapply(selecList, as.matrix)
-  # estList <- lapply(estList, as.matrix)
-  
   scr1ResuSelec = DoCall(cbind, selecList)
   scr1ResuEst <- DoCall(cbind, estList)
 
@@ -206,7 +207,7 @@ originDataScreen = function(data,
 
   # create count of selection for individual testCov
   countOfSelecForAllPred = matrix(rowSums(scr1ResuSelec), nrow = nPredics)
-  EstOfAllPred <- matrix(rowSums(scr1ResuEst), nrow = nPredics)
+  EstOfAllPred <- matrix(rowMeans(scr1ResuEst), nrow = nPredics)
   
   testCovCountMat = countOfSelecForAllPred[testCovInd, , drop = FALSE]
   testEstMat <- EstOfAllPred[testCovInd, , drop = FALSE]
