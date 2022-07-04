@@ -47,6 +47,8 @@ Regulariz = function(data,
   regul.start.time = proc.time()[3]
   message("Start Phase 1 analysis")
   
+  t1phase1=proc.time()[3]
+    
   selectRegroup = getScrResu(
     data = data,
     testCovInd = testCovInd,
@@ -70,18 +72,22 @@ Regulariz = function(data,
   nRef_smaller <- max(2, ceiling(nRef / 2))
   while_loop_ind <- FALSE
   loop_num <- 0
-  message("33 percent of phase 1 analysis has been done")
+  
+  t2phase1=proc.time()[3]
+  minu=round((t2phase1-t1phase1)/60,2)
+  
+  message("33 percent of phase 1 analysis has been done and it took ", minu, " minutes")
+  
   while (while_loop_ind == FALSE) {
     if (loop_num >= 2) {
       break
     }
     loop_num <- loop_num + 1
-    
+
     refTaxa_smaller <-
       head(names(selectRegroup$goodIndpRefTaxWithCount),
            n = nRef_smaller)
-    
-    
+
     fin_ref_1 <- selectRegroup$finalIndpRefTax
     ref_taxa_1 <- selectRegroup$refTaxa
     selectRegroup = getScrResu(
@@ -111,49 +117,44 @@ Regulariz = function(data,
     while_loop_ind <-
       identical(fin_ref_1, fin_ref_2) || identical(ref_taxa_1, ref_taxa_2)
     
+    t3phase1=proc.time()[3]
+    minu=round((t3phase1-t1phase1)/60,2)
+    
     if (while_loop_ind == FALSE) {
       message(round(100 * (loop_num + 1) / 3, 0),
-              " percent of phase 1 analysis has been done")
+              " percent of phase 1 analysis has been done and it took ", minu, " minutes")
     }
     if (while_loop_ind == TRUE) {
-      message("100 percent of phase 1 analysis has been done")
+      message("100 percent of phase 1 analysis has been done and it took ", minu, " minutes")
     }
   }
+
   results$selecCountOverall = selectRegroup$selecCountOverall
   colnames(results$selecCountOverall) <- microbName
+
   results$selecCountMatIndv = selectRegroup$selecCountMatIndv
   finalIndpRefTax=microbName[taxaNames%in%(selectRegroup$finalIndpRefTax)]
-  
-  results$finalRefTaxonQualified = selectRegroup$refTaxonQualified
-  results$goodIndpRefTaxLeastCount=microbName[taxaNames%in%(selectRegroup$goodIndpRefTaxLeastCount)]
   
   results$goodIndpRefTaxWithCount = selectRegroup$goodIndpRefTaxWithCount
   names(results$goodIndpRefTaxWithCount) <-
     microbName[unlist(lapply(names(selectRegroup$goodIndpRefTaxWithCount), function(x)
       which(taxaNames %in% x)))]
-  
-  
-  
+
   results$goodIndpRefTaxWithEst = selectRegroup$goodIndpRefTaxWithEst
   names(results$goodIndpRefTaxWithEst) <-
     microbName[unlist(lapply(names(selectRegroup$goodIndpRefTaxWithEst), function(x)
       which(taxaNames %in% x)))]
-  
+
   results$goodRefTaxaCandi = microbName[taxaNames %in% (selectRegroup$goodRefTaxaCandi)]
   results$randomRefTaxa = microbName[taxaNames %in% (selectRegroup$refTaxa)]
-  goodIndpRefTax.ascend = sort(results$goodIndpRefTaxWithCount)
-  goodIndpRefTaxNam = names(goodIndpRefTax.ascend)
   rm(selectRegroup)
   
-  
-  
-  
+  goodIndpRefTaxNam = names(results$goodIndpRefTaxWithCount)
   
   MCPExecuTime = (proc.time()[3] - regul.start.time) / 60
-  results$MCPExecuTime = MCPExecuTime
-  message("Phase 1 analysis used ", round(MCPExecuTime, 2), " minutes")
-  
-  results$finalizedBootRefTaxon = finalIndpRefTax
+  results$phase1ExecuTime = MCPExecuTime
+
+  results$finalIndpRefTax = finalIndpRefTax
   
   startT = proc.time()[3]
   message("Start Phase 2 parameter estimation")
@@ -167,7 +168,7 @@ Regulariz = function(data,
     nBinPred = length(allBinPred)
     
     # find the pairs of binary preds and taxa for which the assocaiton is not identifiable
-    AllTaxaNamesNoRefTax = taxaNames[!microbName %in% (results$finalizedBootRefTaxon)]
+    AllTaxaNamesNoRefTax = taxaNames[!microbName %in% finalIndpRefTax]
     unbalanceTaxa = c()
     unbalancePred <- c()
     for (i in AllTaxaNamesNoRefTax) {
@@ -192,24 +193,18 @@ Regulariz = function(data,
       unbalanceTaxa_ori_name <- NULL
       unbalancePred_ori_name <- NULL
     }
-    # unestimableTaxa=unique(unbalanceTaxa)
     rm(allBinPred)
   } else {
     unbalanceTaxa_ori_name <- NULL
     unbalancePred_ori_name <- NULL
   }
-  
-  # check zero taxa and subjects with zero taxa reads
-  
-  
-  
-  
-  allRefTaxNam = unique(c(results$finalizedBootRefTaxon, goodIndpRefTaxNam))
+
+  allRefTaxNam = unique(c(finalIndpRefTax, goodIndpRefTaxNam))
   nGoodIndpRef = length(allRefTaxNam)
   results$allRefTaxNam = allRefTaxNam
   
   results$nRefUsedForEsti = min(nGoodIndpRef, nRefMaxForEsti)
-  
+
   results$estiList = list()
   for (iii in seq_len(results$nRefUsedForEsti)) {
     time11 = proc.time()[3]
@@ -238,7 +233,7 @@ Regulariz = function(data,
     if(iii<(results$nRefUsedForEsti)){
       message(
        round((100*iii/(results$nRefUsedForEsti)),2),
-       "percent of Phase 2 is done and it took ",
+       " percent of Phase 2 is done and it took ",
        round((time12 - time11) / 60, 3),
        " minutes")
       }
@@ -362,17 +357,24 @@ Regulariz = function(data,
         "CI low",
         "CI up",
         "adj p-value")
-    full_results[[j]] <- data.frame(est_res_save_all)
+    fin_ref_taxon_dat<-data.frame(taxon=fin_ref_taxon_name,cov=j,estimate=0,SE.est=NA,CI.low=NA,
+                                  CI.up=NA,adj.p.value=1)
+    full_results[[j]] <- rbind(data.frame(est_res_save_all),fin_ref_taxon_dat)
+
+    
+    
   }
   full_results <- do.call("rbind", full_results)
   rownames(full_results) <- NULL
   full_results <-
     full_results[stringr::str_order(full_results$taxon, decreasing = FALSE, numeric = T), ]
   full_results$sig_ind <- full_results$adj.p.value < fwerRate
+  full_results$sig_ind[is.na(full_results$sig_ind)] <- 0
   results$full_results <- DataFrame(full_results)
   
   results$nTaxa = nTaxa
   results$nPredics = nPredics
+  results$fin_ref_taxon_name=fin_ref_taxon_name
   
   rm(data)
   

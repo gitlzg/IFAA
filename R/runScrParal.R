@@ -57,16 +57,19 @@ runScrParal=function(
     num_to_be_sample<-(nRef-length(refTaxa))
     if (num_to_be_sample>=length(taxon_to_be_sample)) {
       num_to_be_sample<-length(taxon_to_be_sample)
-      message("The number of candidate reference taxon is smaller than the number of taxon required in phase 1.
-              The number of taxon was set to be ",num_to_be_sample)
-    }
+      }
 
     refTaxa_extra=sample(taxon_to_be_sample,num_to_be_sample)
     refTaxa=c(refTaxa,refTaxa_extra)
-    if (length(refTaxa)==0) {
-        stop("No candidate reference taxon is available. Please try to lower the reference taxon boundary.")
-    }
-  } else if(length(refTaxa)>nRef){
+    
+    if (length(refTaxa)<nRef) {
+      taxa_to_be_sample2<-(taxaNames[!(taxaNames%in%refTaxa)])
+      num_to_be_sample2<-(nRef-length(refTaxa))
+      refTaxa_extra2=sample(taxa_to_be_sample2,num_to_be_sample2)
+      refTaxa=c(refTaxa,refTaxa_extra2)
+      message("Reference taxa are randomly picked in Phase 1." )
+      }
+    } else if(length(refTaxa)>nRef){
     if(length(seed)>0){
       set.seed(as.numeric(seed))
     }
@@ -81,25 +84,44 @@ runScrParal=function(
   #
   gc(reset=TRUE)
 
-  screen1=originDataScreen(data=data,testCovInd=testCovInd,
-                           nRef=nRef,refTaxa=refTaxa,
-                           paraJobs=paraJobs,
-                           allFunc=allFunc,Mprefix=Mprefix,
-                           covsPrefix=covsPrefix,
-                           binPredInd=binPredInd,
-                           sequentialRun=sequentialRun,
-                           adjust_method=adjust_method,
-                           seed=seed)
-
+  if (suppressMessages(dataSparsCheck(data,Mprefix))==0 ) {
+    screen1 = originDataScreen_imputed(
+      data = data,
+      testCovInd = testCovInd,
+      nRef = nRef,
+      refTaxa = refTaxa,
+      paraJobs = paraJobs,
+      allFunc = allFunc,
+      Mprefix = Mprefix,
+      covsPrefix = covsPrefix,
+      binPredInd = binPredInd,
+      sequentialRun = sequentialRun,
+      seed = seed
+    )
+  } else {
+    screen1 = originDataScreen(
+      data = data,
+      testCovInd = testCovInd,
+      nRef = nRef,
+      refTaxa = refTaxa,
+      paraJobs = paraJobs,
+      allFunc = allFunc,
+      Mprefix = Mprefix,
+      covsPrefix = covsPrefix,
+      binPredInd = binPredInd,
+      sequentialRun = sequentialRun,
+      adjust_method = adjust_method,
+      seed = seed
+    )
+  }
+  
+  
   maxMemUsedInMb=sum(gc()[,6])
 
   results$countOfSelecForAPred=screen1$countOfSelecForAPred
   results$estOfSelectForAPred<-screen1$estOfSelectForAPred
   results$testCovCountMat=screen1$testCovCountMat
   results$testEstMat<-screen1$testEstMat
-
-
-
 
   rm(screen1)
   gc()

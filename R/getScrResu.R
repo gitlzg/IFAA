@@ -21,7 +21,6 @@ getScrResu=function(
   seed
 ){
   results=list()
-
   # run permutation
   scrParal=runScrParal(data=data,testCovInd=testCovInd,
                        testCovInOrder=testCovInOrder,
@@ -63,27 +62,29 @@ getScrResu=function(
 
     rm(selecCountMatIndv)
   }
+
   goodIndpRefTaxWithCount=selecCountOverall[1,(colnames(selecCountOverall)%in%goodRefTaxaCandi)]
   goodIndpRefTaxWithEst=selecEstOverall[1,(colnames(selecEstOverall)%in%goodRefTaxaCandi)]
-  if(length(goodIndpRefTaxWithCount)==0){
-    results$goodIndpRefTaxLeastCount=NULL
-  } else {
-    results$goodIndpRefTaxLeastCount<-
-      names(goodIndpRefTaxWithCount)[order(goodIndpRefTaxWithCount,abs(goodIndpRefTaxWithEst))][1:2]
-    goodIndpRefTaxWithEst<-abs(goodIndpRefTaxWithEst[order(goodIndpRefTaxWithCount,abs(goodIndpRefTaxWithEst))])
-    goodIndpRefTaxWithCount<-goodIndpRefTaxWithCount[order(goodIndpRefTaxWithCount,abs(goodIndpRefTaxWithEst))]
-  }
 
+  restRefTaxWithCount=selecCountOverall[1,!(colnames(selecCountOverall)%in%goodRefTaxaCandi)]
+  restRefTaxWithEst=selecEstOverall[1,!(colnames(selecEstOverall)%in%goodRefTaxaCandi)]
+  
+  sort_goodIndpRefTaxWithCount<-goodIndpRefTaxWithCount[order(goodIndpRefTaxWithCount,abs(goodIndpRefTaxWithEst))]
+  sort_goodIndpRefTaxWithEst<-abs(goodIndpRefTaxWithEst[order(goodIndpRefTaxWithCount,abs(goodIndpRefTaxWithEst))])
+
+  sort_restRefTaxWithCount<-restRefTaxWithCount[order(restRefTaxWithCount,abs(restRefTaxWithEst))]
+  sort_restRefTaxWithEst<-abs(restRefTaxWithEst[order(restRefTaxWithCount,abs(restRefTaxWithEst))])
+  
+  
+  results$finalIndpRefTax<-names(c(sort_goodIndpRefTaxWithCount,sort_restRefTaxWithCount))[1:2]
+  
   results$selecCountOverall=selecCountOverall
 
-  results$goodIndpRefTaxWithCount=goodIndpRefTaxWithCount
-  results$goodIndpRefTaxWithEst<-goodIndpRefTaxWithEst
+  results$goodIndpRefTaxWithCount=c(sort_goodIndpRefTaxWithCount,sort_restRefTaxWithCount)
+  results$goodIndpRefTaxWithEst<-c(sort_goodIndpRefTaxWithEst,sort_restRefTaxWithEst)
 
   results$goodRefTaxaCandi=goodRefTaxaCandi
   rm(goodRefTaxaCandi)
-
-  results$refTaxonQualified=2
-  results$finalIndpRefTax=results$goodIndpRefTaxLeastCount
 
   return(results)
 }

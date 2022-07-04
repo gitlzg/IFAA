@@ -17,6 +17,7 @@ dataRecovTrans = function(data,
     Mprefix = Mprefix,
     covsPrefix = covsPrefix,binPredInd=binPredInd,contCovStd=contCovStd
   )
+
   rm(data)
   
   taxaNames = data.and.init$taxaNames
@@ -34,7 +35,7 @@ dataRecovTrans = function(data,
   
   nNorm = nTaxa - 1
   xDimension = nPredics + 1 # predictors+intercept
-  
+
   # create omegaRoot
   omegaRoot = list()
   for (j in seq_len(lengthTwoList)) {
@@ -69,26 +70,37 @@ dataRecovTrans = function(data,
     }
   }
   rm(L, lLast)
-  
+
   if (xOnly) {
     # create X_i in the regression equation using Kronecker product
     xDataWithInter = as.matrix(cbind(rep(1, nSub), xData))
     rm(xData)
     
-    for (j in seq_len(lengthTwoList)) {
+    xtild=list()
+    for(j in seq_len(lengthTwoList)){
       i = twoList[j]
-      xInRegres.i = as(t(as.matrix(
-        kronecker(Diagonal(nNorm), xDataWithInter[i, ])
-      )), "sparseMatrix")
-      xDataTilda.i = omegaRoot[[i]] %*% A[[i]] %*% xInRegres.i
+      non0v=rep(xDataWithInter[i, ],nNorm)
+      posi1=seq(nPredics+1)
+      posi2=matrix(data=(rep((seq(0,(nNorm-1))*(nPredics+1)*nNorm),each=(nPredics+1))),nrow=(nPredics+1))
+      posi3=matrix(data=(rep((seq(0,(nNorm-1))*(nPredics+1)),each=(nPredics+1))),nrow=(nPredics+1))
+      posi=c(posi1+posi2+posi3)
+      rm(posi2,posi3)
+      
+      sVec=sparseVector(x=non0v,i=posi,length=((nPredics+1)*nNorm*nNorm))
+      
+      xInRegres.i=t(Matrix(sVec,nrow=(nNorm*(nPredics+1)),ncol=nNorm))
+      rm(sVec)
+      
+      xDataTilda.i = as(omegaRoot[[i]],"sparseMatrix") %*% A[[i]] %*% xInRegres.i
       rm(xInRegres.i)
-      if (j == 1) {
-        xTildalong = xDataTilda.i
-      } else {
-        xTildalong = rbind(xTildalong, xDataTilda.i)
+      xtild[[j]]=xDataTilda.i
+      
+      rm(xDataTilda.i)
       }
-    }
-    rm(xDataWithInter, xDataTilda.i, omegaRoot, logRatiow)
+    
+    xTildalong = DoCall(rbind_csr, xtild)
+    
+    rm(xtild,xDataWithInter)
     
     results$xTildalong = xTildalong
     rm(xTildalong)
@@ -116,21 +128,32 @@ dataRecovTrans = function(data,
   xDataWithInter = data.matrix(cbind(rep(1, nSub), xData))
   colnames(xDataWithInter)[1] = "Inter"
   rm(xData)
-  
-  for (j in seq_len(lengthTwoList)) {
+
+  xtild=list()
+  for(j in seq_len(lengthTwoList)){
     i = twoList[j]
-    xInRegres.i = as(t(as.matrix(
-      kronecker(Diagonal(nNorm), xDataWithInter[i, ])
-    )), "sparseMatrix")
-    xDataTilda.i = omegaRoot[[i]] %*% A[[i]] %*% xInRegres.i
+    non0v=rep(xDataWithInter[i, ],nNorm)
+    posi1=seq(nPredics+1)
+    posi2=matrix(data=(rep((seq(0,(nNorm-1))*(nPredics+1)*nNorm),each=(nPredics+1))),nrow=(nPredics+1))
+    posi3=matrix(data=(rep((seq(0,(nNorm-1))*(nPredics+1)),each=(nPredics+1))),nrow=(nPredics+1))
+    posi=c(posi1+posi2+posi3)
+    rm(posi2,posi3)
+    
+    sVec=sparseVector(x=non0v,i=posi,length=((nPredics+1)*nNorm*nNorm))
+
+    xInRegres.i=t(Matrix(sVec,nrow=(nNorm*(nPredics+1)),ncol=nNorm))
+    rm(sVec)
+
+    xDataTilda.i = as(omegaRoot[[i]],"sparseMatrix") %*% A[[i]] %*% xInRegres.i
     rm(xInRegres.i)
-    if (j == 1) {
-      xTildalong = xDataTilda.i
-    } else {
-      xTildalong = rbind(xTildalong, xDataTilda.i)
+    xtild[[j]]=xDataTilda.i
+
+    rm(xDataTilda.i)
     }
-  }
-  rm(xDataWithInter, xDataTilda.i)
+
+  xTildalong = DoCall(rbind_csr, xtild)
+
+  rm(xtild,xDataWithInter)
   
   for (j in seq_len(lengthTwoList)) {
     i = twoList[j]
@@ -141,6 +164,7 @@ dataRecovTrans = function(data,
       UtildaLong = c(UtildaLong, as.numeric(Utilda.i))
     }
   }
+
   rm(omegaRoot, logRatiow, Utilda.i)
   
   # return objects

@@ -1,39 +1,49 @@
 
-dataSparsCheck=function(
-  data,
-  Mprefix
-){
-  results=list()
-
+dataSparsCheck = function(data,
+                          Mprefix) {
+  results = list()
+  
   # get the original sample size
-  nSub=nrow(data)
-  MVarNamLength=nchar(Mprefix)
-
+  nSub = nrow(data)
+  MVarNamLength = nchar(Mprefix)
+  
   # get taxa variable names
-  micros = sapply(substr(colnames(data),1,MVarNamLength), function(x) {grep(Mprefix, x)})
-  microPositions=which(micros == 1)
+  micros = lapply(substr(colnames(data), 1, MVarNamLength), function(x) {
+    grep(Mprefix, x)
+  })
+  microPositions = which(micros == 1)
   rm(micros)
-
-  taxaNames=colnames(data)[microPositions]
+  
+  taxaNames = colnames(data)[microPositions]
   rm(microPositions)
-
-  w=data[,taxaNames,drop=FALSE]
-  rm(data,taxaNames)
-  overallSparsity=round(100*sum(w==0)/(nrow(w)*ncol(w)),2)
-  message(overallSparsity," percent of microbiome sequencing reads are zero")
-
+  
+  w = data[, taxaNames, drop = FALSE]
+  rm(data, taxaNames)
+  overallSparsity = round(100 * sum(w == 0) / (nrow(w) * ncol(w)), 2)
+  message(overallSparsity,
+          " percent of microbiome sequencing reads are zero")
+  
   # check zero taxa and subjects with zero taxa reads
-  numTaxaNoReads=length(which(Matrix::colSums(w)==0))
-  if(numTaxaNoReads>0){
-    message("There are ",numTaxaNoReads," taxa without any sequencing reads and
-        excluded from the analysis")
+  numTaxaNoReads = length(which(Matrix::colSums(w) == 0))
+  if (numTaxaNoReads > 0) {
+    message(
+      "There are ",
+      numTaxaNoReads,
+      " taxa without any sequencing reads and
+        excluded from the analysis"
+    )
   }
   rm(numTaxaNoReads)
-
-  numSubNoReads=length(which(Matrix::rowSums(w)==0))
-  if(numSubNoReads>0){
-    message("There are ",numSubNoReads," subjects without any sequencing reads and
-        excluded from the analysis.")
+  
+  numSubNoReads = length(which(Matrix::rowSums(w) == 0))
+  if (numSubNoReads > 0) {
+    message(
+      "There are ",
+      numSubNoReads,
+      " subjects without any sequencing reads and
+        excluded from the analysis."
+    )
   }
-  rm(numSubNoReads,w)
+  rm(numSubNoReads)
+  return(sum(w == 0))
 }

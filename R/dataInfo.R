@@ -30,8 +30,8 @@ dataInfo=function(
     nSubQualif=nrow(qualifyData)
     taxaOverThresh=taxaNames[(Matrix::colSums(w>0)>=(nSubQualif*refReadsThresh))]
     if(length(taxaOverThresh)==0){
-      message("There are no taxa with presence over the threshold:",refReadsThresh,
-          ". Try lower the reference taxa reads threshold.","\n")
+      message("There are no taxa with non-zero reads over the threshold:",refReadsThresh,
+          ". Reference taxa will be randomly picked in Phase 1.","\n")
     }
 
     # check the sd threshold
@@ -46,9 +46,11 @@ dataInfo=function(
     results$sdTaxa=sdTaxaOverThresh
 
     TaxaOverSdThresh=taxaOverThresh[(sdTaxaOverThresh>=SDThresh)]
+    sdOverSdThresh <- sdTaxaOverThresh[sdTaxaOverThresh >= SDThresh]
+    
     if(length(TaxaOverSdThresh)==0){
       message("There are no taxa with SD over the SD threshold:",SDThresh,
-          ". Try lower the SD threshold","\n")
+          ". Reference taxa will be randomly picked in Phase 1.","\n")
     }
     rm(taxa.i,taxaOverThresh)
 
@@ -59,12 +61,12 @@ dataInfo=function(
       posTaxaAll.i=taxaAll.i[(taxaAll.i>0)]
       if(length(posTaxaAll.i)>1){sdAllTaxa[i]=sd(posTaxaAll.i)}
     }
-    goodRefTaxaCandi=TaxaOverSdThresh[(TaxaOverSdThresh>=quantile(sdAllTaxa,probs=SDquantilThresh))]
+    goodRefTaxaCandi=TaxaOverSdThresh[(sdOverSdThresh>=quantile(sdAllTaxa,probs=SDquantilThresh))]
     rm(sdAllTaxa,posTaxaAll.i,TaxaOverSdThresh)
 
     if(length(goodRefTaxaCandi)==0){
       message("There are no taxa with SD over the SD quantile threshold:",SDquantilThresh,
-          ". Try lower the SD quantile threshold","\n")
+          ". Reference taxa will be randomly picked in Phase 1.","\n")
     }
     rm(w)
   }
@@ -85,11 +87,6 @@ dataInfo=function(
       nBinPred=length(allBinPred)
 
       taxaBalanceBin=c()
-      bin_nonz_sum<-colSums(qualifyData[,allBinPred,drop=FALSE])
-
-      if (min(bin_nonz_sum,nSubQualif-bin_nonz_sum)<=floor(balanceCut*nSubQualif)) {
-        stop("one of the binary variable is not diverse enough")
-      }
 
       for(i in 1:nTaxa){
         for(j in 1:nBinPred){

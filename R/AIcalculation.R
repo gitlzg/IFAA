@@ -9,23 +9,23 @@ AIcalcu = function(data,
   # get the original sample size
   nSub = nrow(data)
   MVarNamLength = nchar(Mprefix)
-  
+
   # get taxa data
   micros = lapply(substr(colnames(data), 1, MVarNamLength), function(x) {
     grep(Mprefix, x)
   })
   microPositions = which(micros == 1)
   rm(micros)
-  
+
   nTaxa = length(microPositions)
   nNorm = nTaxa - 1
   taxaNames = colnames(data)[microPositions]
   rm(microPositions)
-  
+ 
   # rearrange taxa names
   otherTaxaNames = taxaNames[(taxaNames != ref)]
   taxaNames = c(otherTaxaNames, ref)
-  
+
   # get predictor data
   xVarNamLength = nchar(covsPrefix)
   predics = lapply(substr(colnames(data), 1, xVarNamLength), function(x) {
@@ -38,13 +38,13 @@ AIcalcu = function(data,
   
   # taxa data
   w = data[, taxaNames]
-  
+
   # extract x data
   xData = data[, predNames]
   
   if(contCovStd & (length(binPredInd)<nPredics)){
     if(length(binPredInd)==0) {
-      xData=scale(xData)
+      xData=scale(xData,center = FALSE)
       } else{
        xData[,-binPredInd]=scale(xData[,-binPredInd],center=FALSE)
        }
@@ -55,18 +55,17 @@ AIcalcu = function(data,
   # transform data using log-ratio, creat Ai and Li
   l = rep(NA, nSub)
   lLast = rep(NA, nSub)
-  taxa.non0 = list()
-  taxa.0 = list()
   logRatiow = list()
   A = list()
   for (i in seq_len(nSub)) {
+    
     taxa.nonzero = which(w[i,] != 0)
-    lLast[i] = max(taxa.nonzero)
-    taxa.zero = which(w[i,] == 0)
-    taxa.non0[[i]] = w[i, taxa.nonzero]
-    taxa.0[[i]] = w[i, taxa.zero]
+    if(length(taxa.nonzero)>0){
+      lLast[i] = max(taxa.nonzero)
+      }else {lLast[i]=0}
+
     if (length(taxa.nonzero) > 0) {
-      last.nonzero = max(taxa.nonzero)
+      last.nonzero = lLast[i]
       logwi = as.numeric(log(w[i, taxa.nonzero]))
       l[i] = length(logwi)
       if (l[i] > 1) {
@@ -94,7 +93,7 @@ AIcalcu = function(data,
   # obtain the list of samples whose have at least 2 non-zero taxa
   twoList = which(l > 1)
   lengthTwoList = length(twoList)
-  
+
   rm(w)
   
   results$xData = xData

@@ -33,7 +33,7 @@ originDataScreen = function(data,
   nNorm = nTaxa - 1
   nAlphaNoInt = nPredics * nNorm
   nAlphaSelec = nPredics * nTaxa
-  
+
   countOfSelec = rep(0, nAlphaSelec)
   
   # overwrite nRef if the reference taxon is specified
@@ -41,9 +41,9 @@ originDataScreen = function(data,
   
   startT1 = proc.time()[3]
   if (length(paraJobs) == 0) {
-    availCores = availableCores()
+    availCores = parallelly::availableCores()
     if (is.numeric(availCores))
-      paraJobs = max(1, availableCores() - 2)
+      paraJobs = max(1, parallelly::availableCores() - 2)
     if (!is.numeric(availCores))
       paraJobs = 1
   }
@@ -73,17 +73,20 @@ originDataScreen = function(data,
   if (sequentialRun) {
     foreach::registerDoSEQ()
   }
-  
+
   #start parallel computing
   
   scr1Resu = foreach(
     i = seq_len(nRef),
     .multicombine = TRUE,
-    .packages = c("glmnet", "Matrix"),
+    .packages = c("glmnet", "Matrix","DescTools","MatrixExtra"),
     .errorhandling = "pass"
   ) %dopar% {
     
+  # for(i in seq_len(nRef)){
+    
     ii = which(taxaNames == refTaxa[i])
+    
     dataForEst = dataRecovTrans(
       data = data,
       ref = refTaxa[i],
@@ -92,7 +95,7 @@ originDataScreen = function(data,
       binPredInd=binPredInd,
       contCovStd=TRUE
     )
-    
+
     xTildLongTild.i = dataForEst$xTildalong
     yTildLongTild.i = dataForEst$UtildaLong
     rm(dataForEst)
@@ -110,16 +113,27 @@ originDataScreen = function(data,
     
     for (k in seq_len(nRuns)) {
       rowToKeep = sample(nToSamplFrom, maxSubSamplSiz)
-      x = as((xTildLongTild.i[rowToKeep, ]), "sparseMatrix")
+      x = xTildLongTild.i[rowToKeep, ]
       y = yTildLongTild.i[rowToKeep]
       
-      Penal.i = runGlmnet(x = x,
-                          y = y,
-                          nPredics = nPredics)
-      BetaNoInt.k = as((0 + (Penal.i$betaNoInt != 0)), "sparseVector")
-      EstNoInt.k <- abs(Penal.i$betaNoInt)
+      dfmax=ceiling((nPredics+1)*nNorm/2.5)
 
-      rm(Penal.i)
+      lasso.est = glmnet(x = x,y = as.vector(y), dfmax=dfmax, family =  "gaussian",
+        intercept = TRUE, standardize = FALSE, nlambda=20)
+ 
+      rm(x, y)
+      gc()
+      
+      lasso_beta <-as.vector(lasso.est$beta[,ncol(lasso.est$beta)])
+
+      rm(lasso.est)
+      
+      betaNoInt = lasso_beta[-seq(1, length(lasso_beta), by = (nPredics + 1))]
+      rm(lasso_beta)
+
+      BetaNoInt.k = as((0 + (betaNoInt != 0)), "sparseVector")
+      EstNoInt.k <- abs(betaNoInt)
+      
       if (k == 1) {
         BetaNoInt.i = BetaNoInt.k
         EstNoInt.i = EstNoInt.k
@@ -130,7 +144,7 @@ originDataScreen = function(data,
       }
       rm(BetaNoInt.k, EstNoInt.k)
     }
-    rm(k, x, y, xTildLongTild.i)
+    rm(k, xTildLongTild.i)
     gc()
     BetaNoInt.i = BetaNoInt.i / nRuns
     EstNoInt.i = EstNoInt.i / nRuns
@@ -167,8 +181,8 @@ originDataScreen = function(data,
   parallel::stopCluster(cl)
   gc()
   rm(data)
-  endT = proc.time()[3]
   
+  endT = proc.time()[3]
   
   selecList = list()
   for (i in seq_len(nRef)) {
@@ -182,17 +196,16 @@ originDataScreen = function(data,
   
   rm(scr1Resu)
 
-  selecList <- lapply(selecList, as, "sparseMatrix")
+  selecList <- lapply(selecList, as.matrix)
   estList <- lapply(estList, as.matrix)
-  scr1ResuSelec = do.call(cbind, selecList)
-  scr1ResuEst <- do.call(cbind, estList)
   
+  scr1ResuSelec = DoCall(cbind, selecList)
+  scr1ResuEst <- DoCall(cbind, estList)
+
   rm(selecList, estList)
-  
-  
+
   # create count of selection for individual testCov
-  countOfSelecForAllPred = as(matrix(Matrix::rowSums(scr1ResuSelec), nrow =
-                                       nPredics), "sparseMatrix")
+  countOfSelecForAllPred = matrix(rowSums(scr1ResuSelec), nrow = nPredics)
   EstOfAllPred <- matrix(rowSums(scr1ResuEst), nrow = nPredics)
   
   testCovCountMat = countOfSelecForAllPred[testCovInd, , drop = FALSE]
@@ -203,15 +216,14 @@ originDataScreen = function(data,
      EstOfAllPred)
   
   # create overall count of selection for all testCov as a whole
-  countOfSelecForAPred = as(matrix(Matrix::colSums(testCovCountMat), nrow =
-                                     1), "sparseMatrix")
-  estOfSelectForAPred <- matrix(Matrix::colSums(testEstMat), nrow = 1)
+  countOfSelecForAPred = matrix(colSums(testCovCountMat), nrow = 1)
+  estOfSelectForAPred <- matrix(colSums(testEstMat), nrow = 1)
   gc()
-  
+
   colnames(countOfSelecForAPred) = taxaNames
   colnames(estOfSelectForAPred) <- taxaNames
   rm(taxaNames)
-  
+
   # return results
   results$testCovCountMat = testCovCountMat
   results$testEstMat <- testEstMat

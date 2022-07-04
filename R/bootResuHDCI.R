@@ -19,6 +19,7 @@ bootResuHDCI = function(data,
                         fwerRate,
                         paraJobs,
                         seed) {
+
   results = list()
   # load data info
   basicInfo = dataInfo(
@@ -57,7 +58,7 @@ bootResuHDCI = function(data,
   
   xCol = ncol(x)
   
-  maxSubSamplSiz = min(50000, floor(maxDimension / xCol))
+  maxSubSamplSiz = min(100000, floor(maxDimension / xCol))
   nToSamplFrom = length(y)
   subSamplK = ceiling(nToSamplFrom / maxSubSamplSiz)
   if (subSamplK == 1)
@@ -73,14 +74,14 @@ bootResuHDCI = function(data,
       ySub = (y[rowToKeep])
       
       
-      lm_res <- lm(as.vector(ySub) ~ as.matrix(xSub) - 1)
+      lm_res <- speedglm::speedlm(as.vector(ySub) ~ as.matrix(xSub) - 1)
       
       
       
       rm(xSub, ySub)
       
       full_name_coef <- names(lm_res$coefficients)
-      valid_coef <- summary(lm_res)$coefficients
+      valid_coef <- as.matrix(summary(lm_res)$coefficients)
       bootResu <- matrix(nrow = length(full_name_coef), ncol = 4)
       rownames(bootResu) <- full_name_coef
       bootResu[rownames(bootResu) %in% rownames(valid_coef),] <-
