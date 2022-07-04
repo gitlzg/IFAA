@@ -20,6 +20,9 @@ Use example datasets to run `IFAA()` function.
 library(IFAA)
 library(SummarizedExperiment)
 
+# If you already have a SummarizedExperiment format data, you can 
+# ignore the data processing steps below
+
 data(dataM)
 data(dataC)
  
@@ -31,7 +34,7 @@ data_merged<-merge(dataM,dataC,by="id",all=FALSE)
 dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
 
-# Create SummarizedExperiment object for inputs
+# Create SummarizedExperiment object
 test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), 
                          colData=dataC_sub)
 # If you already have a SummarizedExperiment format data, you can 

@@ -71,6 +71,8 @@
 ##' library(IFAA)
 ##' library(SummarizedExperiment)
 ##' 
+##' ## If you already have a SummarizedExperiment format data, you can ignore the data processing steps below.
+##' 
 ##' ## load the example microbiome data. This could be relative abundance or absolute 
 ##' ## abundance data. If you have a csv or tsv file for the microbiome data, you 
 ##' ## can use read.csv() function or read.table() function in R to read the 
@@ -93,7 +95,7 @@
 ##' dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 ##' dataC_sub<-data_merged[,colnames(dataC)]
 ##' 
-##' ## Create SummarizedExperiment object for inputs 
+##' ## Create SummarizedExperiment object 
 ##' test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
 ##' 
 ##' ## If you already have a SummarizedExperiment format data, you can ignore the above steps.

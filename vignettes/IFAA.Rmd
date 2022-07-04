@@ -1,7 +1,7 @@
 ---
 title: "IFAA"
-output: rmarkdown::html_vignette
-# output: pdf_document
+# output: rmarkdown::html_vignette
+output: pdf_document
 vignette: >
   %\VignetteIndexEntry{IFAA}
   %\VignetteEngine{knitr::rmarkdown}
@@ -103,7 +103,7 @@ Most of the time, users just need to feed the first three inputs to the function
 
 ## Example
 
-The example datasets `dataM` and `dataC` are included in the package. The input should be a SummarizedExperiment object, which could be constructed as: 
+The example datasets `dataM` and `dataC` are included in this package. The input should be a SummarizedExperiment object, which could be constructed as below. If you already have a SummarizedExperiment format data, you can ignore the data processing steps below.
 ```{r}
 library(IFAA)
 suppressMessages(library(SummarizedExperiment))
@@ -138,7 +138,7 @@ data_merged<-merge(dataM,dataC,by="id",all=FALSE)
 dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
  
-## Create a SummarizedExperiment object for inputs 
+## Create a SummarizedExperiment object 
 test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
 ```
 
@@ -212,7 +212,7 @@ A list with two elements:
 
 ## Examples
 
-We use the same example data The example dataset as that for illustrating the IFAA function. `dataM` and `dataC` are included in the package. They could be accessed by: 
+We use the same example data The example dataset as that for illustrating the MZILN function. `dataM` and `dataC` are included in this package. If you have a SummarizedExperiment format data, you can ignore the data processing steps below.
 ```{r}
 ## load the example microbiome data. This could be relative abundance or 
 ## absolute abundance data. If you have a csv or tsv file for the microbiome data, 
@@ -249,7 +249,7 @@ data_merged<-merge(dataM,dataC,by="id",all=FALSE)
 dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
  
-## Create a SummarizedExperiment object for inputs 
+## Create a SummarizedExperiment object 
 test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
 ```
 

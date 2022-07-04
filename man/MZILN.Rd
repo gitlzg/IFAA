@@ -79,6 +79,8 @@ High-dimensional \mjeqn{X_i}{} is handled by regularization.
 library(IFAA)
 library(SummarizedExperiment)
 
+## If you already have a SummarizedExperiment format data, you can ignore the data processing steps below.
+
 ## load the example microbiome data. This could be relative abundance or absolute 
 ## abundance data. If you have a csv or tsv file for the microbiome data, you 
 ## can use read.csv() function or read.table() function in R to read the 
@@ -101,10 +103,12 @@ data_merged<-merge(dataM,dataC,by="id",all=FALSE)
 dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)\%in\%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
 
-## Create SummarizedExperiment object for inputs 
+## Create SummarizedExperiment object 
 test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
 
-### Run MZILN function
+## If you already have a SummarizedExperiment format data, you can ignore the above steps.
+
+## Run MZILN function
 results <- MZILN(experiment_dat = test_dat,
                 refTaxa=c("rawCount11"),
                 allCov=c("v1","v2","v3"),
