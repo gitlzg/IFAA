@@ -66,7 +66,9 @@
 ##' ## Create SummarizedExperiment object for inputs 
 ##' test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
 ##' 
-##' ### Run MZILN function
+##' ## If you already have a SummarizedExperiment format data, you can ignore the above steps.
+##' 
+##' ## Run MZILN function
 ##' results <- MZILN(experiment_dat = test_dat,
 ##'                 refTaxa=c("rawCount11"),
 ##'                 allCov=c("v1","v2","v3"),

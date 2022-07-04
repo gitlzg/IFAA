@@ -26,14 +26,16 @@ data(dataC)
 # merge microbiome and covariates data 
 data_merged<-merge(dataM,dataC,by="id",all=FALSE)
 
-# Seperate microbiome data and covariate data, drop id variable
+# Seperate microbiome data and covariate data
+# and drop id variable from the microbiome data
 dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
-
 dataC_sub<-data_merged[,colnames(dataC)]
 
 # Create SummarizedExperiment object for inputs
 test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), 
                          colData=dataC_sub)
+# If you already have a SummarizedExperiment format data, you can 
+# ignore the above steps
 
 # run IFAA
 results <- IFAA(experiment_dat = test_dat,

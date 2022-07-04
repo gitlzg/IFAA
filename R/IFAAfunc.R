@@ -96,6 +96,8 @@
 ##' ## Create SummarizedExperiment object for inputs 
 ##' test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
 ##' 
+##' ## If you already have a SummarizedExperiment format data, you can ignore the above steps.
+##' 
 ##' ## run IFAA function
 ##' results <- IFAA(experiment_dat = test_dat,
 ##'                 testCov = c("v1", "v2"),

@@ -142,7 +142,7 @@ dataC_sub<-data_merged[,colnames(dataC)]
 test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
 ```
 
-Next we analyze the data to test the association between microbiome and the variable `"v1"` while adjusting for the variables (potential confounders) `"v2"` and `"v3"`.
+If you already have a SummarizedExperiment format data, you can ignore the above steps. Next we analyze the data to test the association between microbiome and the variable `"v1"` while adjusting for the variables (potential confounders) `"v2"` and `"v3"`.
 
 ```{r, eval=T}
 results <- IFAA(experiment_dat = test_dat,
@@ -253,7 +253,7 @@ dataC_sub<-data_merged[,colnames(dataC)]
 test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
 ```
 
-Next we analyze the data to test the associations between the ratio "rawCount18/rawCount11" and all the three variables `"v1"`, `"v2"` and `"v3"` in a multivariate model where all `"v1"`, `"v2"` and `"v3"` are independent variables simultaneously.
+If you already have a SummarizedExperiment format data, you can ignore the above steps. Next we analyze the data to test the associations between the ratio "rawCount18/rawCount11" and all the three variables `"v1"`, `"v2"` and `"v3"` in a multivariate model where all `"v1"`, `"v2"` and `"v3"` are independent variables simultaneously.
 
 ```{r, eval=T}
 results <- MZILN(experiment_dat=test_dat,
