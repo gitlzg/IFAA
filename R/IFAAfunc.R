@@ -62,6 +62,7 @@
 ##' }
 ##' }
 ##' @examples
+##' library(IFAA)
 ##' library(SummarizedExperiment)
 ##' data(dataM)
 ##' dim(dataM)
@@ -82,10 +83,10 @@
 ##'                 sampleID = "id",
 ##'                 fdrRate = 0.15)
 ##'
-##' ## to extract full results:
+##' ## to extract all results:
 ##' summary_res<-results$full_results
 ##' ## to extract significant results:
-##' subset(summary_res,sig_ind==TRUE)
+##' sig_taxa=subset(summary_res,sig_ind==TRUE)
 ##'
 ##'
 ##'

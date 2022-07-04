@@ -5,11 +5,10 @@
 \title{Robust association identification and inference for absolute abundance in microbiome analyses}
 \usage{
 IFAA(
-  MicrobData,
-  CovData,
-  linkIDname,
+  experiment_dat,
   testCov = NULL,
   ctrlCov = NULL,
+  sampleID = NULL,
   testMany = TRUE,
   ctrlMany = FALSE,
   nRef = 40,
@@ -26,26 +25,20 @@ IFAA(
   SDThresh = 0.05,
   SDquantilThresh = 0,
   balanceCut = 0.2,
+  verbose = TRUE,
   seed = 1
 )
 }
 \arguments{
-\item{MicrobData}{Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row per
-sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to be linked with
-the id variable in the covariates data: \code{CovData}. This argument can take
-directory path. For example, \code{MicrobData="C://...//microbiomeData.tsv"}.}
-
-\item{CovData}{Covariates data matrix containing covariates and confounders with each row
-per sample and each column per variable. Any categorical variable should be converted into dummy variables in this data matrix unless it can be treated as a continuous variable.
-It should also contain an id variable to
-be linked with the id variable in the microbiome data: \code{MicrobData}. This argument can take
-directory path. For example, \code{CovData = "C://...//covariatesData.tsv"}.}
-
-\item{linkIDname}{The common variable name of the id variable in both \code{MicrobData} and \code{CovData}. The two data sets will be merged by this id variable.}
+\item{experiment_dat}{A SummarizedExperiment object containing countData and colData. The countData contains microbiome absolute abundance or relative abundance with each column per
+sample and each row per taxon/OTU/ASV (or any other unit). The colData contains covariates and confounders with each row
+per sample and each column per variable. Note that the variables in colData has to be numeric or binary.}
 
 \item{testCov}{Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is \code{NULL} which means all covariates are \code{testCov}.}
 
 \item{ctrlCov}{Potential confounders that will be adjusted in the model. It corresponds to $W_i$ in the equation. Default is \code{NULL} which means all covariates except those in \code{testCov} are adjusted as confounders.}
+
+\item{sampleID}{Name of the ID variable. Could be set to NULL.}
 
 \item{testMany}{This takes logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, the \code{testCov} will contain all the variables in \code{CovData} provided \code{testCov} is set to be \code{NULL}. The default value is \code{TRUE} which does not do anything if \code{testCov} is not \code{NULL}.}
 
@@ -79,14 +72,24 @@ directory path. For example, \code{CovData = "C://...//covariatesData.tsv"}.}
 
 \item{balanceCut}{The threshold of the proportion of non-zero sequencing reads in each group of a binary variable for choosing the final reference taxa in phase 2. The default number is \code{0.2} which means at least 20\% non-zero sequencing reads in each group are needed to be eligible for being chosen as a final reference taxon.}
 
+\item{verbose}{Whether the process message is printed out to the console. The default is TRUE.}
+
 \item{seed}{Random seed for reproducibility. Default is \code{1}. It can be set to be NULL to remove seeding.}
 }
 \value{
-A list containing the estimation results.
+A list containing 3 elements
 \itemize{
-\item \code{sig_results}: A list containing estimating results that are statistically significant.
-\item \code{full_results}: A list containing all estimating results. NA denotes unestimable.
-\item \code{covariatesData}: A dataset containing covariates and confounders used in the analyses.
+\item {\code{full_result_mean}: The main result from IFAA. A dataset for mean results from two reference taxon with each row representing each taxon, columns as "taxon", "cov", "estimate",
+"SE.est", "CI.low", "CI.up", "adj.p.value", and "sig_ind", describing the taxon name, covariate name, parameter estimates, standard error estimates, lower bound and upper bound of the 95\% confidence interval, adjusted p value, and the indicator showing whether the effect of corresponding taxon is significant, respectively.
+}
+\item {\code{metadata}: The metadata is a list.
+\itemize{
+\item {\code{covariatesData} A dataset containing covariates and confounders used in the analyses.}
+\item {\code{final_ref_taxon} shows the final 2 reference taxon used for analysis}
+\item {\code{ref_taxon_count} and \code{ref_taxon_est} shows the count and estimates for reference taxon.
+It shows how the final reference taxon were selected (i.e. reference taxon were choose to be the taxon with smallest count and absolute value of estimates.)}
+}
+}
 }
 }
 \description{
@@ -117,21 +120,31 @@ The IFAA method can successfully addressed this challenge. The \code{IFAA()} wil
 regularization.
 }
 \examples{
+library(IFAA)
+library(SummarizedExperiment)
 data(dataM)
 dim(dataM)
 dataM[1:5, 1:8]
 data(dataC)
 dim(dataC)
 dataC[1:5, ]
-\donttest{
-results <- IFAA(MicrobData = dataM,
-                CovData = dataC,
-                linkIDname = "id",
+## Merge two dataset by id first, to avoid unmatching observations. 
+data_merged<-merge(dataM,dataC,by="id",all=FALSE)
+## Seperate count data and covariate data, drop id variable
+dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)\%in\%c("id")]]
+dataC_sub<-data_merged[,colnames(dataC)]
+## Create SummarizedExperiment object for inputs 
+test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+results <- IFAA(experiment_dat = test_dat,
                 testCov = c("v1", "v2"),
                 ctrlCov = c("v3"),
+                sampleID = "id",
                 fdrRate = 0.15)
 
-}
+## to extract all results:
+summary_res<-results$full_results
+## to extract significant results:
+sig_taxa=subset(summary_res,sig_ind==TRUE)
 
 
 

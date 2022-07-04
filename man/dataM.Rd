@@ -5,7 +5,7 @@
 \alias{dataM}
 \title{Sample microbiome data}
 \format{
-A data frame with 40 rows and 61 variables:
+A data frame with 40 rows and 60 variables:
 }
 \usage{
 dataM

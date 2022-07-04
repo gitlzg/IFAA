@@ -5,12 +5,10 @@
 \title{Conditional regression for microbiome analysis based on multivariate zero-inflated logistic normal model}
 \usage{
 MZILN(
-  MicrobData,
-  CovData,
-  linkIDname,
-  targetTaxa = NULL,
+  experiment_dat,
   refTaxa,
   allCov = NULL,
+  sampleID = NULL,
   adjust_method = "BY",
   fdrRate = 0.15,
   paraJobs = NULL,
@@ -18,28 +16,20 @@ MZILN(
   taxDropThresh = 0,
   standardize = FALSE,
   sequentialRun = TRUE,
+  verbose = TRUE,
   seed = 1
 )
 }
 \arguments{
-\item{MicrobData}{Microbiome data matrix containing microbiome absolute abundance or relative abundance with each row
-per sample and each column per taxon/OTU/ASV (or any other unit). It should contain an id variable to
-be linked with the id variable in the covariates data: \code{CovData}. This argument can
-take directory path. For example, \code{MicrobData="C://...//microbiomeData.tsv"}.}
-
-\item{CovData}{Covariates data matrix containing covariates and confounders with each row
-per sample and each column per variable. Any categorical variable should be converted into dummy variables in this data matrix unless it can be treated as a continuous variable.
-It should also contain an id variable to
-be linked with the id variable in the microbiome data: \code{MicrobData}. This argument can
-take directory path. For example, \code{CovData="C://...//covariatesData.tsv"}.}
-
-\item{linkIDname}{The common variable name of the id variable in both \code{MicrobData} and \code{CovData}. The two data sets will be merged by this id variable.}
-
-\item{targetTaxa}{The numerator taxa names specified by users for the targeted ratios. Default is NULL in which case all taxa are numerator taxa (except the taxa in the argument 'refTaxa').}
+\item{experiment_dat}{A SummarizedExperiment object containing countData and colData. The countData contains microbiome absolute abundance or relative abundance with each column per
+sample and each row per taxon/OTU/ASV (or any other unit). The colData contains covariates and confounders with each row
+per sample and each column per variable. Note that the variables in colData has to be numeric or binary.}
 
 \item{refTaxa}{Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names.}
 
 \item{allCov}{All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.}
+
+\item{sampleID}{Name of the ID variable. Could be set to NULL.}
 
 \item{adjust_method}{The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.}
 
@@ -55,15 +45,16 @@ take directory path. For example, \code{CovData="C://...//covariatesData.tsv"}.}
 
 \item{sequentialRun}{This takes a logical value \code{TRUE} or \code{FALSE}. Default is \code{TRUE}. It can be set to be "FALSE" to increase speed if there are multiple taxa in the argument 'refTaxa'.}
 
+\item{verbose}{Whether the process message is printed out to the console. The default is TRUE.}
+
 \item{seed}{Random seed for reproducibility. Default is \code{1}. It can be set to be NULL to remove seeding.}
 }
 \value{
-A list containing the estimation results.
-
-##' - \code{targettaxa_result_list}: A list containing estimating results for the targeted ratios. Only available when targetTaxa is non-empty.
+A list with two elements.
 \itemize{
-\item \code{sig_results}: A list containing estimating results for all significant ratios
-\item \code{covariatesData}: A dataset containing all covariates used in the analyses.
+\item \code{full_results}: A dataset with each row representing each taxon, columns as "ref_tax", "taxon", "cov", "estimate",
+"SE.est", "CI.low", "CI.up", "adj.p.value", and "sig_ind", describing the reference taxon used, taxon name, covariate name, parameter estimates, standard error estimates, lower bound and upper bound of the 95\% confidence interval, adjusted p value, and the indicator showing whether the effect of corresponding taxon is significant, respectively.
+\item \code{metadata}: The metadata is a list showing covariates and confounders used for analysis, total time used in minutes, random seed used, the p-value cutoff used, and p-value adjustment method used.
 }
 }
 \description{
@@ -71,7 +62,7 @@ For estimating and testing the associations of abundance ratios with covariates.
 \loadmathjax
 }
 \details{
-Most of the time, users just need to feed the first six inputs to the function: \code{MicrobData}, \code{CovData},  \code{linkIDname}, \code{targetTaxa}, \code{refTaxa} and \code{allCov}. All other inputs can just take their default values.
+Most of the time, users just need to feed the first six inputs to the function: \code{MicrobData}, \code{CovData},  \code{linkIDname}, \code{refTaxa} and \code{allCov}. All other inputs can just take their default values.
 The regression model for \code{MZILN()} can be expressed as follows:
 \mjdeqn{\log\bigg(\frac{\mathcal{Y}_i^k}{\mathcal{Y}_i^{K+1}}\bigg)|\mathcal{Y}_i^k>0,\mathcal{Y}_i^{K+1}>0=\alpha^{0k}+\mathcal{X}_i^T\alpha^k+\epsilon_i^k,\hspace{0.2cm}k=1,...,K}{}
 where
@@ -86,23 +77,33 @@ ecosystem.
 High-dimensional \mjeqn{X_i}{} is handled by regularization.
 }
 \examples{
+library(IFAA)
+library(SummarizedExperiment)
 data(dataM)
 dim(dataM)
 dataM[1:5, 1:8]
 data(dataC)
 dim(dataC)
 dataC[1:5, ]
-\donttest{
-results <- MZILN(MicrobData = dataM,
-                CovData = dataC,
-                linkIDname = "id",
-                targetTaxa = "rawCount6",
+## Merge two dataset by id first, to avoid unmatching observations. 
+data_merged<-merge(dataM,dataC,by="id",all=FALSE)
+## Seperate count data and covariate data, drop id variable
+dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)\%in\%c("id")]]
+dataC_sub<-data_merged[,colnames(dataC)]
+## Create SummarizedExperiment object for inputs 
+test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+### Run MZILN function
+results <- MZILN(experiment_dat = test_dat,
                 refTaxa=c("rawCount11"),
                 allCov=c("v1","v2","v3"),
+                sampleID="id",
                 fdrRate=0.15)
-
-}
-
+## to extract the results for all ratios with rawCount11 as the denominator:
+summary_res<-results$full_results
+## to extract results for the ratio of a specific taxon (e.g., rawCount45) over rawCount11:
+target_ratio=summary_res[summary_res$taxon=="rawCount45",]
+## to extract all of the ratios having significant associations:
+sig_ratios=subset(summary_res,sig_ind==TRUE)
 
 
 }

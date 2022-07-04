@@ -124,14 +124,14 @@ originDataScreen = function(data,
       rm(x, y)
       gc()
       
-      lasso_beta <-as.vector(lasso.est$beta[,ncol(lasso.est$beta)])
+      lasso_beta <-as.vector(as.matrix(lasso.est$beta)[,ncol(lasso.est$beta)])
 
       rm(lasso.est)
       
       betaNoInt = lasso_beta[-seq(1, length(lasso_beta), by = (nPredics + 1))]
       rm(lasso_beta)
 
-      BetaNoInt.k = as((0 + (betaNoInt != 0)), "sparseVector")
+      BetaNoInt.k = (0 + (betaNoInt != 0))
       EstNoInt.k <- abs(betaNoInt)
       
       if (k == 1) {
@@ -149,7 +149,7 @@ originDataScreen = function(data,
     BetaNoInt.i = BetaNoInt.i / nRuns
     EstNoInt.i = EstNoInt.i / nRuns
     
-    selection.i = as(rep(0, nAlphaSelec), "sparseVector")
+    selection.i = rep(0, nAlphaSelec)
     coef.i <- rep(0, nAlphaSelec)
     if (ii == 1) {
       selection.i[-seq(1, nPredics)] = BetaNoInt.i
@@ -196,8 +196,8 @@ originDataScreen = function(data,
   
   rm(scr1Resu)
 
-  selecList <- lapply(selecList, as.matrix)
-  estList <- lapply(estList, as.matrix)
+  # selecList <- lapply(selecList, as.matrix)
+  # estList <- lapply(estList, as.matrix)
   
   scr1ResuSelec = DoCall(cbind, selecList)
   scr1ResuEst <- DoCall(cbind, estList)

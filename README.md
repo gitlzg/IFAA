@@ -16,13 +16,18 @@ Use example datasets to run `IFAA()` function.
 ```r
 # Detailed instructions on the package are provided in the vignettes and manual
 library(IFAA)
- 
+library(SummarizedExperiment)
+
 data(dataM)
 data(dataC)
  
+# merge data 
 data_merged<-merge(dataM,dataC,by="id",all=FALSE)
+
 # Seperate count data and covariate data, drop id variable
-dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]] dataC_sub<-data_merged[,colnames(dataC)]
+dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
+
+dataC_sub<-data_merged[,colnames(dataC)]
 
 # Create SummarizedExperiment object for inputs
 test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
@@ -38,11 +43,11 @@ results <- IFAA(experiment_dat = test_dat,
 
 Once the analysis is done, you can extract the full resuts and significant regression coefficients along with 95% confidence intervals using this command:
 ```r
-# to extract full results:
+# to extract all results:
 summary_res<-results$full_results
 
 # to extract significant results:
-sig_res=subset(summary_res,sig_ind==TRUE)
+sig_taxa=subset(summary_res,sig_ind==TRUE)
 ```
 
 Use the same datasets to run `MZILN()` function.
@@ -55,14 +60,14 @@ results <- MZILN(experiment_dat = test_dat,
 ```
 Regression results including confidence intervals for the targeted ratios can be extracted in the following way:
 ```r
-# to extract full results:
+# to extract the results for all ratios with rawCount11 as the denominator:
  summary_res<-results$full_results
  
 # to extract results for the ratio of a specific taxon (e.g., rawCount45) over rawCount11:
- summary_res[summary_res$taxon=="rawCount45",]
+ target_ratio=summary_res[summary_res$taxon=="rawCount45",]
  
 # to extract all ratios having significant associations:
- subset(summary_res,sig_ind==TRUE)
+ sig_ratios=subset(summary_res,sig_ind==TRUE)
  ```
 
 ## References 

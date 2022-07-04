@@ -39,6 +39,7 @@
 ##' - `metadata`: The metadata is a list showing covariates and confounders used for analysis, total time used in minutes, random seed used, the p-value cutoff used, and p-value adjustment method used.
 ##'
 ##' @examples
+##' library(IFAA)
 ##' library(SummarizedExperiment)
 ##' data(dataM)
 ##' dim(dataM)
@@ -59,12 +60,12 @@
 ##'                 allCov=c("v1","v2","v3"),
 ##'                 sampleID="id",
 ##'                 fdrRate=0.15)
-##' ## to extract full results:
+##' ## to extract the results for all ratios with rawCount11 as the denominator:
 ##' summary_res<-results$full_results
 ##' ## to extract results for the ratio of a specific taxon (e.g., rawCount45) over rawCount11:
-##' summary_res[summary_res$taxon=="rawCount45",]
-##' ## to extract all ratios having significant associations:
-##' subset(summary_res,sig_ind==TRUE)
+##' target_ratio=summary_res[summary_res$taxon=="rawCount45",]
+##' ## to extract all of the ratios having significant associations:
+##' sig_ratios=subset(summary_res,sig_ind==TRUE)
 
 
 ##'
@@ -75,8 +76,6 @@
 
 ##' @export
 ##' @md
-
-
 
 MZILN = function(experiment_dat,
                  refTaxa,
