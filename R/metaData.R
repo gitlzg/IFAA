@@ -1,6 +1,7 @@
 metaData = function(MicrobData,
                     CovData,
                     linkIDname,
+                    sampleIDname,
                     testCov = NULL,
                     ctrlCov = NULL,
                     testMany = TRUE,
@@ -10,7 +11,10 @@ metaData = function(MicrobData,
                     standardize) {
   results = list()
   
-  if (length(linkIDname) == 0) {
+  testCov=unique(testCov)
+  ctrlCov=unique(ctrlCov)
+
+    if (length(linkIDname) == 0) {
     stop("linkIDname is missing.")
   }
   
@@ -51,7 +55,7 @@ metaData = function(MicrobData,
   if (length(colnames(MdataWithId)) != ncol(MdataWithId))
     stop("Microbiome data lack variable names.")
   
-  MdataWithoutId=data.matrix(MdataWithId[,!(colnames(MdataWithId)%in%linkIDname),drop=FALSE])
+  MdataWithoutId=data.matrix(MdataWithId[,!(colnames(MdataWithId)%in%c(linkIDname,sampleIDname)),drop=FALSE])
   uniqMnames=unique(colnames(MdataWithoutId))
   if(length(uniqMnames)!=length(colnames(MdataWithoutId))){
     nDup=length(colnames(MdataWithoutId))-length(uniqMnames)
@@ -107,7 +111,7 @@ metaData = function(MicrobData,
     )
   }
   
-  Covariates1 = CovarWithId[, !colnames(CovarWithId) %in% linkIDname, drop =
+  Covariates1 = CovarWithId[, !colnames(CovarWithId) %in% c(linkIDname,sampleIDname), drop =
                               FALSE]
   
   # determine testCov and ctrlCov
@@ -128,12 +132,13 @@ metaData = function(MicrobData,
   
   if (length(ctrlCov) == 0 & ctrlMany) {
     message(
-      "No control covariates are specified,
-          all variables except testCov are considered as control covariates."
+      "All variables except testCov are considered as control covariates."
     )
     ctrlCov = xNames[!xNames %in% testCov]
   }
-  ctrlCov = ctrlCov[!(ctrlCov %in% testCov)] # make sure testCov and ctrlCov mutually exclusive
+  
+  # make sure testCov and ctrlCov mutually exclusive
+  ctrlCov = ctrlCov[!(ctrlCov %in% testCov)] 
   results$ctrlCov = ctrlCov
   
   # merge data to remove missing

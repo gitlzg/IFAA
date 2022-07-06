@@ -401,8 +401,9 @@ in the model. It corresponds to <span class="math inline">\(W_i\)</span>
 in the equation. Default is <code>NULL</code> which means all covariates
 except those in <code>testCov</code> are adjusted as
 confounders.</p></li>
-<li><p><code>sampleID</code>: Name of the sample ID variable in the
-data. This is not required. Default is NULL.</p></li>
+<li><p><code>sampleIDname</code>: Name of the sample ID variable in the
+data. In the case that the data does not have an ID variable, this can
+be ignored. Default is NULL.</p></li>
 <li><p><code>testMany</code>: This takes logical value <code>TRUE</code>
 or <code>FALSE</code>. If <code>TRUE</code>, the <code>testCov</code>
 will contain all the variables in <code>CovData</code> provided
@@ -504,9 +505,9 @@ analysis.</p></li>
 <h2>Example</h2>
 <p>The example datasets <code>dataM</code> and <code>dataC</code> are
 included in this package. The input should be a SummarizedExperiment
-object, which could be constructed as below. If you already have a
-SummarizedExperiment format data, you can ignore the data processing
-steps below.</p>
+object, which could be constructed as below.</p>
+<p>If you already have a SummarizedExperiment format data, you can
+ignore the data processing steps below.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(IFAA)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(SummarizedExperiment))</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -551,7 +552,7 @@ these are gut microbiome.</p></li>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>dataC_sub<span class="ot">&lt;-</span>data_merged[,<span class="fu">colnames</span>(dataC)]</span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a> </span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="do">## Create a SummarizedExperiment object </span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>test_dat<span class="ot">&lt;-</span><span class="fu">SummarizedExperiment</span>(<span class="at">assays=</span><span class="fu">list</span>(<span class="at">counts=</span><span class="fu">t</span>(dataM_sub)), <span class="at">colData=</span>dataC_sub)</span></code></pre></div>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>test_dat<span class="ot">&lt;-</span><span class="fu">SummarizedExperiment</span>(<span class="at">assays=</span><span class="fu">list</span>(<span class="at">MicrobData=</span><span class="fu">t</span>(dataM_sub)), <span class="at">colData=</span>dataC_sub)</span></code></pre></div>
 <p>If you already have a SummarizedExperiment format data, you can
 ignore the above steps. Next we analyze the data to test the association
 between microbiome and the variable <code>&quot;v1&quot;</code> while adjusting
@@ -560,7 +561,7 @@ for the variables (potential confounders) <code>&quot;v2&quot;</code> and
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">IFAA</span>(<span class="at">experiment_dat =</span> test_dat,</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">testCov =</span> <span class="fu">c</span>(<span class="st">&quot;v1&quot;</span>),</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">ctrlCov =</span> <span class="fu">c</span>(<span class="st">&quot;v2&quot;</span>,<span class="st">&quot;v3&quot;</span>),</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">sampleID =</span> <span class="fu">c</span>(<span class="st">&quot;id&quot;</span>),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">sampleIDname =</span> <span class="fu">c</span>(<span class="st">&quot;id&quot;</span>),</span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">fdrRate =</span> <span class="fl">0.05</span>)</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Data dimensions (after removing missing data if any):</span></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 40 samples</span></span>
@@ -575,15 +576,15 @@ for the variables (potential confounders) <code>&quot;v2&quot;</code> and
 <span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 25.71 percent of microbiome sequencing reads are zero</span></span>
 <span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Start Phase 1 analysis</span></span>
 <span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 parallel jobs are registered for analyzing 40 reference taxa in Phase 1</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 33 percent of phase 1 analysis has been done and it took 0.88 minutes</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 33 percent of phase 1 analysis has been done and it took 0.86 minutes</span></span>
 <span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 parallel jobs are registered for analyzing 20 reference taxa in Phase 1</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 67 percent of phase 1 analysis has been done and it took 1.44 minutes</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 67 percent of phase 1 analysis has been done and it took 1.39 minutes</span></span>
 <span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 6 parallel jobs are registered for analyzing 20 reference taxa in Phase 1</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 100 percent of phase 1 analysis has been done and it took 2 minutes</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 100 percent of phase 1 analysis has been done and it took 1.93 minutes</span></span>
 <span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Start Phase 2 parameter estimation</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 50 percent of Phase 2 is done and it took 0.019 minutes</span></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Entire Phase 2 parameter estimation done and took 0.041 minutes.</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The entire analysis took 2.04 minutes</span></span></code></pre></div>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 50 percent of Phase 2 is done and it took 0.02 minutes</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Entire Phase 2 parameter estimation done and took 0.042 minutes.</span></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The entire analysis took 1.98 minutes</span></span></code></pre></div>
 <p>In this example, we are only interested in testing the associations
 with <code>&quot;v1&quot;</code> which is why <code>testCov=c(&quot;v1&quot;)</code>. The
 variables <code>&quot;v2&quot; and &quot;v3&quot;</code> are adjusted as potential
@@ -663,8 +664,9 @@ user for the targeted ratios. This could be a vector of names.</p></li>
 confounders) for estimating and testing their associations with the
 targeted ratios. Default is ‘NULL’ meaning that all covariates in
 covData are of interest.</p></li>
-<li><p><code>sampleID</code>: Name of the sample ID variable in the
-data. This is not required. Default is NULL.</p></li>
+<li><p><code>sampleIDname</code>: Name of the sample ID variable in the
+data. In the case that the data does not have an ID variable, this can
+be ignored. Default is NULL.</p></li>
 <li><p><code>adjust_method</code>: The adjusting method for p value
 adjustment. Default is “BY” for dependent FDR adjustment. It can take
 any adjustment method for p.adjust function in R.</p></li>
@@ -719,9 +721,9 @@ adjustment method used.</p></li>
 <h2>Examples</h2>
 <p>We use the same example data The example dataset as that for
 illustrating the MZILN function. <code>dataM</code> and
-<code>dataC</code> are included in this package. If you have a
-SummarizedExperiment format data, you can ignore the data processing
-steps below.</p>
+<code>dataC</code> are included in this package.</p>
+<p>If you have a SummarizedExperiment format data, you can ignore the
+data processing steps below.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="do">## load the example microbiome data. This could be relative abundance or </span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="do">## absolute abundance data. If you have a csv or tsv file for the microbiome data, </span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="do">## you can use read.csv() function or read.table() function in R to read the </span></span>
@@ -768,7 +770,7 @@ these are gut microbiome.</p></li>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>dataC_sub<span class="ot">&lt;-</span>data_merged[,<span class="fu">colnames</span>(dataC)]</span>
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a> </span>
 <span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="do">## Create a SummarizedExperiment object </span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>test_dat<span class="ot">&lt;-</span><span class="fu">SummarizedExperiment</span>(<span class="at">assays=</span><span class="fu">list</span>(<span class="at">counts=</span><span class="fu">t</span>(dataM_sub)), <span class="at">colData=</span>dataC_sub)</span></code></pre></div>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>test_dat<span class="ot">&lt;-</span><span class="fu">SummarizedExperiment</span>(<span class="at">assays=</span><span class="fu">list</span>(<span class="at">MicrobData=</span><span class="fu">t</span>(dataM_sub)), <span class="at">colData=</span>dataC_sub)</span></code></pre></div>
 <p>If you already have a SummarizedExperiment format data, you can
 ignore the above steps. Next we analyze the data to test the
 associations between the ratio “rawCount18/rawCount11” and all the three
@@ -778,7 +780,7 @@ a multivariate model where all <code>&quot;v1&quot;</code>, <code>&quot;v2&quot;
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">MZILN</span>(<span class="at">experiment_dat=</span>test_dat,</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">refTaxa=</span><span class="fu">c</span>(<span class="st">&quot;rawCount11&quot;</span>),</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">allCov=</span><span class="fu">c</span>(<span class="st">&quot;v1&quot;</span>,<span class="st">&quot;v2&quot;</span>,<span class="st">&quot;v3&quot;</span>),</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">sampleID =</span> <span class="fu">c</span>(<span class="st">&quot;id&quot;</span>),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">sampleIDname =</span> <span class="fu">c</span>(<span class="st">&quot;id&quot;</span>),</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fdrRate=</span><span class="fl">0.05</span>)</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Data dimensions (after removing missing data if any):</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 40 samples</span></span>

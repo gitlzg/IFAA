@@ -21,7 +21,7 @@
 ##' The covarites data contains covariates and confounders with each row per sample and each column per variable. The covarites data has to be numeric or binary.
 ##' @param refTaxa Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names.
 ##' @param allCov All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.
-##' @param sampleID Name of the ID variable. Could be set to NULL. 
+##' @param sampleIDname Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL. 
 ##' @param adjust_method The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
 ##' @param fdrRate The false discovery rate for identifying taxa/OTU/ASV associated with `allCov`. Default is `0.15`.
 ##' @param paraJobs If `sequentialRun` is `FALSE`, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as `NULL`, it will automatically detect the cores to decide the number of parallel jobs. Default is `NULL`.
@@ -66,7 +66,7 @@
 ##' dataC_sub<-data_merged[,colnames(dataC)]
 ##' 
 ##' ## Create SummarizedExperiment object 
-##' test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+##' test_dat<-SummarizedExperiment(assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
 ##' 
 ##' ## If you already have a SummarizedExperiment format data, you can ignore the above steps.
 ##' 
@@ -74,7 +74,7 @@
 ##' results <- MZILN(experiment_dat = test_dat,
 ##'                 refTaxa=c("rawCount11"),
 ##'                 allCov=c("v1","v2","v3"),
-##'                 sampleID=c("id"),
+##'                 sampleIDname=c("id"),
 ##'                 fdrRate=0.05)
 ##' ## to extract the results for all ratios with rawCount11 as the denominator:
 ##' summary_res<-results$full_results
@@ -96,7 +96,7 @@
 MZILN = function(experiment_dat,
                  refTaxa,
                  allCov = NULL,
-                 sampleID = NULL,
+                 sampleIDname = NULL,
                  adjust_method = "BY",
                  fdrRate = 0.15,
                  paraJobs = NULL,
@@ -112,7 +112,9 @@ MZILN = function(experiment_dat,
   
   start.time = proc.time()[3]
   
-  MicrobData <- data.frame(t(assays(experiment_dat)$counts))
+  assay_name<-names(assays(experiment_dat))
+  MicrobData <- data.frame(t(assays(experiment_dat)[[assay_name]]))
+  
   MicrobData$ID_char_1234 <- rownames(MicrobData)
   CovData <- data.frame(colData(experiment_dat))
   CovData$ID_char_1234 <- rownames(CovData)
@@ -123,6 +125,7 @@ MZILN = function(experiment_dat,
       MicrobData = MicrobData,
       CovData = CovData,
       linkIDname = linkIDname,
+      sampleIDname=sampleIDname,
       testCov = allCov,
       taxDropThresh = taxDropThresh,
       standardize = standardize
@@ -133,6 +136,7 @@ MZILN = function(experiment_dat,
         MicrobData = MicrobData,
         CovData = CovData,
         linkIDname = linkIDname,
+        sampleIDname=sampleIDname,
         testCov = allCov,
         taxDropThresh = taxDropThresh,
         standardize = standardize
@@ -220,11 +224,10 @@ MZILN = function(experiment_dat,
   
   rm(data)
   
-  if (length(sampleID)>0) {
-    covariatesData <- merge(CovData[,c(sampleID,linkIDname)],covariatesData,all=FALSE)
+  if (length(sampleIDname)>0) {
+    covariatesData <- merge(CovData[,c(sampleIDname,linkIDname)],covariatesData,all=FALSE)
   } 
   covariatesData <- covariatesData[,!colnames(covariatesData) %in% c(linkIDname)]
-  
   
   rm(testCovInOrder, ctrlCov, microbName)
   

@@ -29,10 +29,6 @@ dataInfo=function(
     w=qualifyData[,taxaNames]
     nSubQualif=nrow(qualifyData)
     taxaOverThresh=taxaNames[(Matrix::colSums(w>0)>=(nSubQualif*refReadsThresh))]
-    if(length(taxaOverThresh)==0){
-      message("There are no taxa with non-zero reads over the threshold:",refReadsThresh,
-          ". Reference taxa will be randomly picked in Phase 1.","\n")
-    }
 
     # check the sd threshold
     sdTaxaOverThresh=rep(0,length(taxaOverThresh))
@@ -47,11 +43,7 @@ dataInfo=function(
 
     TaxaOverSdThresh=taxaOverThresh[(sdTaxaOverThresh>=SDThresh)]
     sdOverSdThresh <- sdTaxaOverThresh[sdTaxaOverThresh >= SDThresh]
-    
-    if(length(TaxaOverSdThresh)==0){
-      message("There are no taxa with SD over the SD threshold:",SDThresh,
-          ". Reference taxa will be randomly picked in Phase 1.","\n")
-    }
+
     rm(taxa.i,taxaOverThresh)
 
     # check the sd quantile threshold
@@ -64,10 +56,6 @@ dataInfo=function(
     goodRefTaxaCandi=TaxaOverSdThresh[(sdOverSdThresh>=quantile(sdAllTaxa,probs=SDquantilThresh))]
     rm(sdAllTaxa,posTaxaAll.i,TaxaOverSdThresh)
 
-    if(length(goodRefTaxaCandi)==0){
-      message("There are no taxa with SD over the SD quantile threshold:",SDquantilThresh,
-          ". Reference taxa will be randomly picked in Phase 1.","\n")
-    }
     rm(w)
   }
 

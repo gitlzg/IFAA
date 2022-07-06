@@ -8,7 +8,7 @@ IFAA(
   experiment_dat,
   testCov = NULL,
   ctrlCov = NULL,
-  sampleID = NULL,
+  sampleIDname = NULL,
   testMany = TRUE,
   ctrlMany = FALSE,
   nRef = 40,
@@ -38,7 +38,7 @@ column per variable. The covarites data has to be numeric or binary.}
 
 \item{ctrlCov}{Potential confounders that will be adjusted in the model. It corresponds to $W_i$ in the equation. Default is \code{NULL} which means all covariates except those in \code{testCov} are adjusted as confounders.}
 
-\item{sampleID}{Name of the sample ID variable in the data. This is not required. Default is NULL.}
+\item{sampleIDname}{Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL.}
 
 \item{testMany}{This takes logical value \code{TRUE} or \code{FALSE}. If \code{TRUE}, the \code{testCov} will contain all the variables in \code{CovData} provided \code{testCov} is set to be \code{NULL}. The default value is \code{TRUE} which does not do anything if \code{testCov} is not \code{NULL}.}
 
@@ -153,7 +153,7 @@ dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)\%in\%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
 
 ## Create SummarizedExperiment object 
-test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+test_dat<-SummarizedExperiment(assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
 
 ## If you already have a SummarizedExperiment format data, you can ignore the above steps.
 
@@ -161,7 +161,7 @@ test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_s
 results <- IFAA(experiment_dat = test_dat,
                 testCov = c("v1", "v2"),
                 ctrlCov = c("v3"),
-                sampleID = c("id"),
+                sampleIDname = c("id"),
                 fdrRate = 0.05)
 
 ## to extract all results:

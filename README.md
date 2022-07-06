@@ -35,8 +35,9 @@ dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
 
 # Create SummarizedExperiment object
-test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), 
+test_dat<-SummarizedExperiment(assays=list(MicrobData=t(dataM_sub)), 
                          colData=dataC_sub)
+
 # If you already have a SummarizedExperiment format data, you can 
 # ignore the above steps
 
@@ -44,7 +45,7 @@ test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)),
 results <- IFAA(experiment_dat = test_dat,
                  testCov = c("v1", "v2"),
                  ctrlCov = c("v3"),
-                 sampleID = "id",
+                 sampleIDname = "id",
                  fdrRate = 0.15)
 ```
 
@@ -63,7 +64,7 @@ Use the same datasets to run `MZILN()` function.
 results <- MZILN(experiment_dat = test_dat,
                  refTaxa=c("rawCount11"),
                  allCov=c("v1","v2","v3"),
-                 sampleID = "id",
+                 sampleIDname = "id",
                  fdrRate=0.15)
 ```
 Regression results including confidence intervals for the targeted ratios can be extracted in the following way:

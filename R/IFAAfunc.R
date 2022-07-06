@@ -28,7 +28,7 @@
 ##' column per variable. The covarites data has to be numeric or binary.
 ##' @param testCov Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is `NULL` which means all covariates are `testCov`.
 ##' @param ctrlCov Potential confounders that will be adjusted in the model. It corresponds to $W_i$ in the equation. Default is `NULL` which means all covariates except those in `testCov` are adjusted as confounders.
-##' @param sampleID Name of the sample ID variable in the data. This is not required. Default is NULL. 
+##' @param sampleIDname Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL. 
 ##' @param testMany This takes logical value `TRUE` or `FALSE`. If `TRUE`, the `testCov` will contain all the variables in `CovData` provided `testCov` is set to be `NULL`. The default value is `TRUE` which does not do anything if `testCov` is not `NULL`.
 ##' @param ctrlMany This takes logical value `TRUE` or `FALSE`. If `TRUE`, all variables except `testCov` are considered as control covariates provided `ctrlCov` is set to be `NULL`. The default value is `FALSE`.
 ##' @param nRef The number of randomly picked reference taxa used in phase 1. Default number is `40`.
@@ -96,7 +96,7 @@
 ##' dataC_sub<-data_merged[,colnames(dataC)]
 ##' 
 ##' ## Create SummarizedExperiment object 
-##' test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+##' test_dat<-SummarizedExperiment(assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
 ##' 
 ##' ## If you already have a SummarizedExperiment format data, you can ignore the above steps.
 ##' 
@@ -104,7 +104,7 @@
 ##' results <- IFAA(experiment_dat = test_dat,
 ##'                 testCov = c("v1", "v2"),
 ##'                 ctrlCov = c("v3"),
-##'                 sampleID = c("id"),
+##'                 sampleIDname = c("id"),
 ##'                 fdrRate = 0.05)
 ##'
 ##' ## to extract all results:
@@ -142,7 +142,7 @@
 IFAA = function(experiment_dat,
                 testCov = NULL,
                 ctrlCov = NULL,
-                sampleID = NULL,
+                sampleIDname = NULL,
                 testMany = TRUE,
                 ctrlMany = FALSE,
                 nRef = 40,
@@ -165,7 +165,9 @@ IFAA = function(experiment_dat,
   
   results = list()
   start.time = proc.time()[3]
-  MicrobData <- data.frame(t(assays(experiment_dat)$counts))
+  assay_name<-names(assays(experiment_dat))
+  MicrobData <- data.frame(t(assays(experiment_dat)[[assay_name]]))
+  
   MicrobData$ID_char_1234 <- rownames(MicrobData)
   CovData <- data.frame(colData(experiment_dat))
   CovData$ID_char_1234 <- rownames(CovData)
@@ -176,6 +178,7 @@ IFAA = function(experiment_dat,
       MicrobData = MicrobData,
       CovData = CovData,
       linkIDname = linkIDname,
+      sampleIDname=sampleIDname,
       testCov = testCov,
       ctrlCov = ctrlCov,
       testMany = testMany,
@@ -189,6 +192,7 @@ IFAA = function(experiment_dat,
         MicrobData = MicrobData,
         CovData = CovData,
         linkIDname = linkIDname,
+        sampleIDname=sampleIDname,
         testCov = testCov,
         ctrlCov = ctrlCov,
         testMany = testMany,
@@ -319,8 +323,8 @@ IFAA = function(experiment_dat,
     results$seed = "No seed used."
   }
   
-  if (length(sampleID)>0) {
-    covariatesData <- merge(CovData[,c(sampleID,linkIDname)],covariatesData,by=linkIDname,all=FALSE)
+  if (length(sampleIDname)>0) {
+    covariatesData <- merge(CovData[,c(sampleIDname,linkIDname)],covariatesData,by=linkIDname,all=FALSE)
   } 
   covariatesData <- covariatesData[,!colnames(covariatesData) %in% c(linkIDname)]
   

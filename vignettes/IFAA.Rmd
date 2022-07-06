@@ -1,7 +1,7 @@
 ---
 title: "IFAA"
-# output: rmarkdown::html_vignette
-output: pdf_document
+output: rmarkdown::html_vignette
+# output: pdf_document
 vignette: >
   %\VignetteIndexEntry{IFAA}
   %\VignetteEngine{knitr::rmarkdown}
@@ -62,7 +62,7 @@ Most of the time, users just need to feed the first three inputs to the function
 
 - `ctrlCov`: Potential confounders that will be adjusted in the model. It corresponds to $W_i$ in the equation. Default is `NULL` which means all covariates except those in `testCov` are adjusted as confounders.
 
-- `sampleID`: Name of the sample ID variable in the data. This is not required. Default is NULL. 
+- `sampleIDname`: Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL. 
 
 - `testMany`: This takes logical value `TRUE` or `FALSE`. If `TRUE`, the `testCov` will contain all the variables in `CovData` provided `testCov` is set to be `NULL`. The default value is `TRUE` which does not do anything if `testCov` is not `NULL`.
 
@@ -103,7 +103,9 @@ Most of the time, users just need to feed the first three inputs to the function
 
 ## Example
 
-The example datasets `dataM` and `dataC` are included in this package. The input should be a SummarizedExperiment object, which could be constructed as below. If you already have a SummarizedExperiment format data, you can ignore the data processing steps below.
+The example datasets `dataM` and `dataC` are included in this package. The input should be a SummarizedExperiment object, which could be constructed as below. 
+
+If you already have a SummarizedExperiment format data, you can ignore the data processing steps below.
 ```{r}
 library(IFAA)
 suppressMessages(library(SummarizedExperiment))
@@ -139,7 +141,7 @@ dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
  
 ## Create a SummarizedExperiment object 
-test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+test_dat<-SummarizedExperiment(assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
 ```
 
 If you already have a SummarizedExperiment format data, you can ignore the above steps. Next we analyze the data to test the association between microbiome and the variable `"v1"` while adjusting for the variables (potential confounders) `"v2"` and `"v3"`.
@@ -148,7 +150,7 @@ If you already have a SummarizedExperiment format data, you can ignore the above
 results <- IFAA(experiment_dat = test_dat,
                 testCov = c("v1"),
                 ctrlCov = c("v2","v3"),
-                sampleID = c("id"),
+                sampleIDname = c("id"),
                 fdrRate = 0.05)
 ```
 
@@ -190,7 +192,7 @@ Most of the time, users just feed the first three inputs to the function: `exper
 - `refTaxa`: Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names. 
 - `allCov`: All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.
 
-- `sampleID`: Name of the sample ID variable in the data. This is not required. Default is NULL.
+- `sampleIDname`: Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL. 
 
 - `adjust_method`: The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.
 - `fdrRate` The false discovery rate for identifying ratios associated with `allCov`. Default is `0.15`.
@@ -212,7 +214,9 @@ A list with two elements:
 
 ## Examples
 
-We use the same example data The example dataset as that for illustrating the MZILN function. `dataM` and `dataC` are included in this package. If you have a SummarizedExperiment format data, you can ignore the data processing steps below.
+We use the same example data The example dataset as that for illustrating the MZILN function. `dataM` and `dataC` are included in this package. 
+
+If you have a SummarizedExperiment format data, you can ignore the data processing steps below.
 ```{r}
 ## load the example microbiome data. This could be relative abundance or 
 ## absolute abundance data. If you have a csv or tsv file for the microbiome data, 
@@ -250,7 +254,7 @@ dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
  
 ## Create a SummarizedExperiment object 
-test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+test_dat<-SummarizedExperiment(assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
 ```
 
 If you already have a SummarizedExperiment format data, you can ignore the above steps. Next we analyze the data to test the associations between the ratio "rawCount18/rawCount11" and all the three variables `"v1"`, `"v2"` and `"v3"` in a multivariate model where all `"v1"`, `"v2"` and `"v3"` are independent variables simultaneously.
@@ -259,7 +263,7 @@ If you already have a SummarizedExperiment format data, you can ignore the above
 results <- MZILN(experiment_dat=test_dat,
                  refTaxa=c("rawCount11"),
                  allCov=c("v1","v2","v3"),
-                 sampleID = c("id"),
+                 sampleIDname = c("id"),
                  fdrRate=0.05)
 ```
 

@@ -68,6 +68,7 @@ bootResuHDCI = function(data,
   
   
   if (dim(x)[1] > (dim(x)[2])) {
+    
     for (k in seq_len(nRuns)) {
       rowToKeep = sample(nToSamplFrom, maxSubSamplSiz)
       xSub = x[rowToKeep,]
@@ -135,6 +136,7 @@ bootResuHDCI = function(data,
     }
   } else {
     for (k in seq_len(nRuns)) {
+      
       rowToKeep = sample(nToSamplFrom, maxSubSamplSiz)
       xSub = as((x[rowToKeep,]), "sparseMatrix")
       ySub = as((y[rowToKeep]), "sparseVector")

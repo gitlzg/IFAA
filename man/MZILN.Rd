@@ -8,7 +8,7 @@ MZILN(
   experiment_dat,
   refTaxa,
   allCov = NULL,
-  sampleID = NULL,
+  sampleIDname = NULL,
   adjust_method = "BY",
   fdrRate = 0.15,
   paraJobs = NULL,
@@ -29,7 +29,7 @@ The covarites data contains covariates and confounders with each row per sample 
 
 \item{allCov}{All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.}
 
-\item{sampleID}{Name of the ID variable. Could be set to NULL.}
+\item{sampleIDname}{Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL.}
 
 \item{adjust_method}{The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.}
 
@@ -104,7 +104,7 @@ dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)\%in\%c("id")]]
 dataC_sub<-data_merged[,colnames(dataC)]
 
 ## Create SummarizedExperiment object 
-test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_sub)
+test_dat<-SummarizedExperiment(assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
 
 ## If you already have a SummarizedExperiment format data, you can ignore the above steps.
 
@@ -112,7 +112,7 @@ test_dat<-SummarizedExperiment(assays=list(counts=t(dataM_sub)), colData=dataC_s
 results <- MZILN(experiment_dat = test_dat,
                 refTaxa=c("rawCount11"),
                 allCov=c("v1","v2","v3"),
-                sampleID=c("id"),
+                sampleIDname=c("id"),
                 fdrRate=0.05)
 ## to extract the results for all ratios with rawCount11 as the denominator:
 summary_res<-results$full_results
