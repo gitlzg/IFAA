@@ -1,8 +1,9 @@
-allUserFunc = function() {
+allUserFunc <- function() {
   return(
     c(
       "dataRecovTrans",
-      "AIcalcu"
+      "AIcalcu",
+      "runBootLassoHDCI"
     )
   )
 }

@@ -15,7 +15,7 @@ IFAA(
   nRefMaxForEsti = 2,
   refTaxa = NULL,
   adjust_method = "BY",
-  fdrRate = 0.15,
+  fdrRate = 0.05,
   paraJobs = NULL,
   bootB = 500,
   standardize = FALSE,
@@ -25,14 +25,13 @@ IFAA(
   SDThresh = 0.05,
   SDquantilThresh = 0,
   balanceCut = 0.2,
-  verbose = TRUE,
-  seed = 1
+  verbose = TRUE
 )
 }
 \arguments{
-\item{experiment_dat}{A SummarizedExperiment object containing microbiome data and covarites (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance
-with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covarites data contains covariates and confounders with each row per sample and each
-column per variable. The covarites data has to be numeric or binary.}
+\item{experiment_dat}{A SummarizedExperiment object containing microbiome data and covariates (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance
+with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covariates data contains covariates and confounders with each row per sample and each
+column per variable. The covariates data has to be numeric or binary. Categorical variables should be converted into dummy variables.}
 
 \item{testCov}{Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is \code{NULL} which means all covariates are \code{testCov}.}
 
@@ -52,7 +51,7 @@ column per variable. The covarites data has to be numeric or binary.}
 
 \item{adjust_method}{The adjusting method for p value adjustment. Default is "BY" for dependent FDR adjustment. It can take any adjustment method for p.adjust function in R.}
 
-\item{fdrRate}{The false discovery rate for identifying taxa/OTU/ASV associated with \code{testCov}. Default is \code{0.15}.}
+\item{fdrRate}{The false discovery rate for identifying taxa/OTU/ASV associated with \code{testCov}. Default is \code{0.05}.}
 
 \item{paraJobs}{If \code{sequentialRun} is \code{FALSE}, this specifies the number of parallel jobs that will be registered to run the algorithm. If specified as \code{NULL}, it will automatically detect the cores to decide the number of parallel jobs. Default is \code{NULL}.}
 
@@ -73,8 +72,6 @@ column per variable. The covarites data has to be numeric or binary.}
 \item{balanceCut}{The threshold of the proportion of non-zero sequencing reads in each group of a binary variable for choosing the final reference taxa in phase 2. The default number is \code{0.2} which means at least 20\% non-zero sequencing reads in each group are needed to be eligible for being chosen as a final reference taxon.}
 
 \item{verbose}{Whether the process message is printed out to the console. The default is TRUE.}
-
-\item{seed}{Random seed for reproducibility. Default is \code{1}. It can be set to be NULL to remove seeding.}
 }
 \value{
 A list containing 2 elements
@@ -90,7 +87,6 @@ standard error estimates, lower bound and upper bound of the 95\% confidence int
 \item {\code{ref_taxon_count}: The counts of selection for the associations of all taxa with test covariates in Phase 1.}
 \item {\code{totalTimeMins}: The average magnitude estimates for the associations of all taxa with test covariates in Phase 1.}
 \item {\code{ref_taxon_est}: Total time used for the entire analysis.}
-\item {\code{seed}: The seed used for the analysis for reproducibility.}
 \item {\code{fdrRate}: FDR rate used for the analysis.}
 \item {\code{adjust_method}: Multiple testing adjust method used for the analysis.}
 }
@@ -98,10 +94,8 @@ standard error estimates, lower bound and upper bound of the 95\% confidence int
 }
 }
 \description{
-Make inference on the association of microbiome with covariates
-}
-\details{
-Most of the time, users just need to feed the first three inputs to the function: \code{experiment_dat}, \code{testCov} and \code{ctrlCov}. All other inputs can just take their default values.
+The IFAA function is to make inference on the association of microbiome with covariates
+
 To model the association, the following equation is used:
 
 \loadmathjax
@@ -123,47 +117,69 @@ and 1 that denote the observed proportion.
 The IFAA method can successfully addressed this challenge. The \code{IFAA()} will estimate the parameter
 \mjeqn{\beta^k}{} and their 95\% confidence intervals. High-dimensional \mjeqn{X_i}{} is handled by
 regularization.
+
+When using this function, most of the time, users just need to feed the first three inputs to the function: \code{experiment_dat}, \code{testCov} and \code{ctrlCov}. All other inputs can just take their default values.
 }
 \examples{
+
 library(IFAA)
-library(SummarizedExperiment)
+## A makeup example data from Scratch. 60 taxon, 40 subjects, 3 covariates
 
-## If you already have a SummarizedExperiment format data, you can ignore the data processing steps below.
+set.seed(1)
 
-## load the example microbiome data. This could be relative abundance or absolute 
-## abundance data. If you have a csv or tsv file for the microbiome data, you 
-## can use read.csv() function or read.table() function in R to read the 
-## data file into R.
-data(dataM)
-dim(dataM)
-dataM[1:5, 1:8]
+## create an ID variable for the example data
+ID=seq_len(40)
 
-## load the example covariates data. If you have a csv or tsv file for the 
-## covariates data, you can use read.csv() function or read.table() function 
-## in R to read the data file into R.
-data(dataC)
-dim(dataC)
-dataC[1:5, ]
+## generate three covariates x1, x2, and x3, with x2 binary
+x1<-rnorm(40)
+x2<-rbinom(40,1,0.5)
+x3<-rnorm(40)
+dataC<-data.frame(cbind(ID,x1,x2,x3))
 
-## Merge microbiome data and covariate data by id, to avoid unmatching observations. 
-data_merged<-merge(dataM,dataC,by="id",all=FALSE)
+## Coefficients for x1, x2, and x3 among 60 taxa.
+beta_1<-c(0.1,rep(0,59))
+beta_2<-c(0,0.2,rep(0,58))
+beta_3<-rnorm(60)
+beta_mat<-cbind(beta_1,beta_2,beta_3)
 
-## Seperate microbiome data and covariate data, drop id variable from microbiome data
-dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)\%in\%c("id")]]
+## Generate absolute abundance for 60 taxa in ecosystem.
+dataM_eco<-floor(exp(10+as.matrix(dataC[,-1])\%*\%t(beta_mat) + rnorm(2400,sd=0.05)))
+
+## Generate sequence depth and generate observed abundance
+Ci<-runif(40,0.01,0.05)
+dataM<-floor(apply(dataM_eco,2,function(x) x*Ci))
+colnames(dataM)<-paste0("rawCount",1:60)
+
+## Randomly introduce 0 to make 25\% sparsity level.
+dataM[sample(seq_len(length(dataM)),length(dataM)/4)]<-0
+
+dataM<-data.frame(cbind(ID,dataM))
+
+## The following steps are to create a SummarizedExperiment object.
+## If you already have a SummarizedExperiment format data, you can
+## ignore the following steps and directly feed it to the IFAA function.
+
+## Merge two dataset by ID variable
+data_merged<-merge(dataM,dataC,by="ID",all=FALSE)
+
+## Seperate microbiome data and covariate data, drop ID variable from microbiome data
+dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)\%in\%c("ID")]]
 dataC_sub<-data_merged[,colnames(dataC)]
 
-## Create SummarizedExperiment object 
-test_dat<-SummarizedExperiment(assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
+## Create SummarizedExperiment object
+test_dat<-SummarizedExperiment::SummarizedExperiment(
+assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
 
-## If you already have a SummarizedExperiment format data, you can ignore the above steps.
+## Again, if you already have a SummarizedExperiment format data, you can
+## ignore the above steps and directly feed it to the IFAA function.
 
-## run IFAA function
+set.seed(123) # For full reproducibility
+
 results <- IFAA(experiment_dat = test_dat,
-                testCov = c("v1", "v2"),
-                ctrlCov = c("v3"),
-                sampleIDname = c("id"),
+                testCov = c("x1", "x2"),
+                ctrlCov = c("x3"),
+                sampleIDname="ID",
                 fdrRate = 0.05)
-
 ## to extract all results:
 summary_res<-results$full_results
 ## to extract significant results:
@@ -173,9 +189,5 @@ sig_results=subset(summary_res,sig_ind==TRUE)
 
 }
 \references{
-Li et al.(2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association
-
-Zhang CH (2010) Nearly unbiased variable selection under minimax concave penalty. Annals of Statistics. 38(2):894-942.
-
-Liu et al.(2020) A bootstrap lasso + partial ridge method to construct confidence intervals for parameters in high-dimensional sparse linear models. Statistica Sinica
+Li et al.(2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association. 116(536):1595-1608
 }
