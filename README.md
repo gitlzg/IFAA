@@ -18,7 +18,6 @@ Use example datasets to run `IFAA()` function. The example generates an example 
 # Detailed instructions on the package are 
 # provided in the vignettes and manual
 library(IFAA)
-library(SummarizedExperiment)
 
 ## create an ID variable for the example data
 ID=seq_len(40)
@@ -61,7 +60,8 @@ dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("ID")]]
 dataC_sub<-data_merged[,colnames(dataC)]
 
 # Create SummarizedExperiment object
-test_dat<-SummarizedExperiment(assays=list(MicrobData=t(dataM_sub)), 
+test_dat<-SummarizedExperiment::SummarizedExperiment(
+                  assays=list(MicrobData=t(dataM_sub)), 
                          colData=dataC_sub)
 
 # Again, if you already have a SummarizedExperiment format data, you can 
