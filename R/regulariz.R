@@ -53,9 +53,14 @@ Regulariz <- function(data,
   
   num_taxon_phase1 <- max(length(refTaxa), phase1_taxon_num)
   num_taxon_phase1 <- min(num_taxon_phase1, nTaxa)
-  phase1_taxon_sample_pool <-
+  
+  if(num_taxon_phase1>=nTaxa){
+   data_sub_phase1 <- data
+   }
+   else{
+   phase1_taxon_sample_pool <-
     results$goodRefTaxaCandi[!(results$goodRefTaxaCandi %in% refTaxa)]
-  if (length(phase1_taxon_sample_pool) > (num_taxon_phase1 - length(refTaxa))) {
+   if (length(phase1_taxon_sample_pool) > (num_taxon_phase1 - length(refTaxa))) {
     phase1_taxon_sample1 <-
       c(
         sample(
@@ -64,13 +69,13 @@ Regulariz <- function(data,
         ),
         refTaxa
       )
-  } else {
+   } else {
     phase1_taxon_sample1 <- c(phase1_taxon_sample_pool, refTaxa)
-  }
-  phase1_taxon_sample <- phase1_taxon_sample1
+   }
+   phase1_taxon_sample <- phase1_taxon_sample1
   
   
-  if (length(phase1_taxon_sample1) < num_taxon_phase1) {
+   if (length(phase1_taxon_sample1) < num_taxon_phase1) {
     not_good_candi <-
       taxaNames[!((taxaNames %in% results$goodRefTaxaCandi) |
                     (taxaNames %in% refTaxa))]
@@ -80,10 +85,10 @@ Regulariz <- function(data,
                                                                   length(phase1_taxon_sample1))])
     phase1_taxon_sample <-
       c(phase1_taxon_sample1, phase1_taxon_sample2)
-  }
+    }
   
-  data_sub_phase1 <- data[, c(phase1_taxon_sample, predNames)]
-  
+   data_sub_phase1 <- data[, c(phase1_taxon_sample, predNames)]
+   }
   rm(data.info)
 
   regul.start.time <- proc.time()[3]
