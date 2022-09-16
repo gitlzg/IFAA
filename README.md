@@ -13,7 +13,7 @@ devtools::install_github("gitlzg/IFAA")
 ```
 ## Usage
 
-Use example datasets to run `IFAA()` function. The example generates an example data from scratch, with 60 taxon, 40 subjects, and 3 covariates.
+This is a brief example to run `IFAA()` and `MZILN()` functions. More detailed instructions can be found in the manual and vignettes files. This example generates an example data from scratch, with 60 taxon, 40 subjects, and 3 covariates.
 ```r
 # Detailed instructions on the package are 
 # provided in the vignettes and manual
