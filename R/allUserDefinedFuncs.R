@@ -3,7 +3,8 @@ allUserFunc <- function() {
     c(
       "dataRecovTrans",
       "AIcalcu",
-      "runBootLassoHDCI"
+      "runBootLassoHDCI",
+      "lm_sparse"
     )
   )
 }

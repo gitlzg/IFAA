@@ -1,6 +1,6 @@
 Package: IFAA
 Title: Robust Inference for Absolute Abundance in Microbiome Analysis
-Version: 1.0.8
+Version: 1.0.9
 Authors@R: c(person(given = "Quran",
            family = "Wu",
            role = c("aut"),
@@ -18,12 +18,12 @@ URL:    https://pubmed.ncbi.nlm.nih.gov/35241863/,
         https://github.com/gitlzg/IFAA
 LazyData: FALSE
 RoxygenNote: 7.2.0
-Depends: R (>= 4.1.0),
+Depends: R (>= 4.0.0),
 Imports: mathjaxr (>= 1.0-1),foreach (>= 1.4.3), Matrix (>= 1.4-0), 
          parallel (>= 3.3.0), doParallel (>= 1.0.11), doRNG,
-          parallelly, glmnet, stats, utils, SummarizedExperiment, 
-         stringr, S4Vectors, DescTools, MatrixExtra, HDCI (>= 1.0-2)
-biocViews: Software, Technology, Sequencing, Microbiome, Regression
+         parallelly, glmnet, stats, utils, SummarizedExperiment, 
+         stringr, S4Vectors, DescTools, MatrixExtra, HDCI (>= 1.0-2),
+         methods
 RdMacros: mathjaxr
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr

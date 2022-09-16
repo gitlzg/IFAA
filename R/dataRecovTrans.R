@@ -112,7 +112,6 @@ dataRecovTrans <- function(data,
         MatrixExtra::crossprod(omegaRoot[[i]], MatrixExtra::tcrossprod(A[[i]], xInRegres.i.transpos))
       rm(xInRegres.i.transpos)
       xtild[[j]] <- xDataTilda.i
-
       rm(xDataTilda.i)
     }
 

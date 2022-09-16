@@ -69,6 +69,7 @@
 ##' }
 ##' @examples
 ##'
+##' \donttest{
 ##' library(IFAA)
 ##' ## A makeup example data from Scratch. 60 taxon, 40 subjects, 3 covariates
 ##'
@@ -132,7 +133,7 @@
 ##' ## to extract significant results:
 ##' sig_results=subset(summary_res,sig_ind==TRUE)
 ##'
-##'
+##'}
 ##'
 ##' @references Li et al.(2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association. 116(536):1595-1608
 
@@ -143,7 +144,7 @@
 ##' @importFrom doParallel registerDoParallel
 ##' @importFrom Matrix Diagonal Matrix sparseVector
 ##' @importFrom glmnet glmnet
-##' @importFrom HDCI bootLOPR
+##' @importFrom methods is
 ##' @import mathjaxr
 ##' @import stats
 ##' @import utils
@@ -152,6 +153,7 @@
 ##' @importFrom S4Vectors DataFrame
 ##' @importFrom DescTools DoCall
 ##' @importFrom MatrixExtra tcrossprod crossprod rbind_csr as.csc.matrix
+##' @importFrom HDCI bootLOPR
 ##' @export
 ##' @md
 

@@ -124,17 +124,8 @@ bootResuHDCI <- function(data,
         rowToKeep <- sample(nToSamplFrom, maxSubSamplSiz)
         xSub <- x[rowToKeep, ]
         ySub <- y[rowToKeep]
+        bootResu <- lm_sparse(x = xSub, y = ySub)
 
-        lm_res <- lm(as.vector(ySub) ~ as.matrix(xSub) - 1)
-
-        rm(xSub, ySub)
-
-        full_name_coef <- names(lm_res$coefficients)
-        valid_coef <- as.matrix(summary(lm_res)$coefficients)
-        bootResu <- matrix(nrow = length(full_name_coef), ncol = 4)
-        rownames(bootResu) <- full_name_coef
-        bootResu[rownames(bootResu) %in% rownames(valid_coef), ] <-
-          valid_coef
         if (k == 1) {
           bootResu_k <- bootResu
         } else {
@@ -154,8 +145,6 @@ bootResuHDCI <- function(data,
       se_est_all <- bootResu_k[, 2] / nRuns
 
 
-      boot_CI <- confint(lm_res)
-
 
       ref_taxon_name <- originRefTaxNam
       p_value_save_mat <-
@@ -171,9 +160,9 @@ bootResuHDCI <- function(data,
 
       for (ii in seq_len(nTestcov)) {
         se_est <-
-          se_est_all[seq(ii + 1, length(full_name_coef), nPredics + 1)]
+          se_est_all[seq(ii + 1, length(se_est_all), nPredics + 1)]
         boot_est_par <-
-          boot_est[seq(ii + 1, length(full_name_coef), nPredics + 1)]
+          boot_est[seq(ii + 1, length(boot_est), nPredics + 1)]
 
         p_value_unadj <- (1 - pnorm(abs(boot_est_par / se_est))) * 2
 

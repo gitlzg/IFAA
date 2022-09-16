@@ -39,6 +39,7 @@
 ##'
 ##' @examples
 ##'
+##' \donttest{
 ##' library(IFAA)
 ##' ## A makeup example data from Scratch. 60 taxon, 40 subjects, 3 covariates
 ##'
@@ -104,8 +105,9 @@
 ##' target_ratio=summary_res[summary_res$taxon=="rawCount45",]
 ##' ## to extract all of the ratios having significant associations:
 ##' sig_ratios=subset(summary_res,sig_ind==TRUE)
-
-
+##' 
+##' }
+##'
 ##' @references Li et al.(2018) Conditional Regression Based on a Multivariate Zero-Inflated Logistic-Normal Model for Microbiome Relative Abundance Data. Statistics in Biosciences 10(3): 587-608
 
 ##' @export

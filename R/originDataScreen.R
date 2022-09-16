@@ -128,7 +128,7 @@ originDataScreen <- function(data,
         dfmax = dfmax,
         pmax = pmax,
         family = "gaussian",
-        intercept = TRUE,
+        intercept = FALSE,
         standardize = FALSE,
         nlambda = nlambda_num
       )
