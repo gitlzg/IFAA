@@ -7,6 +7,7 @@ originDataScreen <- function(data,
                              paraJobs,
                              refTaxa,
                              maxDimensionScr = 434 * 5 * 10^5,
+                             run_linear_thresh = 21121540,
                              sequentialRun,
                              allFunc,
                              Mprefix,
@@ -63,7 +64,7 @@ originDataScreen <- function(data,
 
   parallel::clusterExport(
     cl = cl,
-    varlist = allFunc[c(1, 2)],
+    varlist = allFunc[c(1, 2, 4, 5)],
     envir = environment()
   )
 
@@ -115,41 +116,50 @@ originDataScreen <- function(data,
       rowToKeep <- sample(nToSamplFrom, maxSubSamplSiz)
       x <- xTildLongTild.i[rowToKeep, ]
       y <- yTildLongTild.i[rowToKeep]
-
-      dfmax <-
-        ceiling(min((nPredics + 1) * nNorm / dfmax_div, length(rowToKeep) /
-          dfmax_div))
       
-      pmax <- ceiling(min((nPredics + 1) * nNorm, length(rowToKeep)))
-      
-      lasso.est <- glmnet::glmnet(
-        x = x,
-        y = as.vector(y),
-        dfmax = dfmax,
-        pmax = pmax,
-        family = "gaussian",
-        intercept = FALSE,
-        standardize = FALSE,
-        nlambda = nlambda_num
-      )
+      if (nrow(x) * ncol(x) < run_linear_thresh) {
+        Penal.i=runlinear(x=x,y=y,
+                          nPredics=nPredics)
+        BetaNoInt.k=0+(Penal.i$betaNoInt!=0)
+        EstNoInt.k<-abs(Penal.i$coef_est_noint)
+      } else {
+        dfmax <-
+          ceiling(min((nPredics + 1) * nNorm / dfmax_div, length(rowToKeep) /
+                        dfmax_div))
+        
+        pmax <- ceiling(min((nPredics + 1) * nNorm, length(rowToKeep)))
+        
+        lasso.est <- glmnet::glmnet(
+          x = x,
+          y = as.vector(y),
+          dfmax = dfmax,
+          pmax = pmax,
+          family = "gaussian",
+          intercept = FALSE,
+          standardize = FALSE,
+          nlambda = nlambda_num
+        )
+        
+        rm(x, y)
+        gc()
+        
+        betaMat <- as.matrix(lasso.est$beta)
+        rm(lasso.est)
+        gc()
+        
+        lasso_beta <- betaMat[, ncol(betaMat)]
+        rm(betaMat)
+        gc()
+        
+        betaNoInt <-
+          lasso_beta[-seq(1, length(lasso_beta), by = (nPredics + 1))]
+        rm(lasso_beta)
+        
+        BetaNoInt.k <- (0 + (betaNoInt != 0))
+        EstNoInt.k <- abs(betaNoInt)
+      }
 
-      rm(x, y)
-      gc()
 
-      betaMat <- as.matrix(lasso.est$beta)
-      rm(lasso.est)
-      gc()
-
-      lasso_beta <- betaMat[, ncol(betaMat)]
-      rm(betaMat)
-      gc()
-
-      betaNoInt <-
-        lasso_beta[-seq(1, length(lasso_beta), by = (nPredics + 1))]
-      rm(lasso_beta)
-
-      BetaNoInt.k <- (0 + (betaNoInt != 0))
-      EstNoInt.k <- abs(betaNoInt)
 
       if (k == 1) {
         BetaNoInt.i <- BetaNoInt.k

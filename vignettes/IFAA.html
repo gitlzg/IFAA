@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2022-09-15" />
+<meta name="date" content="2022-11-01" />
 
 <title>IFAA</title>
 
@@ -705,7 +705,7 @@ function toggle_visibility(id1) {
 
 
 <h1 class="title toc-ignore">IFAA</h1>
-<h4 class="date">15 September 2022</h4>
+<h4 class="date">1 November 2022</h4>
 
 </div>
 
@@ -749,9 +749,10 @@ devtools::install_github(&quot;gitlzg/IFAA&quot;)</code></pre>
 </div>
 <div id="input-for-ifaa-function" class="section level2" number="0.2">
 <h2><span class="header-section-number">0.2</span> Input for IFAA() function</h2>
-<p>Most of the time, users just need to feed the first three inputs to the function: <code>experiment_dat</code>, <code>testCov</code> and <code>ctrlCov</code>. All other inputs can just take their default values. Below are all the inputs of the functions</p>
+<p>Most of the time, users just need to feed these three inputs to the function: <code>experiment_dat</code>, <code>testCov</code> and <code>ctrlCov</code>. All other inputs can just take their default values. Below are all the inputs of the functions</p>
 <ul>
 <li><p><code>experiment_dat</code>: A SummarizedExperiment object containing microbiome data and covariates (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covariates data contains covariates and confounders with each row per sample and each column per variable. The covariates data has to be numeric or binary. Categorical variables should be converted into binary dummy variables.</p></li>
+<li><p><code>microbVar</code>: This takes a vector of microbiome variable names (e.g., taxa, OTU and ASV names) of interest. Default is “all” meaning all microbiome variables will be analyzed. If a subset of microbiome variables is specified, the output will only contain the specified variables, and p-value adjustment for multiple testing will only be applied to the subset.</p></li>
 <li><p><code>testCov</code>: Covariates that are of primary interest for testing and estimating the associations. It corresponds to <span class="math inline">\(X_i\)</span> in the equation. Default is <code>NULL</code> which means all covariates are <code>testCov</code>.</p></li>
 <li><p><code>ctrlCov</code>: Potential confounders that will be adjusted in the model. It corresponds to <span class="math inline">\(W_i\)</span> in the equation. Default is <code>NULL</code> which means all covariates except those in <code>testCov</code> are adjusted as confounders.</p></li>
 <li><p><code>sampleIDname</code>: Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL.</p></li>
@@ -796,56 +797,59 @@ devtools::install_github(&quot;gitlzg/IFAA&quot;)</code></pre>
 set.seed(1)
 
 ## create an ID variable for the example data
-ID=seq_len(20)
+ID &lt;- seq_len(20)
 
 ## generate three covariates x1, x2, and x3, with x2 binary
-x1&lt;-rnorm(20)
-x2&lt;-rbinom(20,1,0.5)
-x3&lt;-rnorm(20)
-dataC&lt;-data.frame(cbind(ID,x1,x2,x3))
+x1 &lt;- rnorm(20)
+x2 &lt;- rbinom(20, 1, 0.5)
+x3 &lt;- rnorm(20)
+dataC &lt;- data.frame(cbind(ID, x1, x2, x3))
 
 ## Coefficients for x1, x2, and x3 among 10 taxa.
-beta_1&lt;-c(0.1,rep(0,9))
-beta_2&lt;-c(0,0.2,rep(0,8))
-beta_3&lt;-rnorm(10)
-beta_mat&lt;-cbind(beta_1,beta_2,beta_3)
+beta_1 &lt;- c(0.1, rep(0, 9))
+beta_2 &lt;- c(0, 0.2, rep(0, 8))
+beta_3 &lt;- rnorm(10)
+beta_mat &lt;- cbind(beta_1, beta_2, beta_3)
 
 ## Generate absolute abundance for 10 taxa in ecosystem.
-dataM_eco&lt;-floor(exp(10+as.matrix(dataC[,-1]) %*% t(beta_mat) + rnorm(200,sd=0.05)))
+dataM_eco &lt;- floor(exp(10 + as.matrix(dataC[, -1]) %*% t(beta_mat) + rnorm(200, sd = 0.05)))
 
 ## Generate sequence depth and generate observed abundance
-Ci&lt;-runif(20,0.01,0.05)
-dataM&lt;-floor(apply(dataM_eco,2,function(x) x*Ci))
-colnames(dataM)&lt;-paste0(&quot;rawCount&quot;,1:10)
+Ci &lt;- runif(20, 0.01, 0.05)
+dataM &lt;- floor(apply(dataM_eco, 2, function(x) x * Ci))
+colnames(dataM) &lt;- paste0(&quot;rawCount&quot;, 1:10)
 
 ## Randomly introduce 0 to make 25% sparsity level.
-dataM[sample(seq_len(length(dataM)),length(dataM)/4)]&lt;-0
+dataM[sample(seq_len(length(dataM)), length(dataM) / 4)] &lt;- 0
 
-dataM&lt;-data.frame(cbind(ID,dataM))
+dataM &lt;- data.frame(cbind(ID, dataM))
 
 ## The following steps are to create a SummarizedExperiment object.
 ## If you already have a SummarizedExperiment format data, you can
 ## ignore the following steps and directly feed it to the IFAA function.
 
 ## Merge two dataset by ID variable
-data_merged&lt;-merge(dataM,dataC,by=&quot;ID&quot;,all=FALSE)
+data_merged &lt;- merge(dataM, dataC, by = &quot;ID&quot;, all = FALSE)
 
 ## Seperate microbiome data and covariate data, drop ID variable from microbiome data
-dataM_sub&lt;-data_merged[,colnames(dataM)[!colnames(dataM)%in%c(&quot;ID&quot;)]]
-dataC_sub&lt;-data_merged[,colnames(dataC)]
+dataM_sub &lt;- data_merged[, colnames(dataM)[!colnames(dataM) %in% c(&quot;ID&quot;)]]
+dataC_sub &lt;- data_merged[, colnames(dataC)]
 
 ## Create SummarizedExperiment object
-test_dat&lt;-SummarizedExperiment::SummarizedExperiment(
-assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)</code></pre>
+test_dat &lt;- SummarizedExperiment::SummarizedExperiment(
+  assays = list(MicrobData = t(dataM_sub)), colData = dataC_sub
+)</code></pre>
 <p>If you already have a SummarizedExperiment format data, you can ignore the above steps for creating a SummarizedExperiment object. In the generated data, rawCount1 is associated with x1, rawCount2 is associated with x2, and the sparsity level is 25%. Next we analyze the data to test the association between microbiome and the variable <code>&quot;x1&quot;, &quot;x2&quot;</code> while adjusting for the variable (potential confounder) <code>&quot;x3&quot;</code>.</p>
 <pre class="r"><code>set.seed(123) # For full reproducibility
-results &lt;- IFAA(experiment_dat = test_dat,
-                testCov = c(&quot;x1&quot;,&quot;x2&quot;),
-                ctrlCov = c(&quot;x3&quot;),
-                sampleIDname=&quot;ID&quot;,
-                fdrRate = 0.05,
-                nRef=2,
-                paraJobs = 2)
+results &lt;- IFAA(
+  experiment_dat = test_dat,
+  testCov = c(&quot;x1&quot;, &quot;x2&quot;),
+  ctrlCov = c(&quot;x3&quot;),
+  sampleIDname = &quot;ID&quot;,
+  fdrRate = 0.05,
+  nRef = 2,
+  paraJobs = 2
+)
 #&gt; Data dimensions (after removing missing data if any):
 #&gt; 20 samples
 #&gt; 10 taxa/OTU/ASV
@@ -861,33 +865,48 @@ results &lt;- IFAA(experiment_dat = test_dat,
 #&gt; 25 percent of microbiome sequencing reads are zero
 #&gt; Start Phase 1 analysis
 #&gt; 2 parallel jobs are registered for the analysis.
-#&gt; 33 percent of phase 1 analysis has been done and it took 0.18 minutes
+#&gt; 33 percent of phase 1 analysis has been done and it took 0.17 minutes
 #&gt; 2 parallel jobs are registered for the analysis.
-#&gt; 100 percent of phase 1 analysis has been done and it took 0.34 minutes
+#&gt; 100 percent of phase 1 analysis has been done and it took 0.31 minutes
 #&gt; Start Phase 2 parameter estimation
 #&gt; 2 parallel jobs are registered for analyzing reference taxa in Phase 2
-#&gt; 50 percent of Phase 2 is done and it took 0.111 minutes
+#&gt; 50 percent of Phase 2 is done and it took 0.109 minutes
 #&gt; 2 parallel jobs are registered for analyzing reference taxa in Phase 2
-#&gt; Entire Phase 2 parameter estimation done and took 0.222 minutes.
-#&gt; The entire analysis took 0.57 minutes</code></pre>
+#&gt; Entire Phase 2 parameter estimation done and took 0.22 minutes.
+#&gt; The entire analysis took 0.53 minutes</code></pre>
+<p>Notice that this example used “nRef = 2” and “paraJobs = 2” for the sake of speed in this example. Typically one should use the default values for those two arguments.</p>
 <p>In this example, we are only interested in testing the associations with <code>&quot;x1&quot;</code> and <code>&quot;x2&quot;</code> which is why <code>testCov=c(&quot;x1&quot;,&quot;x2)</code>. The variables <code>&quot;x3&quot;</code> are adjusted as potential confounders in the analyses. The final analysis results are saved in the list <code>full_result</code> and the significant results can be extracted as follows:</p>
-<pre class="r"><code>summary_res&lt;-results$full_result
-sig_results&lt;-subset(summary_res,sig_ind==TRUE)
+<pre class="r"><code>summary_res &lt;- results$full_results
+sig_results &lt;- subset(summary_res, sig_ind == TRUE)
 sig_results
-#&gt; DataFrame with 2 rows and 8 columns
-#&gt;         taxon         cov  estimate    SE.est    CI.low     CI.up adj.p.value
-#&gt;   &lt;character&gt; &lt;character&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;   &lt;numeric&gt;
-#&gt; 1   rawCount1          x1 0.0810973 0.0189065 0.0440407  0.118154 3.89542e-04
-#&gt; 2   rawCount2          x2 0.2021147 0.0355637 0.1324098  0.271820 2.87484e-07
-#&gt;     sig_ind
-#&gt;   &lt;logical&gt;
-#&gt; 1      TRUE
-#&gt; 2      TRUE</code></pre>
+#&gt; DataFrame with 2 rows and 9 columns
+#&gt;         taxon         cov  estimate    SE.est    CI.low     CI.up unadj.p.value
+#&gt;   &lt;character&gt; &lt;character&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt; &lt;numeric&gt;     &lt;numeric&gt;
+#&gt; 1   rawCount1          x1 0.0778196 0.0204586 0.0377207  0.117918   1.42517e-04
+#&gt; 2   rawCount2          x2 0.1842519 0.0387891 0.1082253  0.260278   2.03319e-06
+#&gt;   adj.p.value   sig_ind
+#&gt;     &lt;numeric&gt; &lt;logical&gt;
+#&gt; 1 3.09872e-03      TRUE
+#&gt; 2 4.42074e-05      TRUE</code></pre>
 <p>After adjusting for multiple testing, the results found <code>&quot;rawCount1&quot;</code> associated with <code>&quot;x1&quot;</code>, and <code>&quot;rawCount2&quot;</code> associated with <code>&quot;x2&quot;</code>, while adjusting for <code>&quot;x3&quot;</code>. The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to <span class="math inline">\(\beta^k\)</span> in the model equation.</p>
 <p>The interpretation is:</p>
 <ul>
-<li>Every unit increase in <code>&quot;x1&quot;</code> is associated with approximately 8.1% increase in the absolute abundance of <code>&quot;rawCount1&quot;</code> in the entire ecosystem of interest (while controlling for <code>&quot;x3&quot;</code>); Every unit increase in <code>&quot;x2&quot;</code> is associated with approximately 20.2% increase in the absolute abundance of <code>&quot;rawCount2&quot;</code> in the entire ecosystem of interest (while controlling for <code>&quot;x3&quot;</code>), .</li>
+<li>Every unit increase in <code>&quot;x1&quot;</code> is associated with approximately 7.8% increase in the absolute abundance of <code>&quot;rawCount1&quot;</code> in the entire ecosystem of interest (while controlling for <code>&quot;x2&quot;</code> and <code>&quot;x3&quot;</code>); Every unit increase in <code>&quot;x2&quot;</code> is associated with approximately 18.4% increase in the absolute abundance of <code>&quot;rawCount2&quot;</code> in the entire ecosystem of interest (while controlling for <code>&quot;x1&quot;</code> and <code>&quot;x3&quot;</code>), .</li>
 </ul>
+<p>If only interested in certain taxa, say <code>&quot;rawCount1&quot;, &quot;rawCount2&quot;, and &quot;rawCount3&quot;</code>, one can do:</p>
+<pre class="r"><code>set.seed(123) # For full reproducibility
+
+results &lt;- IFAA(
+  experiment_dat = test_dat,
+  microbVar = c(&quot;rawCount1&quot;, &quot;rawCount2&quot;, &quot;rawCount3&quot;),
+  testCov = c(&quot;x1&quot;, &quot;x2&quot;),
+  ctrlCov = c(&quot;x3&quot;),
+  sampleIDname = &quot;ID&quot;,
+  fdrRate = 0.05,
+  nRef = 2,
+  paraJobs = 2
+)</code></pre>
+<p>Again, notice that this example used “nRef = 2” and “paraJobs = 2” for the sake of speed in this example. Typically one should use the default values for those two arguments.</p>
 </div>
 <div id="reference" class="section level2" number="0.5">
 <h2><span class="header-section-number">0.5</span> Reference</h2>
@@ -909,9 +928,10 @@ where</p>
 </div>
 <div id="input-for-mziln-function" class="section level2" number="0.7">
 <h2><span class="header-section-number">0.7</span> Input for MZILN() function</h2>
-<p>Most of the time, users just feed the first three inputs to the function: <code>experiment_dat</code>, <code>refTaxa</code> and <code>allCov</code>. All other inputs can just take their default values. All the inputs for ‘MZILN()’ are:</p>
+<p>Most of the time, users just feed the first four inputs to the function: <code>experiment_dat</code>, <code>microbVar</code>, <code>refTaxa</code> and <code>allCov</code>. All other inputs can just take their default values. All the inputs for ‘MZILN()’ are:</p>
 <ul>
 <li><p><code>experiment_dat</code>: A SummarizedExperiment object containing microbiome data and covariates (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covariates data contains covariates and confounders with each row per sample and each column per variable. The covariates data has to be numeric or binary. Categorical variables should be converted into binary dummy variables.</p></li>
+<li><p><code>microbVar</code>: This takes a vector of microbiome variable names (e.g., taxa, OTU and ASV names) of interest for the numerator of the ratios. Default is “all” meaning all microbiome variables (except denominator) will be analyzed as numerators. If a subset of microbiome variables is specified, the output will only contain the specified ratios, and p-value adjustment for multiple testing will only be applied to the subset.</p></li>
 <li><p><code>refTaxa</code>: Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names.</p></li>
 <li><p><code>allCov</code>: All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is ‘NULL’ meaning that all covariates in covData are of interest.</p></li>
 <li><p><code>sampleIDname</code>: Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL.</p></li>
@@ -935,14 +955,64 @@ where</p>
 <div id="examples" class="section level2" number="0.9">
 <h2><span class="header-section-number">0.9</span> Examples</h2>
 <p>The example used data generated from IFAA example, with 10 taxon, 40 subjects, and 3 covariates.</p>
-<p>Next we analyze the data to test the associations between the ratio “rawCount5/rawCount10” and all the three variables <code>&quot;x1&quot;</code>, <code>&quot;x2&quot;</code> and <code>&quot;x3&quot;</code> in a multivariate model where all <code>&quot;x1&quot;</code>, <code>&quot;x2&quot;</code> and <code>&quot;x3&quot;</code> are independent variables simultaneously.</p>
+<p>Next we analyze the data to test the associations between the ratios “rawCount5/rawCount10” and “rawCount8/rawCount10” and all the three variables <code>&quot;x1&quot;</code>, <code>&quot;x2&quot;</code> and <code>&quot;x3&quot;</code> in a multivariate model where all <code>&quot;x1&quot;</code>, <code>&quot;x2&quot;</code> and <code>&quot;x3&quot;</code> are independent variables simultaneously.</p>
 <pre class="r"><code>set.seed(123) # For full reproducibility
-results &lt;- MZILN(experiment_dat=test_dat,
-                 refTaxa=c(&quot;rawCount10&quot;),
-                 allCov=c(&quot;x1&quot;,&quot;x2&quot;,&quot;x3&quot;),
-                 sampleIDname=&quot;ID&quot;,
-                 fdrRate=0.05,
-                 paraJobs = 2)
+
+results &lt;- MZILN(
+  experiment_dat = test_dat,
+  microbVar = c(&quot;rawCount5&quot;,&quot;rawCount8&quot;),
+  refTaxa = c(&quot;rawCount10&quot;),
+  allCov = c(&quot;x1&quot;, &quot;x2&quot;, &quot;x3&quot;),
+  sampleIDname = &quot;ID&quot;,
+  fdrRate = 0.05,
+  paraJobs = 2
+)</code></pre>
+<p>Again, notice that this example used “nRef = 2” and “paraJobs = 2” for the sake of speed in this example. Typically one should use the default values for those two arguments.</p>
+<p>The full final analysis results can be extracted as follows:</p>
+<pre class="r"><code>summary_res &lt;- results$full_results
+summary_res
+#&gt; DataFrame with 20 rows and 9 columns
+#&gt;           taxon         cov    estimate    SE.est     CI.low       CI.up
+#&gt;     &lt;character&gt; &lt;character&gt;   &lt;numeric&gt; &lt;numeric&gt;  &lt;numeric&gt;   &lt;numeric&gt;
+#&gt; 1     rawCount1          x1  0.07781957 0.0204586  0.0377207  0.11791842
+#&gt; 2     rawCount1          x2  0.00763716 0.0388158 -0.0684419  0.08371622
+#&gt; 3     rawCount2          x1 -0.05456783 0.0232490 -0.1001359 -0.00899972
+#&gt; 4     rawCount2          x2  0.18425186 0.0387891  0.1082253  0.26027845
+#&gt; 5     rawCount3          x1 -0.00262589 0.0248709 -0.0513729  0.04612114
+#&gt; ...         ...         ...         ...       ...        ...         ...
+#&gt; 16    rawCount8          x2 -0.00603356 0.0336078 -0.0719049   0.0598378
+#&gt; 17    rawCount9          x1 -0.03215971 0.0213784 -0.0740613   0.0097419
+#&gt; 18    rawCount9          x2 -0.04461082 0.0335644 -0.1103970   0.0211754
+#&gt; 19   rawCount10          x1 -0.02041918 0.0204595 -0.0605198   0.0196814
+#&gt; 20   rawCount10          x2  0.00981434 0.0323820 -0.0536543   0.0732830
+#&gt;     unadj.p.value adj.p.value   sig_ind
+#&gt;         &lt;numeric&gt;   &lt;numeric&gt; &lt;logical&gt;
+#&gt; 1     1.42517e-04 3.09872e-03      TRUE
+#&gt; 2     8.44020e-01 1.00000e+00     FALSE
+#&gt; 3     1.89201e-02 2.05689e-01     FALSE
+#&gt; 4     2.03319e-06 4.42074e-05      TRUE
+#&gt; 5     9.15915e-01 1.00000e+00     FALSE
+#&gt; ...           ...         ...       ...
+#&gt; 16       0.857523    1.000000     FALSE
+#&gt; 17       0.132501    0.633804     FALSE
+#&gt; 18       0.183811    0.999145     FALSE
+#&gt; 19       0.318265    1.000000     FALSE
+#&gt; 20       0.761829    1.000000     FALSE</code></pre>
+<p>The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to <span class="math inline">\(\alpha^k\)</span> in the model equation.</p>
+<p>The results show that the ratio “rawCount5/rawCount10” is significantly associated with <code>&quot;x2&quot;</code> and <code>&quot;x3&quot;</code> and the ratio “rawCount8/rawCount10” is significantly associated with <code>&quot;x3&quot;</code> after multiple testing adjustment. The interpretation is:</p>
+<ul>
+<li>Every unit increase in <code>&quot;x2&quot;</code> is associated with approximately 9.3% reduction in the abundance ratio <code>&quot;rawCount5/rawCount10&quot;</code> (while controlling for <code>&quot;x1&quot;</code> and <code>&quot;x3&quot;</code>); Every unit increase in <code>&quot;x3&quot;</code> is associated with approximately 386.4% (=exp(1.582)-1) increase in the abundance ratio <code>&quot;rawCount5/rawCount10&quot;</code> (while controlling for <code>&quot;x1&quot;</code> and <code>&quot;x2&quot;</code>). Every unit increase in <code>&quot;x3&quot;</code> is associated with approximately 60.1% (=1-exp(-0.918)) decrease in the abundance ratio <code>&quot;rawCount8/rawCount10&quot;</code> (while controlling for <code>&quot;x1&quot;</code> and <code>&quot;x2&quot;</code>).</li>
+</ul>
+<p>If the purpose is to explore all taxa ratios with “rawCount10” being the denominator, one can do:</p>
+<pre class="r"><code>set.seed(123) # For full reproducibility
+resultsAll &lt;- MZILN(
+  experiment_dat = test_dat,
+  refTaxa = c(&quot;rawCount10&quot;),
+  allCov = c(&quot;x1&quot;, &quot;x2&quot;, &quot;x3&quot;),
+  sampleIDname = &quot;ID&quot;,
+  fdrRate = 0.05,
+  paraJobs = 2
+)
 #&gt; Data dimensions (after removing missing data if any):
 #&gt; 20 samples
 #&gt; 10 taxa/OTU/ASV
@@ -957,10 +1027,10 @@ results &lt;- MZILN(experiment_dat=test_dat,
 #&gt; 2 parallel jobs are registered for analyzing reference taxa in Phase 2
 #&gt; Estimation done for the 1th denominator taxon: rawCount10 and it took 0.11 minutes
 #&gt; The entire analysis took 0.11 minutes</code></pre>
-<p>The full final analysis results can be extracted as follows:</p>
-<pre class="r"><code>summary_res&lt;-results$full_results</code></pre>
-<p>The results for the log-ratio of “rawCount5” over “rawCount10” can extracted as follows:</p>
-<pre class="r"><code>summary_res[summary_res$taxon==&quot;rawCount5&quot;,,drop=FALSE]
+<p>Again, notice that this example used “nRef = 2” and “paraJobs = 2” for the sake of speed in this example. Typically one should use the default values for those two arguments.</p>
+<p>The results for the ratio “rawCount5/rawCount10” can extracted as follows:</p>
+<pre class="r"><code>summary_res &lt;- resultsAll$full_results
+summary_res[summary_res$taxon == &quot;rawCount5&quot;, , drop = FALSE]
 #&gt; DataFrame with 3 rows and 10 columns
 #&gt;       ref_tax       taxon         cov   estimate    SE.est     CI.low
 #&gt;   &lt;character&gt; &lt;character&gt; &lt;character&gt;  &lt;numeric&gt; &lt;numeric&gt;  &lt;numeric&gt;
@@ -972,12 +1042,9 @@ results &lt;- MZILN(experiment_dat=test_dat,
 #&gt; 1  0.0547490     0.6623657     1.00000     FALSE
 #&gt; 2 -0.0174399     0.0159084     0.20252     FALSE
 #&gt; 3  1.6362230     0.0000000     0.00000      TRUE</code></pre>
-<p>The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to <span class="math inline">\(\alpha^k\)</span> in the model equation, and can be interpreted as the associations between the covariates and log-ratio of <code>&quot;rawCount5&quot;</code> over <code>&quot;rawCount10&quot;</code>.</p>
-<p>The results show that the log-ratio is associated with <code>&quot;x2&quot;</code> and <code>&quot;x3&quot;</code> before adjusting for multiple testing. The interpretation is:</p>
-<ul>
-<li>Every unit increase in <code>&quot;x2&quot;</code> is associated with approximately 9.3% reduction in the abundance ratio of <code>&quot;rawCount5&quot;</code> over <code>&quot;rawCount10&quot;</code> (while controlling for <code>&quot;x1&quot;</code> and <code>&quot;x3&quot;</code>), but this is not significant after adjusting for multiple testing because the adjusted p value is 0.20252; Every unit increase in <code>&quot;x3&quot;</code> is associated with approximately 386.4% (=exp(1.582)-1) increase in the abundance ratio of <code>&quot;rawCount5&quot;</code> over <code>&quot;rawCount10&quot;</code> (while controlling for <code>&quot;x1&quot;</code> and <code>&quot;x2&quot;</code>), and this association remains significant after adjusting for multiple testing.</li>
-</ul>
-<p>To extract the significant associations for all ratios with <code>&quot;rawCount10&quot;</code> being the denominator, one can do: <code>subset(summary_res,sig_ind==TRUE)</code>.</p>
+<p>The interpretation of the association estimates remain the same. Notice that the significance dropped for the association between the ratio “rawCount5/rawCount10” and <code>&quot;x2&quot;</code> due to the correction for multiple testing (i.e., 0.2025&gt;0.05). It is because this exploratory analysis included all microbiome variables and thus the p-value adjustment is more stringent for multiple testing which led to the larger adjusted p-value.</p>
+<p>The results for the ratio “rawCount8/rawCount10” can be extracted similarly.</p>
+<p>To extract all significant ratios with <code>&quot;rawCount10&quot;</code> being the denominator, one can do: <code>subset(summary_res,sig_ind==TRUE)</code>.</p>
 </div>
 <div id="reference-1" class="section level2" number="0.10">
 <h2><span class="header-section-number">0.10</span> Reference</h2>
@@ -1001,7 +1068,7 @@ results &lt;- MZILN(experiment_dat=test_dat,
 #&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     
 #&gt; 
 #&gt; other attached packages:
-#&gt; [1] IFAA_1.0.9       BiocStyle_2.24.0
+#&gt; [1] IFAA_1.1.0       BiocStyle_2.24.0
 #&gt; 
 #&gt; loaded via a namespace (and not attached):
 #&gt;  [1] MatrixGenerics_1.8.0        Biobase_2.56.0             

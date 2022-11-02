@@ -58,9 +58,11 @@ devtools::install_github("gitlzg/IFAA")
 
 ## Input for IFAA() function
 
-Most of the time, users just need to feed the first three inputs to the function: `experiment_dat`, `testCov` and `ctrlCov`. All other inputs can just take their default values. Below are all the inputs of the functions
+Most of the time, users just need to feed these three inputs to the function: `experiment_dat`, `testCov` and `ctrlCov`. All other inputs can just take their default values. Below are all the inputs of the functions
 
 - `experiment_dat`: A SummarizedExperiment object containing microbiome data and covariates (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covariates data contains covariates and confounders with each row per sample and each column per variable. The covariates data has to be numeric or binary. Categorical variables should be converted into binary dummy variables.
+
+- `microbVar`: This takes a single or vector of microbiome variable names (e.g., taxa, OTU and ASV names) of interest. Default is "all" meaning all microbiome variables will be analyzed. If a subset of microbiome variables is specified, the output will only contain the specified variables, and p-value adjustment for multiple testing will only be applied to the subset.
 
 - `testCov`: Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is `NULL` which means all covariates are `testCov`.
 
@@ -114,76 +116,96 @@ library(IFAA)
 set.seed(1)
 
 ## create an ID variable for the example data
-ID=seq_len(20)
+ID <- seq_len(20)
 
 ## generate three covariates x1, x2, and x3, with x2 binary
-x1<-rnorm(20)
-x2<-rbinom(20,1,0.5)
-x3<-rnorm(20)
-dataC<-data.frame(cbind(ID,x1,x2,x3))
+x1 <- rnorm(20)
+x2 <- rbinom(20, 1, 0.5)
+x3 <- rnorm(20)
+dataC <- data.frame(cbind(ID, x1, x2, x3))
 
 ## Coefficients for x1, x2, and x3 among 10 taxa.
-beta_1<-c(0.1,rep(0,9))
-beta_2<-c(0,0.2,rep(0,8))
-beta_3<-rnorm(10)
-beta_mat<-cbind(beta_1,beta_2,beta_3)
+beta_1 <- c(0.1, rep(0, 9))
+beta_2 <- c(0, 0.2, rep(0, 8))
+beta_3 <- rnorm(10)
+beta_mat <- cbind(beta_1, beta_2, beta_3)
 
 ## Generate absolute abundance for 10 taxa in ecosystem.
-dataM_eco<-floor(exp(10+as.matrix(dataC[,-1]) %*% t(beta_mat) + rnorm(200,sd=0.05)))
+dataM_eco <- floor(exp(10 + as.matrix(dataC[, -1]) %*% t(beta_mat) + rnorm(200, sd = 0.05)))
 
 ## Generate sequence depth and generate observed abundance
-Ci<-runif(20,0.01,0.05)
-dataM<-floor(apply(dataM_eco,2,function(x) x*Ci))
-colnames(dataM)<-paste0("rawCount",1:10)
+Ci <- runif(20, 0.01, 0.05)
+dataM <- floor(apply(dataM_eco, 2, function(x) x * Ci))
+colnames(dataM) <- paste0("rawCount", 1:10)
 
 ## Randomly introduce 0 to make 25% sparsity level.
-dataM[sample(seq_len(length(dataM)),length(dataM)/4)]<-0
+dataM[sample(seq_len(length(dataM)), length(dataM) / 4)] <- 0
 
-dataM<-data.frame(cbind(ID,dataM))
+dataM <- data.frame(cbind(ID, dataM))
 
 ## The following steps are to create a SummarizedExperiment object.
 ## If you already have a SummarizedExperiment format data, you can
 ## ignore the following steps and directly feed it to the IFAA function.
 
 ## Merge two dataset by ID variable
-data_merged<-merge(dataM,dataC,by="ID",all=FALSE)
+data_merged <- merge(dataM, dataC, by = "ID", all = FALSE)
 
 ## Seperate microbiome data and covariate data, drop ID variable from microbiome data
-dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("ID")]]
-dataC_sub<-data_merged[,colnames(dataC)]
+dataM_sub <- data_merged[, colnames(dataM)[!colnames(dataM) %in% c("ID")]]
+dataC_sub <- data_merged[, colnames(dataC)]
 
 ## Create SummarizedExperiment object
-test_dat<-SummarizedExperiment::SummarizedExperiment(
-assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
-
+test_dat <- SummarizedExperiment::SummarizedExperiment(
+  assays = list(MicrobData = t(dataM_sub)), colData = dataC_sub
+)
 ```
 
 If you already have a SummarizedExperiment format data, you can ignore the above steps for creating a SummarizedExperiment object. In the generated data, rawCount1 is associated with x1, rawCount2 is associated with x2, and the sparsity level is 25%. Next we analyze the data to test the association between microbiome and the variable `"x1", "x2"` while adjusting for the variable (potential confounder) `"x3"`.
 
-```{r, eval=T}
+```{r, eval=TRUE}
 set.seed(123) # For full reproducibility
-results <- IFAA(experiment_dat = test_dat,
-                testCov = c("x1","x2"),
-                ctrlCov = c("x3"),
-                sampleIDname="ID",
-                fdrRate = 0.05,
-                nRef=2,
-                paraJobs = 2)
+results <- IFAA(
+  experiment_dat = test_dat,
+  testCov = c("x1", "x2"),
+  ctrlCov = c("x3"),
+  sampleIDname = "ID",
+  fdrRate = 0.05,
+  nRef = 2,
+  paraJobs = 2
+)
 ```
 
+Notice that this example used "nRef = 2" and "paraJobs = 2" for the sake of speed in this example. Typically one should use the default values for those two arguments.
 
 In this example, we are only interested in testing the associations with `"x1"` and `"x2"` which is why `testCov=c("x1","x2)`. The variables `"x3"` are adjusted as potential confounders in the analyses. The final analysis results are saved in the list `full_result` and the significant results can be extracted as follows: 
-```{r,eval=T}
-summary_res<-results$full_result
-sig_results<-subset(summary_res,sig_ind==TRUE)
+```{r,eval=TRUE}
+summary_res <- results$full_results
+sig_results <- subset(summary_res, sig_ind == TRUE)
 sig_results
 ```
 After adjusting for multiple testing, the results found `"rawCount1"` associated with `"x1"`, and `"rawCount2"` associated with `"x2"`, while adjusting for `"x3"`. The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\beta^k$ in the model equation. 
 
 The interpretation is: 
 
-- Every unit increase in `"x1"` is associated with approximately 8.1% increase in the absolute abundance of `"rawCount1"` in the entire ecosystem of interest (while controlling for `"x3"`); Every unit increase in `"x2"` is associated with approximately 20.2% increase in the absolute abundance of `"rawCount2"` in the entire ecosystem of interest (while controlling for `"x3"`), . 
+- Every unit increase in `"x1"` is associated with approximately 7.8% increase in the absolute abundance of `"rawCount1"` in the entire ecosystem of interest (while controlling for `"x2"` and `"x3"`); Every unit increase in `"x2"` is associated with approximately 18.4% increase in the absolute abundance of `"rawCount2"` in the entire ecosystem of interest (while controlling for `"x1"` and `"x3"`), . 
 
+
+If only interested in certain taxa, say `"rawCount1", "rawCount2", and "rawCount3"`, one can do: 
+```{r, eval=FALSE}
+set.seed(123) # For full reproducibility
+
+results <- IFAA(
+  experiment_dat = test_dat,
+  microbVar = c("rawCount1", "rawCount2", "rawCount3"),
+  testCov = c("x1", "x2"),
+  ctrlCov = c("x3"),
+  sampleIDname = "ID",
+  fdrRate = 0.05,
+  nRef = 2,
+  paraJobs = 2
+)
+```
+Again, notice that this example used "nRef = 2" and "paraJobs = 2" for the sake of speed in this example. Typically one should use the default values for those two arguments.
 
 ## Reference
 
@@ -207,11 +229,14 @@ where
 
 ## Input for MZILN() function
 
-Most of the time, users just feed the first three inputs to the function: `experiment_dat`,  `refTaxa` and `allCov`. All other inputs can just take their default values. All the inputs for 'MZILN()' are: 
+Most of the time, users just feed the first four inputs to the function: `experiment_dat`, `microbVar`, `refTaxa` and `allCov`. All other inputs can just take their default values. All the inputs for 'MZILN()' are: 
 
 - `experiment_dat`: A SummarizedExperiment object containing microbiome data and covariates (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covariates data contains covariates and confounders with each row per sample and each column per variable. The covariates data has to be numeric or binary. Categorical variables should be converted into binary dummy variables.
 
+- `microbVar`: This takes a single or vector of microbiome variable names (e.g., taxa, OTU and ASV names) of interest for the numerator of the ratios. Default is "all" meaning all microbiome variables (except denominator) will be analyzed as numerators. If a subset of microbiome variables is specified, the output will only contain the specified ratios, and p-value adjustment for multiple testing will only be applied to the subset. 
+
 - `refTaxa`: Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names. 
+
 - `allCov`: All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.
 
 - `sampleIDname`: Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL. 
@@ -238,34 +263,65 @@ A list with two elements:
 
 The example used data generated from IFAA example, with 10 taxon, 40 subjects, and 3 covariates. 
 
-Next we analyze the data to test the associations between the ratio "rawCount5/rawCount10" and all the three variables `"x1"`, `"x2"` and `"x3"` in a multivariate model where all `"x1"`, `"x2"` and `"x3"` are independent variables simultaneously.
+Next we analyze the data to test the associations between the ratios "rawCount5/rawCount10" and "rawCount8/rawCount10" and all the three variables `"x1"`, `"x2"` and `"x3"` in a multivariate model where all `"x1"`, `"x2"` and `"x3"` are independent variables simultaneously.
+
+
+```{r, eval=TRUE}
+set.seed(123) # For full reproducibility
+
+resultsRatio <- MZILN(
+  experiment_dat = test_dat,
+  microbVar = c("rawCount5","rawCount8"),
+  refTaxa = c("rawCount10"),
+  allCov = c("x1", "x2", "x3"),
+  sampleIDname = "ID",
+  fdrRate = 0.05,
+  paraJobs = 2
+)
+```
+Again, notice that this example used "nRef = 2" and "paraJobs = 2" for the sake of speed in this example. Typically one should use the default values for those two arguments.
+
+The final analysis results can be extracted as follows:
+```{r}
+summary_res_ratio <- resultsRatio$full_results
+summary_res_ratio
+```
+The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\alpha^k$ in the model equation. 
+
+The results show that the ratio "rawCount5/rawCount10" is significantly associated with `"x2"` and `"x3"` and the ratio "rawCount8/rawCount10" is significantly associated with `"x3"` after multiple testing adjustment. The interpretation is:
+
+- Every unit increase in `"x2"` is associated with approximately 9.3% reduction in the abundance ratio `"rawCount5/rawCount10"`  (while controlling for `"x1"` and `"x3"`); Every unit increase in `"x3"` is associated with approximately 386.4% (=exp(1.582)-1) increase in the abundance ratio `"rawCount5/rawCount10"` (while controlling for `"x1"` and `"x2"`). Every unit increase in `"x3"` is associated with approximately 60.1% (=1-exp(-0.918)) decrease in the abundance ratio `"rawCount8/rawCount10"` (while controlling for `"x1"` and `"x2"`).
+
+
+If the purpose is to explore all taxa ratios with "rawCount10" being the denominator, one can do: 
 
 ```{r, eval=T}
 set.seed(123) # For full reproducibility
-results <- MZILN(experiment_dat=test_dat,
-                 refTaxa=c("rawCount10"),
-                 allCov=c("x1","x2","x3"),
-                 sampleIDname="ID",
-                 fdrRate=0.05,
-                 paraJobs = 2)
+resultsAllRatio <- MZILN(
+  experiment_dat = test_dat,
+  refTaxa = c("rawCount10"),
+  allCov = c("x1", "x2", "x3"),
+  sampleIDname = "ID",
+  fdrRate = 0.05,
+  paraJobs = 2
+)
 ```
+Again, notice that this example used "nRef = 2" and "paraJobs = 2" for the sake of speed in this example. Typically one should use the default values for those two arguments.
 
-The full final analysis results can be extracted as follows:
+The results for the ratio "rawCount5/rawCount10" can extracted as follows:
 ```{r}
-summary_res<-results$full_results
+summary_res_ratio <- resultsAllRatio$full_results
+summary_res_ratio[summary_res_ratio$taxon == "rawCount5", , drop = FALSE]
 ```
+The interpretation of the association estimates remain the same. Notice that the significance dropped for the association between the ratio "rawCount5/rawCount10" and `"x2"` due to the correction for multiple testing (i.e., 0.2025>0.05). It is because this exploratory analysis included all microbiome variables and thus the p-value adjustment is more stringent for multiple testing which led to the larger adjusted p-value.
 
-The results for the log-ratio of "rawCount5" over "rawCount10" can extracted as follows:
-```{r}
-summary_res[summary_res$taxon=="rawCount5",,drop=FALSE]
-```
-The regression coefficients and their 95% confidence intervals are provided. These coefficients correspond to $\alpha^k$ in the model equation, and can be interpreted as the associations between the covariates and log-ratio of `"rawCount5"` over `"rawCount10"`. 
+The results for the ratio "rawCount8/rawCount10" can be extracted similarly.
 
-The results show that the log-ratio is associated with `"x2"` and `"x3"` before adjusting for multiple testing. The interpretation is:
+To extract all significant ratios with `"rawCount10"` being the denominator, 
 
-- Every unit increase in `"x2"` is associated with approximately 9.3% reduction in the abundance ratio of `"rawCount5"` over `"rawCount10"`  (while controlling for `"x1"` and `"x3"`), but this is not significant after adjusting for multiple testing because the adjusted p value is 0.20252; Every unit increase in `"x3"` is associated with approximately 386.4% (=exp(1.582)-1) increase in the abundance ratio of `"rawCount5"` over `"rawCount10"` (while controlling for `"x1"` and `"x2"`), and this association remains significant after adjusting for multiple testing.
+one can do: `subset(summary_res_ratio,sig_ind==TRUE)`. 
 
-To extract the significant associations for all ratios with `"rawCount10"` being the denominator, one can do: `subset(summary_res,sig_ind==TRUE)`. 
+
 
 ## Reference
 
@@ -276,4 +332,3 @@ Session Info
 ```{r}
 sessionInfo()
 ```
-

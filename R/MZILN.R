@@ -15,11 +15,12 @@
 ##'
 ##' High-dimensional \mjeqn{X_i}{} is handled by regularization.
 ##'
-##' When using this function, most of the time, users just need to feed the first three inputs to the function: `experiment_dat`, `refTaxa` and `allCov`. All other inputs can just take their default values.
+##' When using this function, most of the time, users just need to feed the first four inputs to the function: `experiment_dat`, `microbVar`, `refTaxa` and `allCov`. All other inputs can just take their default values.
 ##' 
 ##' @param experiment_dat A SummarizedExperiment object containing microbiome data and covariates (see example on how to create a SummarizedExperiment object). The microbiome data can be
 ##' absolute abundance or relative abundance with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points.
 ##' The covariates data contains covariates and confounders with each row per sample and each column per variable. The covariates data has to be numeric or binary. Categorical variables should be converted into dummy variables.
+##' @param microbVar This takes a single or vector of microbiome variable names (e.g., taxa, OTU and ASV names) of interest for the numerator of the ratios. Default is "all" meaning all microbiome variables (except denominator) will be analyzed as numerators. If a subset of microbiome variables is specified, the output will only contain the specified ratios, and p-value adjustment for multiple testing will only be applied to the subset.
 ##' @param refTaxa Denominator taxa names specified by the user for the targeted ratios. This could be a vector of names.
 ##' @param allCov All covariates of interest (including confounders) for estimating and testing their associations with the targeted ratios. Default is 'NULL' meaning that all covariates in covData are of interest.
 ##' @param sampleIDname Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL.
@@ -39,7 +40,6 @@
 ##'
 ##' @examples
 ##'
-##' \donttest{
 ##' library(IFAA)
 ##' ## A makeup example data from Scratch. 60 taxon, 40 subjects, 3 covariates
 ##'
@@ -94,26 +94,46 @@
 ##' ## Run MZILN function
 ##' set.seed(123) # For full reproducibility
 ##'
+##' ## If interested in the taxa ratios, say `"rawCount1", "rawCount2", 
+##' ## and "rawCount3"` over "rawCount10", one can do: 
+##' 
+##' results <- MZILN(
+##' experiment_dat = test_dat,
+##' microbVar = c("rawCount1", "rawCount2", "rawCount3"),
+##' refTaxa = c("rawCount10"),
+##' allCov = c("x1", "x2", "x3"),
+##' sampleIDname = "ID",
+##' fdrRate = 0.05
+##' )
+##' 
+##' ## results can be extracted as follows:
+##' 
+##' summary_res_ratio <- results$full_results
+##' summary_res_ratio
+##' 
+##' ## To explore all ratios with "rawCount10" being the denominator, 
+##' ## one can do:
+##' 
 ##' results <- MZILN(experiment_dat = test_dat,
-##'                 refTaxa=c("rawCount11"),
+##'                 refTaxa=c("rawCount10"),
 ##'                 allCov=c("x1","x2","x3"),
 ##'                 sampleIDname="ID",
 ##'                 fdrRate=0.05)
-##' ## to extract the results for all ratios with rawCount11 as the denominator:
+##' ## to extract the results for all ratios with rawCount10 as the denominator:
 ##' summary_res<-results$full_results
-##' ## to extract results for the ratio of a specific taxon (e.g., rawCount45) over rawCount11:
+##' ## to extract results for the ratio of a specific taxon (e.g., rawCount45) over rawCount10:
 ##' target_ratio=summary_res[summary_res$taxon=="rawCount45",]
 ##' ## to extract all of the ratios having significant associations:
 ##' sig_ratios=subset(summary_res,sig_ind==TRUE)
 ##' 
-##' }
-##'
+
 ##' @references Li et al.(2018) Conditional Regression Based on a Multivariate Zero-Inflated Logistic-Normal Model for Microbiome Relative Abundance Data. Statistics in Biosciences 10(3): 587-608
 
 ##' @export
 ##' @md
 
 MZILN <- function(experiment_dat,
+                  microbVar = "all",
                   refTaxa,
                   allCov = NULL,
                   sampleIDname = NULL,
@@ -193,11 +213,19 @@ MZILN <- function(experiment_dat,
       )
     }
   }
+  
+  if (any(microbVar!="all")) {
+    if (any(!(microbVar %in% microbName))) {
+      stop("One or more taxon in microbVar is not available. Please double check")
+    }
+  }
+  
 
   if (verbose) {
     results$analysisResults <- Regulariz_MZILN(
       data = data,
       nRef = nRef,
+      sub_taxa = microbVar,
       testCovInd = testCovInd,
       testCovInOrder = testCovInOrder,
       testCovInNewNam = testCovInNewNam,
@@ -219,6 +247,7 @@ MZILN <- function(experiment_dat,
       Regulariz_MZILN(
         data = data,
         nRef = nRef,
+        sub_taxa = microbVar,
         testCovInd = testCovInd,
         testCovInOrder = testCovInOrder,
         testCovInNewNam = testCovInNewNam,

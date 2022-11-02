@@ -22,12 +22,13 @@
 ##' The IFAA method can successfully addressed this challenge. The `IFAA()` will estimate the parameter
 ##' \mjeqn{\beta^k}{} and their 95% confidence intervals. High-dimensional \mjeqn{X_i}{} is handled by
 ##' regularization.
-##' 
-##' When using this function, most of the time, users just need to feed the first three inputs to the function: `experiment_dat`, `testCov` and `ctrlCov`. All other inputs can just take their default values.
+##'
+##' When using this function, most of the time, users just need to feed these three inputs to the function: `experiment_dat`, `testCov` and `ctrlCov`. All other inputs can just take their default values.
 ##'
 ##' @param experiment_dat A SummarizedExperiment object containing microbiome data and covariates (see example on how to create a SummarizedExperiment object). The microbiome data can be absolute abundance or relative abundance
 ##' with each column per sample and each row per taxon/OTU/ASV (or any other unit). No imputation is needed for zero-valued data points. The covariates data contains covariates and confounders with each row per sample and each
 ##' column per variable. The covariates data has to be numeric or binary. Categorical variables should be converted into dummy variables.
+##' @param microbVar This takes a single or vector of microbiome variable names (e.g., taxa, OTU and ASV names) of interest. Default is "all" meaning all microbiome variables will be analyzed. If a subset of microbiome variables is specified, the output will only contain the specified variables, and p-value adjustment for multiple testing will only be applied to the subset. 
 ##' @param testCov Covariates that are of primary interest for testing and estimating the associations. It corresponds to $X_i$ in the equation. Default is `NULL` which means all covariates are `testCov`.
 ##' @param ctrlCov Potential confounders that will be adjusted in the model. It corresponds to $W_i$ in the equation. Default is `NULL` which means all covariates except those in `testCov` are adjusted as confounders.
 ##' @param sampleIDname Name of the sample ID variable in the data. In the case that the data does not have an ID variable, this can be ignored. Default is NULL.
@@ -69,51 +70,50 @@
 ##' }
 ##' @examples
 ##'
-##' \donttest{
 ##' library(IFAA)
-##' ## A makeup example data from Scratch. 60 taxon, 40 subjects, 3 covariates
+##' ## A makeup example data from Scratch. 10 taxon, 20 subjects, 3 covariates
 ##'
 ##' set.seed(1)
-##' 
+##'
 ##' ## create an ID variable for the example data
-##' ID=seq_len(40)
-##' 
+##' ID=seq_len(20)
+##'
 ##' ## generate three covariates x1, x2, and x3, with x2 binary
-##' x1<-rnorm(40)
-##' x2<-rbinom(40,1,0.5)
-##' x3<-rnorm(40)
+##' x1<-rnorm(20)
+##' x2<-rbinom(20,1,0.5)
+##' x3<-rnorm(20)
 ##' dataC<-data.frame(cbind(ID,x1,x2,x3))
 ##'
-##' ## Coefficients for x1, x2, and x3 among 60 taxa.
-##' beta_1<-c(0.1,rep(0,59))
-##' beta_2<-c(0,0.2,rep(0,58))
-##' beta_3<-rnorm(60)
+##' ## Coefficients for x1, x2, and x3 among 10 taxa.
+##' beta_1<-c(0.1,rep(0,9))
+##' beta_2<-c(0,0.2,rep(0,8))
+##' beta_3<-rnorm(10)
 ##' beta_mat<-cbind(beta_1,beta_2,beta_3)
 ##'
-##' ## Generate absolute abundance for 60 taxa in ecosystem.
-##' dataM_eco<-floor(exp(10+as.matrix(dataC[,-1])%*%t(beta_mat) + rnorm(2400,sd=0.05)))
+##' ## Generate absolute abundance for 10 taxa in ecosystem.
+##' dataM_eco<-floor(exp(10+as.matrix(dataC[,-1])%*%t(beta_mat) + rnorm(200,sd=0.05)))
 ##'
 ##' ## Generate sequence depth and generate observed abundance
-##' Ci<-runif(40,0.01,0.05)
+##' Ci<-runif(20,0.01,0.05)
 ##' dataM<-floor(apply(dataM_eco,2,function(x) x*Ci))
-##' colnames(dataM)<-paste0("rawCount",1:60)
+##' colnames(dataM)<-paste0("rawCount",1:10)
 ##'
 ##' ## Randomly introduce 0 to make 25% sparsity level.
 ##' dataM[sample(seq_len(length(dataM)),length(dataM)/4)]<-0
 ##'
 ##' dataM<-data.frame(cbind(ID,dataM))
-##' 
+##'
 ##' ## The following steps are to create a SummarizedExperiment object.
 ##' ## If you already have a SummarizedExperiment format data, you can
 ##' ## ignore the following steps and directly feed it to the IFAA function.
-##' 
+##'
 ##' ## Merge two dataset by ID variable
 ##' data_merged<-merge(dataM,dataC,by="ID",all=FALSE)
-##' 
+##'
 ##' ## Seperate microbiome data and covariate data, drop ID variable from microbiome data
 ##' dataM_sub<-data_merged[,colnames(dataM)[!colnames(dataM)%in%c("ID")]]
 ##' dataC_sub<-data_merged[,colnames(dataC)]
-##' 
+##'
 ##' ## Create SummarizedExperiment object
 ##' test_dat<-SummarizedExperiment::SummarizedExperiment(
 ##' assays=list(MicrobData=t(dataM_sub)), colData=dataC_sub)
@@ -127,13 +127,29 @@
 ##'                 testCov = c("x1", "x2"),
 ##'                 ctrlCov = c("x3"),
 ##'                 sampleIDname="ID",
-##'                 fdrRate = 0.05)
+##'                 fdrRate = 0.05,
+##'                 nRef = 2,
+##'                 paraJobs = 2)
 ##' ## to extract all results:
 ##' summary_res<-results$full_results
 ##' ## to extract significant results:
 ##' sig_results=subset(summary_res,sig_ind==TRUE)
+##' 
+##' ## If only interested in certain taxa, say "rawCount1", "rawCount2", 
+##' ## and "rawCount3", one can do: 
+##' results <- IFAA(
+##' experiment_dat = test_dat,
+##' microbVar = c("rawCount1", "rawCount2", "rawCount3"),
+##' testCov = c("x1", "x2"),
+##' ctrlCov = c("x3"),
+##' sampleIDname = "ID",
+##' fdrRate = 0.05,
+##' nRef = 2,
+##' paraJobs = 2
+##' )
+
 ##'
-##'}
+##'
 ##'
 ##' @references Li et al.(2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association. 116(536):1595-1608
 
@@ -144,7 +160,7 @@
 ##' @importFrom doParallel registerDoParallel
 ##' @importFrom Matrix Diagonal Matrix sparseVector
 ##' @importFrom glmnet glmnet
-##' @importFrom methods is
+##' @importFrom HDCI bootLOPR
 ##' @import mathjaxr
 ##' @import stats
 ##' @import utils
@@ -153,12 +169,13 @@
 ##' @importFrom S4Vectors DataFrame
 ##' @importFrom DescTools DoCall
 ##' @importFrom MatrixExtra tcrossprod crossprod rbind_csr as.csc.matrix
-##' @importFrom HDCI bootLOPR
+##' @importFrom methods is
 ##' @export
 ##' @md
 
 
 IFAA <- function(experiment_dat,
+                 microbVar = "all",
                  testCov = NULL,
                  ctrlCov = NULL,
                  sampleIDname = NULL,
@@ -254,6 +271,12 @@ IFAA <- function(experiment_dat,
       )
     }
   }
+  
+  if (any(microbVar!="all")) {
+    if (any(!(microbVar %in% microbName))) {
+      stop("One or more taxon in microbVar is not available. Please double check")
+    }
+  }
 
 
   if (nRefMaxForEsti < 2) {
@@ -270,6 +293,7 @@ IFAA <- function(experiment_dat,
       testCovInOrder = testCovInOrder,
       testCovInNewNam = testCovInNewNam,
       microbName = microbName,
+      sub_taxa = microbVar,
       nRef = nRef,
       nRefMaxForEsti = nRefMaxForEsti,
       binaryInd = binaryInd,
@@ -296,6 +320,7 @@ IFAA <- function(experiment_dat,
         testCovInOrder = testCovInOrder,
         testCovInNewNam = testCovInNewNam,
         microbName = microbName,
+        sub_taxa = microbVar,
         nRef = nRef,
         nRefMaxForEsti = nRefMaxForEsti,
         binaryInd = binaryInd,

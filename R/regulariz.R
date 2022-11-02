@@ -3,6 +3,7 @@ Regulariz <- function(data,
                       testCovInOrder,
                       testCovInNewNam,
                       microbName,
+                      sub_taxa,
                       nRef,
                       nRefMaxForEsti,
                       refTaxa,
@@ -53,14 +54,9 @@ Regulariz <- function(data,
   
   num_taxon_phase1 <- max(length(refTaxa), phase1_taxon_num)
   num_taxon_phase1 <- min(num_taxon_phase1, nTaxa)
-  
-  if(num_taxon_phase1>=nTaxa){
-   data_sub_phase1 <- data
-   }
-   else{
-   phase1_taxon_sample_pool <-
+  phase1_taxon_sample_pool <-
     results$goodRefTaxaCandi[!(results$goodRefTaxaCandi %in% refTaxa)]
-   if (length(phase1_taxon_sample_pool) > (num_taxon_phase1 - length(refTaxa))) {
+  if (length(phase1_taxon_sample_pool) > (num_taxon_phase1 - length(refTaxa))) {
     phase1_taxon_sample1 <-
       c(
         sample(
@@ -69,13 +65,13 @@ Regulariz <- function(data,
         ),
         refTaxa
       )
-   } else {
+  } else {
     phase1_taxon_sample1 <- c(phase1_taxon_sample_pool, refTaxa)
-   }
-   phase1_taxon_sample <- phase1_taxon_sample1
+  }
+  phase1_taxon_sample <- phase1_taxon_sample1
   
   
-   if (length(phase1_taxon_sample1) < num_taxon_phase1) {
+  if (length(phase1_taxon_sample1) < num_taxon_phase1) {
     not_good_candi <-
       taxaNames[!((taxaNames %in% results$goodRefTaxaCandi) |
                     (taxaNames %in% refTaxa))]
@@ -85,10 +81,10 @@ Regulariz <- function(data,
                                                                   length(phase1_taxon_sample1))])
     phase1_taxon_sample <-
       c(phase1_taxon_sample1, phase1_taxon_sample2)
-    }
+  }
   
-   data_sub_phase1 <- data[, c(phase1_taxon_sample, predNames)]
-   }
+  data_sub_phase1 <- data[, c(phase1_taxon_sample, predNames)]
+  
   rm(data.info)
 
   regul.start.time <- proc.time()[3]
@@ -298,8 +294,8 @@ Regulariz <- function(data,
     )
   num_taxa_each <- min(num_taxa_each, nTaxa)
   
-  shuffle_seq <- sample(seq_len(length(taxaNames)))
-  taxaNames_shuff <- taxaNames[shuffle_seq]
+  # shuffle_seq <- sample(seq_len(length(taxaNames)))
+  taxaNames_shuff <- taxaNames
   
   spar_each_taxon <-
     apply(data[, taxaNames_shuff], 2, function(x) {
@@ -488,6 +484,7 @@ Regulariz <- function(data,
         se_mat_mean[j, ],
         CI_low_mat_mean[j, ],
         CI_up_mat_mean[j, ],
+        p_value_unadj_mean[j, ],
         p_value_adj_mean[j, ],
         row.names = NULL
       )
@@ -499,6 +496,7 @@ Regulariz <- function(data,
         "SE est",
         "CI low",
         "CI up",
+        "unadj p-value",
         "adj p-value"
       )
     fin_ref_taxon_dat <-
@@ -509,10 +507,19 @@ Regulariz <- function(data,
         SE.est = NA,
         CI.low = NA,
         CI.up = NA,
+        unadj.p.value = 1, 
         adj.p.value = 1
       )
-    full_results[[j]] <-
-      rbind(data.frame(est_res_save_all), fin_ref_taxon_dat)
+    
+    res <- rbind(data.frame(est_res_save_all), fin_ref_taxon_dat)
+    
+    if (any(sub_taxa!="all")) {
+      res <- res[res$taxon %in% sub_taxa, , drop = FALSE]
+      res$adj.p.value <-
+        p.adjust(res$unadj.p.value, method = adjust_method)
+    }
+    
+    full_results[[j]] <- res
   }
   full_results <- DescTools::DoCall("rbind", full_results)
   rownames(full_results) <- NULL

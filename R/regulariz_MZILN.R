@@ -1,5 +1,6 @@
 Regulariz_MZILN <- function(data,
                             nRef,
+                            sub_taxa,
                             testCovInd,
                             testCovInOrder,
                             testCovInNewNam,
@@ -99,8 +100,8 @@ Regulariz_MZILN <- function(data,
         num_taxa_each)
   num_taxa_each <- min(num_taxa_each, nTaxa)
   
-  shuffle_seq <- sample(seq_len(length(taxaNames)))
-  taxaNames_shuff <- taxaNames[shuffle_seq]
+  # shuffle_seq <- sample(seq_len(length(taxaNames)))
+  taxaNames_shuff <- taxaNames
   
   spar_each_taxon <-
     apply(data[, taxaNames_shuff], 2, function(x) {
@@ -132,13 +133,12 @@ Regulariz_MZILN <- function(data,
     time11 <- proc.time()[3]
     originTaxNam <- refTaxa_reOrder[iii]
     newRefTaxNam <- refTaxa[iii]
-    bootLassoAlpha_bon <- fdrRate
+    # bootLassoAlpha_bon <- fdrRate
     results$estiList[[originTaxNam]] <- bootResuHDCI(
       data = data,
       refTaxa = newRefTaxNam,
       originRefTaxNam = originTaxNam,
       bootB = bootB,
-      bootLassoAlpha = bootLassoAlpha_bon,
       binPredInd = binaryInd,
       covsPrefix = covsPrefix,
       Mprefix = Mprefix,
@@ -201,6 +201,12 @@ Regulariz_MZILN <- function(data,
           "CI low",
           "CI up",
           "unadj p-value")
+      
+      if (any(sub_taxa!="all")) {
+        est_res_save_all <-
+          est_res_save_all[est_res_save_all$taxon %in% sub_taxa, , drop = FALSE]
+      }
+      
       est_res_save_all$adj.p.value <-
         p.adjust(est_res_save_all$`unadj p-value`, adjust_method)
       rearrage_res_list[[j]] <- est_res_save_all

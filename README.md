@@ -13,7 +13,7 @@ devtools::install_github("gitlzg/IFAA")
 ```
 ## Usage
 
-This is a brief example to run `IFAA()` and `MZILN()` functions. More detailed instructions can be found in the manual and vignettes files. This example generates an example data from scratch, with 60 taxon, 40 subjects, and 3 covariates.
+This is a brief example to run `IFAA()` and `MZILN()` functions. More detailed instructions can be found in the manual and vignettes files. This example generates a toy  example data from scratch, with 10 taxon, 20 subjects, and 3 covariates.
 ```r
 # Detailed instructions on the package are 
 # provided in the vignettes and manual
@@ -87,11 +87,15 @@ sig_results=subset(summary_res,sig_ind==TRUE)
 Use the same datasets to run `MZILN()` function.
 ```r
 set.seed(123) # For full reproducibility
-results <- MZILN(experiment_dat=test_dat,
-                 refTaxa=c("rawCount10"),
-                 allCov=c("x1","x2","x3"),
-                 sampleIDname="ID",
-                 fdrRate=0.05)
+resultsRatio <- MZILN(
+  experiment_dat = test_dat,
+  microbVar = c("rawCount5","rawCount8"),
+  refTaxa = c("rawCount10"),
+  allCov = c("x1", "x2", "x3"),
+  sampleIDname = "ID",
+  fdrRate = 0.05,
+  paraJobs = 2
+)
 ```
 Regression results including confidence intervals for the targeted ratios can be extracted in the following way:
 ```r
@@ -99,13 +103,13 @@ Regression results including confidence intervals for the targeted ratios can be
 # as the denominator:
  summary_res<-results$full_results
  
-# to extract results for the ratio of a specific taxon (e.g., 
-# rawCount18) over rawCount34:
- target_ratio=summary_res[summary_res$taxon=="rawCount18",]
- 
-# to extract all ratios (with rawCount34 being denominator) having significant associations:
- sig_ratios=subset(summary_res,sig_ind==TRUE)
+# to extract results for the ratio "rawCount5/rawCount10":
+ target_ratio5=summary_res[summary_res$taxon=="rawCount5",]
+
+# to extract results for the ratio "rawCount8/rawCount10":
+ target_ratio8=summary_res[summary_res$taxon=="rawCount8",]
  ```
+ 
 
 ## References 
 - Zhigang Li, Lu Tian, A. James O'Malley, Margaret R. Karagas, Anne G. Hoen, Brock C. Christensen, Juliette C. Madan, Quran Wu, Raad Z. Gharaibeh, Christian Jobin, Hongzhe Li (2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association. 1595-1608
