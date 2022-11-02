@@ -98,14 +98,19 @@ resultsRatio <- MZILN(
 )
 ```
 Regression results including confidence intervals for the targeted ratios can be extracted in the following way:
+
 ```r
+# to extract the full results
+summary_res <- resultsRatio$full_results
+summary_res
+
 # to extract results for the ratio "rawCount5/rawCount10":
  target_ratio5=summary_res[summary_res$taxon=="rawCount5",]
 
 # to extract results for the ratio "rawCount8/rawCount10":
  target_ratio8=summary_res[summary_res$taxon=="rawCount8",]
  ```
- 
+
 
 ## References 
 - Zhigang Li, Lu Tian, A. James O'Malley, Margaret R. Karagas, Anne G. Hoen, Brock C. Christensen, Juliette C. Madan, Quran Wu, Raad Z. Gharaibeh, Christian Jobin, Hongzhe Li (2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association. 1595-1608
