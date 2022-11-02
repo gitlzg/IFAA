@@ -99,10 +99,6 @@ resultsRatio <- MZILN(
 ```
 Regression results including confidence intervals for the targeted ratios can be extracted in the following way:
 ```r
-# to extract the results for all ratios with rawCount34 
-# as the denominator:
- summary_res<-results$full_results
- 
 # to extract results for the ratio "rawCount5/rawCount10":
  target_ratio5=summary_res[summary_res$taxon=="rawCount5",]
 
