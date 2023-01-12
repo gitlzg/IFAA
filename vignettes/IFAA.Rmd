@@ -1,11 +1,11 @@
 ---
 title: "IFAA"
 # output: rmarkdown::html_vignette
-output: pdf_document
-# output:
-#   BiocStyle::html_document:
-#     toc: true
-#     toc_depth: 2
+#output: pdf_document
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
 vignette: >
   %\VignetteIndexEntry{IFAA}
   %\VignetteEngine{knitr::rmarkdown}
@@ -43,13 +43,7 @@ The challenge in microbiome analysis is that we can not oberve $\mathcal{Y}_i^k$
 
 ## Package installation 
 
-To install, type the following command in R console:
-
-```{r eval=FALSE}
-install.packages("IFAA", repos = "http://cran.us.r-project.org")
-```
-
-The package could be also installed from GitHub using the following code: 
+To install, follow the instruction on Bioconductor. The package could be also installed from GitHub using the following code: 
 
 ```{r eval=FALSE}
 require(devtools)

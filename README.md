@@ -5,10 +5,7 @@ with the absolute abundance (AA) of microbiome in an ecosystem, and the associat
 
 ## Installation
 ```r
-# Install from CRAN
-install.packages("IFAA", repos = "http://cran.us.r-project.org")
-
-# Or from GitHub:
+#Install from GitHub:
 devtools::install_github("gitlzg/IFAA")
 ```
 ## Usage
