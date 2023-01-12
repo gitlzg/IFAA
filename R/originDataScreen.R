@@ -6,7 +6,7 @@ originDataScreen <- function(data,
                              nRef,
                              paraJobs,
                              refTaxa,
-                             maxDimensionScr = 434 * 5 * 10^5,
+                             maxDimensionScr = 434 * 5 * 10 ^ 5,
                              run_linear_thresh = 21121540,
                              sequentialRun,
                              allFunc,
@@ -18,7 +18,7 @@ originDataScreen <- function(data,
                              dfmax_div = 3,
                              nlambda_num = 10) {
   results <- list()
-
+  
   # load data info
   basicInfo <- dataInfo(
     data = data,
@@ -26,22 +26,22 @@ originDataScreen <- function(data,
     covsPrefix = covsPrefix,
     binPredInd = binPredInd
   )
-
+  
   taxaNames <- basicInfo$taxaNames
   nTaxa <- basicInfo$nTaxa
   nPredics <- basicInfo$nPredics
   rm(basicInfo)
   gc()
-
+  
   nNorm <- nTaxa - 1
   nAlphaNoInt <- nPredics * nNorm
   nAlphaSelec <- nPredics * nTaxa
-
+  
   countOfSelec <- rep(0, nAlphaSelec)
-
+  
   # overwrite nRef if the reference taxon is specified
   nRef <- length(refTaxa)
-
+  
   startT1 <- proc.time()[3]
   if (length(paraJobs) == 0) {
     availCores <- parallelly::availableCores()
@@ -52,41 +52,36 @@ originDataScreen <- function(data,
       paraJobs <- 1
     }
   }
-
+  
   if (!sequentialRun) {
-    message(
-      paraJobs,
-      " parallel jobs are registered for the analysis."
-    )
+    message(paraJobs,
+            " parallel jobs are registered for the analysis.")
   }
-
+  
   cl <- parallel::makeCluster(paraJobs)
-
-  parallel::clusterExport(
-    cl = cl,
-    varlist = allFunc[c(1, 2, 4, 5)],
-    envir = environment()
-  )
-
+  
+  parallel::clusterExport(cl = cl,
+                          varlist = allFunc[c(1, 2, 4, 5)],
+                          envir = environment())
+  
   doParallel::registerDoParallel(cl)
-
+  
   if (sequentialRun) {
     foreach::registerDoSEQ()
   }
-
+  
   # start parallel computing
-
-
+  
+  
   scr1Resu <- foreach(
     i = seq_len(nRef),
     .multicombine = TRUE,
     .errorhandling = "pass"
   ) %dorng% {
-
     # for(i in seq_len(nRef)){
-
+    
     ii <- which(taxaNames == refTaxa[i])
-
+    
     dataForEst <- dataRecovTrans(
       data = data,
       ref = refTaxa[i],
@@ -95,39 +90,43 @@ originDataScreen <- function(data,
       binPredInd = binPredInd,
       contCovStd = TRUE
     )
-
+    
     xTildLongTild.i <- dataForEst$xTildalong
     yTildLongTild.i <- dataForEst$UtildaLong
     rm(dataForEst)
     gc()
-
+    
     maxSubSamplSiz <- min(50000, floor(maxDimensionScr /
-      ncol(xTildLongTild.i)))
+                                         ncol(xTildLongTild.i)))
     nToSamplFrom <- nrow(xTildLongTild.i)
-
+    
     subSamplK <- ceiling(nToSamplFrom / maxSubSamplSiz)
     if (subSamplK == 1) {
       maxSubSamplSiz <- nToSamplFrom
     }
-
+    
     nRuns <- ceiling(subSamplK / subsamp_cut)
-
+    
     for (k in seq_len(nRuns)) {
       rowToKeep <- sample(nToSamplFrom, maxSubSamplSiz)
-      x <- xTildLongTild.i[rowToKeep, ]
+      x <- xTildLongTild.i[rowToKeep,]
       y <- yTildLongTild.i[rowToKeep]
       
-      if (nrow(x) * ncol(x) < run_linear_thresh) {
-        Penal.i=runlinear(x=x,y=y,
-                          nPredics=nPredics)
-        BetaNoInt.k=0+(Penal.i$betaNoInt!=0)
-        EstNoInt.k<-abs(Penal.i$coef_est_noint)
+      if ((nrow(x) * ncol(x) < run_linear_thresh) && (nrow(x)>ncol(x))) {
+        Penal.i <- runlinear(x = x,
+                             y = y,
+                             nPredics = nPredics)
+        BetaNoInt.k <- 0 + (Penal.i$betaNoInt != 0)
+        EstNoInt.k <- abs(Penal.i$coef_est_noint)
       } else {
         dfmax <-
-          ceiling(min((nPredics + 1) * nNorm / dfmax_div, length(rowToKeep) /
-                        dfmax_div))
+          ceiling(min((nPredics + 1) * nNorm / dfmax_div,
+                      length(rowToKeep) /
+                        dfmax_div
+          ))
         
-        pmax <- ceiling(min((nPredics + 1) * nNorm, length(rowToKeep)))
+        pmax <-
+          ceiling(min((nPredics + 1) * nNorm, length(rowToKeep)))
         
         lasso.est <- glmnet::glmnet(
           x = x,
@@ -158,9 +157,9 @@ originDataScreen <- function(data,
         BetaNoInt.k <- (0 + (betaNoInt != 0))
         EstNoInt.k <- abs(betaNoInt)
       }
-
-
-
+      
+      
+      
       if (k == 1) {
         BetaNoInt.i <- BetaNoInt.k
         EstNoInt.i <- EstNoInt.k
@@ -175,7 +174,7 @@ originDataScreen <- function(data,
     gc()
     BetaNoInt.i <- BetaNoInt.i / nRuns
     EstNoInt.i <- EstNoInt.i / nRuns
-
+    
     selection.i <- rep(0, nAlphaSelec)
     coef.i <- rep(0, nAlphaSelec)
     if (ii == 1) {
@@ -191,16 +190,16 @@ originDataScreen <- function(data,
     if ((ii > 1) & (ii < nTaxa)) {
       selection.i[seq_len((nPredics * (ii - 1)))] <-
         BetaNoInt.i[seq_len((nPredics *
-          (ii - 1)))]
+                               (ii - 1)))]
       selection.i[(nPredics * ii + 1):nAlphaSelec] <-
         BetaNoInt.i[(nPredics *
-          (ii - 1) + 1):nAlphaNoInt]
+                       (ii - 1) + 1):nAlphaNoInt]
       coef.i[seq_len((nPredics * (ii - 1)))] <-
         EstNoInt.i[seq_len((nPredics *
-          (ii - 1)))]
+                              (ii - 1)))]
       coef.i[(nPredics * ii + 1):nAlphaSelec] <-
         EstNoInt.i[(nPredics *
-          (ii - 1) + 1):nAlphaNoInt]
+                      (ii - 1) + 1):nAlphaNoInt]
     }
     rm(BetaNoInt.i)
     # create return vector
@@ -213,50 +212,48 @@ originDataScreen <- function(data,
   parallel::stopCluster(cl)
   gc()
   rm(data)
-
+  
   endT <- proc.time()[3]
-
+  
   selecList <- list()
   for (i in seq_len(nRef)) {
     selecList[[i]] <- scr1Resu[[i]][[1]]
   }
-
+  
   estList <- list()
   for (i in seq_len(nRef)) {
     estList[[i]] <- scr1Resu[[i]][[2]]
   }
-
+  
   rm(scr1Resu)
-
+  
   scr1ResuSelec <- DescTools::DoCall(cbind, selecList)
   scr1ResuEst <- DescTools::DoCall(cbind, estList)
-
+  
   rm(selecList, estList)
-
+  
   # create count of selection for individual testCov
   countOfSelecForAllPred <-
     matrix(rowSums(scr1ResuSelec), nrow = nPredics)
   EstOfAllPred <- matrix(rowMeans(scr1ResuEst), nrow = nPredics)
-
+  
   testCovCountMat <-
     countOfSelecForAllPred[testCovInd, , drop = FALSE]
   testEstMat <- EstOfAllPred[testCovInd, , drop = FALSE]
-  rm(
-    scr1ResuSelec,
-    testCovInd,
-    countOfSelecForAllPred,
-    EstOfAllPred
-  )
-
+  rm(scr1ResuSelec,
+     testCovInd,
+     countOfSelecForAllPred,
+     EstOfAllPred)
+  
   # create overall count of selection for all testCov as a whole
   countOfSelecForAPred <- matrix(colSums(testCovCountMat), nrow = 1)
   estOfSelectForAPred <- matrix(colSums(testEstMat), nrow = 1)
   gc()
-
+  
   colnames(countOfSelecForAPred) <- taxaNames
   colnames(estOfSelectForAPred) <- taxaNames
   rm(taxaNames)
-
+  
   # return results
   results$testCovCountMat <- testCovCountMat
   results$testEstMat <- testEstMat
