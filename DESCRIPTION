@@ -30,7 +30,7 @@ URL: https://pubmed.ncbi.nlm.nih.gov/35241863/,
 BugReports: https://github.com/quranwu/IFAA/issues
 LazyData: FALSE
 RoxygenNote: 7.2.3
-Depends: R (>= 4.2.0),
+Depends: R (>= 4.0.0),
 Imports: mathjaxr, doRNG, foreach (>= 1.4.3), Matrix (>= 1.4-0), HDCI (>= 1.0-2),
         parallel (>= 3.3.0), doParallel (>= 1.0.11), parallelly ,
         glmnet, stats, utils, SummarizedExperiment, stringr, S4Vectors,
