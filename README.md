@@ -110,6 +110,6 @@ summary_res
 
 
 ## References 
-- Zhigang Li, Lu Tian, A. James O'Malley, Margaret R. Karagas, Anne G. Hoen, Brock C. Christensen, Juliette C. Madan, Quran Wu, Raad Z. Gharaibeh, Christian Jobin, Hongzhe Li (2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association. 1595-1608
+- Li Z, Tian L, O'Malley J, Karagas M, Hoen A, Christensen B, Madan J, Wu Q, Gharaibeh R, Jobin C, Li H  (2021) IFAA: Robust association identification and Inference For Absolute Abundance in microbiome analyses. Journal of the American Statistical Association. 1595-1608
 
-- Zhigang Li, Katherine Lee, Margaret Karagas, Juliette Madan, Anne Hoen, James O'Malley and Hongzhe Li (2018) Conditional regression based on a multivariate zero-inflated logistic normal model for modeling microbiome data. Statistics in Biosciences 10(3):587-608
+- Li Z, Lee K, Karagas M, Madan J, Hoen A, O’Malley J and Li H  (2018) Conditional regression based on a multivariate zero-inflated logistic normal model for modeling microbiome data. Statistics in Biosciences 10(3):587-608
